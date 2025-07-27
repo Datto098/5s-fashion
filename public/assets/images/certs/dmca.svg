@@ -1,0 +1,5 @@
+<svg width="60" height="30" xmlns="http://www.w3.org/2000/svg">
+  <rect width="60" height="30" fill="#28A745" rx="4"/>
+  <text x="30" y="15" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="8" font-weight="bold">DMCA</text>
+  <text x="30" y="25" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="5">PROTECTED</text>
+</svg>

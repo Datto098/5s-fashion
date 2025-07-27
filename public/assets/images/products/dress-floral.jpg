@@ -1,0 +1,11 @@
+<svg width="400" height="500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <rect x="50" y="50" width="300" height="400" fill="#ffe6f2" stroke="#d63384" stroke-width="2"/>
+  <text x="200" y="230" text-anchor="middle" fill="#d63384" font_family="Arial, sans-serif" font-size="16">Váy Maxi</text>
+  <text x="200" y="250" text-anchor="middle" fill="#d63384" font-family="Arial, sans-serif" font-size="16">Hoa Nhí</text>
+  <text x="200" y="280" text-anchor="middle" fill="#28a745" font-family="Arial, sans-serif" font-size="18" font-weight="bold">890.000₫</text>
+  <path d="M160 120 L240 120 L230 200 L170 200 Z" fill="#ff69b4" stroke="#d63384"/>
+  <circle cx="180" cy="140" r="5" fill="#ffffff"/>
+  <circle cx="200" cy="160" r="4" fill="#ffffff"/>
+  <circle cx="220" cy="140" r="5" fill="#ffffff"/>
+</svg>

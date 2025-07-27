@@ -1,0 +1,6 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#fff0f5"/>
+  <rect x="50" y="50" width="300" height="200" fill="#f3e2f3" stroke="#d59bd5" stroke-width="2"/>
+  <text x="200" y="140" text-anchor="middle" fill="#9b2c9b" font-family="Arial, sans-serif" font-size="18">Quần Nữ</text>
+  <text x="200" y="170" text-anchor="middle" fill="#c572c5" font-family="Arial, sans-serif" font-size="14">Category Image</text>
+</svg>

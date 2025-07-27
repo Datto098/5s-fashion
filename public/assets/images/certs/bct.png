@@ -1,0 +1,7 @@
+<svg width="60" height="30" xmlns="http://www.w3.org/2000/svg">
+  <rect width="60" height="30" fill="#DC3545" rx="4"/>
+  <circle cx="15" cy="15" r="10" fill="white"/>
+  <text x="15" y="11" text-anchor="middle" fill="#DC3545" font-family="Arial, sans-serif" font-size="6" font-weight="bold">BỘ</text>
+  <text x="15" y="18" text-anchor="middle" fill="#DC3545" font-family="Arial, sans-serif" font-size="6" font-weight="bold">CT</text>
+  <text x="45" y="20" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="5" font-weight="bold">ĐKKD</text>
+</svg>

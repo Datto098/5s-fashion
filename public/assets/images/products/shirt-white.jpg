@@ -1,0 +1,9 @@
+<svg width="400" height="500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <rect x="50" y="50" width="300" height="400" fill="#f8f9fa" stroke="#dee2e6" stroke-width="2"/>
+  <text x="200" y="230" text-anchor="middle" fill="#6c757d" font-family="Arial, sans-serif" font-size="16">Áo Sơ Mi</text>
+  <text x="200" y="250" text-anchor="middle" fill="#6c757d" font-family="Arial, sans-serif" font-size="16">Trắng Classic</text>
+  <text x="200" y="280" text-anchor="middle" fill="#28a745" font-family="Arial, sans-serif" font-size="18" font-weight="bold">450.000₫</text>
+  <circle cx="200" cy="150" r="40" fill="#ffffff" stroke="#dee2e6" stroke-width="2"/>
+  <rect x="180" y="130" width="40" height="40" fill="#f8f9fa" stroke="#adb5bd"/>
+</svg>

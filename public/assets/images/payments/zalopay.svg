@@ -1,0 +1,5 @@
+<svg width="80" height="30" xmlns="http://www.w3.org/2000/svg">
+  <rect width="80" height="30" fill="#0068FF" rx="4"/>
+  <text x="40" y="15" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="9" font-weight="bold">ZaloPay</text>
+  <text x="40" y="25" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="6">Zalo</text>
+</svg>

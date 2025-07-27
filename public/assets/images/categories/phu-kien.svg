@@ -1,0 +1,6 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#f0fff0"/>
+  <rect x="50" y="50" width="300" height="200" fill="#d4edda" stroke="#a3cfbb" stroke-width="2"/>
+  <text x="200" y="140" text-anchor="middle" fill="#155724" font-family="Arial, sans-serif" font-size="18">Phụ Kiện</text>
+  <text x="200" y="170" text-anchor="middle" fill="#28a745" font-family="Arial, sans-serif" font-size="14">Category Image</text>
+</svg>

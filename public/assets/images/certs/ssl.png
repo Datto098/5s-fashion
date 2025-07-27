@@ -1,0 +1,7 @@
+<svg width="60" height="30" xmlns="http://www.w3.org/2000/svg">
+  <rect width="60" height="30" fill="#FFC107" rx="4"/>
+  <rect x="5" y="5" width="15" height="20" fill="white" rx="2"/>
+  <path d="M12.5 12 L17 8 L22 12 L17 16 Z" fill="#FFC107"/>
+  <text x="45" y="13" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="6" font-weight="bold">SSL</text>
+  <text x="45" y="22" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="5">SECURE</text>
+</svg>
