@@ -761,6 +761,73 @@ function showToast(message, type = 'info') {
 }
 ";
 
+// Add chatbot CSS and JS
+$custom_css[] = 'css/chatbot.css';
+$custom_js[] = 'js/chatbot.js';
+
+// Add chatbot HTML after content
+$content .= '
+<!-- Chatbot -->
+<div id="chatbot-toggle" class="chatbot-toggle">
+    <i class="fas fa-comments"></i>
+</div>
+
+<div id="chatbot-container" class="chatbot-container">
+    <div class="chatbot-header">
+        <div class="chatbot-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="chatbot-info">
+            <h4>5S Fashion Assistant</h4>
+            <span class="status online">Trực tuyến</span>
+        </div>
+        <button class="chatbot-close" id="chatbot-close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="chatbot-messages" id="chatbot-messages">
+        <div class="message bot-message">
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-text">
+                    Xin chào! Tôi là trợ lý ảo của 5S Fashion. Tôi có thể giúp bạn tìm sản phẩm, tư vấn thời trang, hoặc hỗ trợ mua hàng. Bạn cần hỗ trợ gì?
+                </div>
+                <div class="message-time">' . date('H:i') . '</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chatbot-quick-actions">
+        <button class="quick-action" data-message="Sản phẩm bán chạy">
+            <i class="fas fa-fire"></i>
+            Sản phẩm hot
+        </button>
+        <button class="quick-action" data-message="Sản phẩm giảm giá">
+            <i class="fas fa-tags"></i>
+            Khuyến mãi
+        </button>
+        <button class="quick-action" data-message="Tư vấn thời trang">
+            <i class="fas fa-magic"></i>
+            Tư vấn
+        </button>
+    </div>
+
+    <div class="chatbot-input">
+        <input type="text" id="chatbot-input" placeholder="Nhập tin nhắn...">
+        <button id="chatbot-send">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>';
+
+// Add chatbot initialization script
+$inline_js .= "
+// Additional chatbot functionality can be added here if needed
+";
+
 // Include main layout
 include VIEW_PATH . '/client/layouts/app.php';
 ?>

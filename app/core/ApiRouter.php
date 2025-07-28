@@ -115,6 +115,21 @@ class ApiRouter
      */
     private function getCurrentPath()
     {
+        // Use URL parameter from .htaccess rewrite if available
+        if (isset($_GET['url'])) {
+            $path = $_GET['url'];
+
+            // Remove api prefix if present
+            if (strpos($path, 'api/') === 0) {
+                $path = substr($path, 4);
+            } elseif (strpos($path, 'api') === 0) {
+                $path = substr($path, 3);
+            }
+
+            return '/' . ltrim($path, '/');
+        }
+
+        // Fallback to REQUEST_URI parsing
         $requestUri = $_SERVER['REQUEST_URI'];
         $path = parse_url($requestUri, PHP_URL_PATH);
 

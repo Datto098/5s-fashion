@@ -18,8 +18,10 @@ if (file_exists('../.env')) {
 // Define constants
 require_once '../app/config/constants.php';
 
-// Set content type to JSON by default
-header('Content-Type: application/json');
+// Set content type to JSON with UTF-8 encoding
+header('Content-Type: application/json; charset=utf-8');
+mb_internal_encoding('UTF-8');
+mb_http_output('UTF-8');
 
 // Enable CORS for all API requests
 header('Access-Control-Allow-Origin: *');
@@ -70,6 +72,9 @@ spl_autoload_register(function ($className) {
 try {
     // Include API routes
     require_once __DIR__ . '/../app/api/routes.php';
+
+    // Dispatch the router
+    $router->dispatch();
 
 } catch (Exception $e) {
     // Log the error

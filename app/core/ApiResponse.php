@@ -16,7 +16,7 @@ class ApiResponse
     public static function success($data = null, $message = 'Success', $statusCode = 200)
     {
         http_response_code($statusCode);
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
 
         $response = [
             'success' => true,
@@ -40,7 +40,7 @@ class ApiResponse
     public static function error($message = 'Error occurred', $statusCode = 400, $errors = null)
     {
         http_response_code($statusCode);
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
 
         $response = [
             'success' => false,

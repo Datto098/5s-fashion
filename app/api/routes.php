@@ -106,6 +106,12 @@ $router->post('/voucher/save', 'VoucherApiController@save');
 $router->get('/voucher/check', 'VoucherApiController@check');
 $router->get('/auth/check', 'AuthApiController@check');
 
+// Chatbot API routes
+$router->post('/chatbot/chat', 'ChatbotApiController@chat');
+$router->get('/chatbot/products/best-selling', 'ChatbotApiController@getBestSellingProducts');
+$router->get('/chatbot/products/discounted', 'ChatbotApiController@getDiscountedProducts');
+$router->get('/chatbot/products/new', 'ChatbotApiController@getNewProducts');
+
 // User API routes
 $router->get('/user/orders', 'UserApiController@orders');
 $router->get('/user/orders/{id}', 'UserApiController@orderDetails');
