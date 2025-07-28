@@ -16,7 +16,15 @@ RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{REQUEST_URI} ^/public/uploads/ [NC]
 RewriteRule .* - [L]
 
+# Allow direct access to API files in public/api/
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} ^/5s-fashion/api/ [NC]
+RewriteRule ^api/(.*)$ public/api/$1 [L]
+
+# API Routes - redirect remaining to api.php
+RewriteRule ^api/(.*)$ public/api.php [QSA,L]
+
 # Route all other requests to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]

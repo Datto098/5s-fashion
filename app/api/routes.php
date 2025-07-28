@@ -99,6 +99,13 @@ $router->post('/wishlist/toggle', 'WishlistApiController@toggle');
 $router->get('/wishlist/check/{id}', 'WishlistApiController@check');
 $router->post('/wishlist/move-to-cart', 'WishlistApiController@moveToCart');
 
+// Voucher API routes
+$router->get('/vouchers', 'VoucherApiController@index');
+$router->get('/vouchers/featured', 'VoucherApiController@featured');
+$router->post('/voucher/save', 'VoucherApiController@save');
+$router->get('/voucher/check', 'VoucherApiController@check');
+$router->get('/auth/check', 'AuthApiController@check');
+
 // User API routes
 $router->get('/user/orders', 'UserApiController@orders');
 $router->get('/user/orders/{id}', 'UserApiController@orderDetails');

@@ -118,15 +118,15 @@ class ApiRouter
         $requestUri = $_SERVER['REQUEST_URI'];
         $path = parse_url($requestUri, PHP_URL_PATH);
 
+        // Remove project folder from path first (for WAMP: /5s-fashion)
+        $projectFolder = '/5s-fashion';
+        if (strpos($path, $projectFolder) === 0) {
+            $path = substr($path, strlen($projectFolder));
+        }
+
         // Remove /api prefix if present
         if (strpos($path, '/api') === 0) {
             $path = substr($path, 4);
-        }
-
-        // Remove project folder from path
-        $scriptName = dirname($_SERVER['SCRIPT_NAME']);
-        if (strpos($path, $scriptName) === 0) {
-            $path = substr($path, strlen($scriptName));
         }
 
         return $path ?: '/';

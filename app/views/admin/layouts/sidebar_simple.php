@@ -61,6 +61,12 @@ function getActiveClass($menuPath, $currentPath) {
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/5s-fashion/admin/coupons" class="nav-link <?= getActiveClass('/5s-fashion/admin/coupons', $currentPath) ?>">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Voucher</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/5s-fashion/admin/settings" class="nav-link <?= getActiveClass('/5s-fashion/admin/settings', $currentPath) ?>">
                     <i class="fas fa-cog"></i>
                     <span>Cài đặt</span>

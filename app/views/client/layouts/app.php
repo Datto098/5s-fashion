@@ -22,6 +22,13 @@
             <link href="<?= asset($css) ?>" rel="stylesheet">
         <?php endforeach; ?>
     <?php endif; ?>
+
+    <!-- Inline CSS -->
+    <?php if (isset($inline_css)): ?>
+        <style>
+            <?= $inline_css ?>
+        </style>
+    <?php endif; ?>
 </head>
 <body data-logged-in="<?= isLoggedIn() ? 'true' : 'false' ?>">
     <!-- Header -->

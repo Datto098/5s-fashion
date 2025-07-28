@@ -863,9 +863,9 @@ class Product extends BaseModel
                 'SKU' => $product['sku'],
                 'Danh mục' => $product['category_name'],
                 'Giá' => number_format($product['price']),
-                'Giá so sánh' => $product['compare_price'] ? number_format($product['compare_price']) : '',
+                'Giá sale' => $product['sale_price'] ? number_format($product['sale_price']) : '',
                 'Tồn kho' => $product['total_stock'],
-                'Trạng thái' => $product['status'] === 'active' ? 'Hoạt động' : 'Không hoạt động',
+                'Trạng thái' => $product['status'] === 'published' ? 'Hoạt động' : 'Không hoạt động',
                 'Nổi bật' => $product['featured'] ? 'Có' : 'Không',
                 'Ngày tạo' => $product['created_at'],
                 'Cập nhật cuối' => $product['updated_at']

@@ -8,11 +8,13 @@ class HomeController extends Controller
 {
     private $productModel;
     private $categoryModel;
+    private $couponModel;
 
     public function __construct()
     {
         $this->productModel = $this->model('Product');
         $this->categoryModel = $this->model('Category');
+        $this->couponModel = $this->model('Coupon');
     }
 
     public function index()
@@ -32,13 +34,17 @@ class HomeController extends Controller
         // Get sale products
         $saleProducts = $this->productModel->getSaleProducts(8);
 
+        // Get featured vouchers for homepage
+        $featuredVouchers = $this->couponModel->getFeaturedVouchers(2);
+
         $data = [
             'title' => '5S Fashion - Thời trang nam nữ cao cấp',
             'featured_categories' => $featuredCategories,
             'featured_products' => $featuredProducts,
             'new_arrivals' => $newArrivals,
             'best_sellers' => $bestSellers,
-            'sale_products' => $saleProducts
+            'sale_products' => $saleProducts,
+            'featured_vouchers' => $featuredVouchers
         ];
 
         $this->view('client/home/index', $data);

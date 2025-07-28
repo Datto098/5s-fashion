@@ -119,6 +119,88 @@ ob_start();
     </div>
 </section>
 
+<!-- Featured Vouchers Section -->
+<?php if (!empty($featured_vouchers)): ?>
+<section class="voucher-section" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 60px 0;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2><i class="fas fa-fire text-danger me-2"></i>Voucher Hot Giảm Giá</h2>
+                <p style="text-align: center; color: #666; font-size: 16px; margin-bottom: 40px;">
+                    Thu thập ngay các voucher ưu đãi để tiết kiệm cho đơn hàng tiếp theo!
+                </p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <?php foreach ($featured_vouchers as $index => $voucher): ?>
+                <div class="col-lg-5 col-md-6 mb-4">
+                    <div class="voucher-card <?= $voucher['type'] === 'fixed' ? 'fixed' : '' ?>" data-voucher-id="<?= $voucher['id'] ?>">
+                        <!-- Decorative elements -->
+                        <div class="decoration-1"></div>
+                        <div class="decoration-2"></div>
+
+                        <!-- Voucher Header -->
+                        <div class="voucher-header">
+                            <div class="voucher-icon">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div class="voucher-content">
+                                <div class="voucher-discount">
+                                    <?php if ($voucher['type'] === 'percentage'): ?>
+                                        <?= number_format($voucher['value']) ?>% OFF
+                                    <?php else: ?>
+                                        -<?= number_format($voucher['value']) ?>đ
+                                    <?php endif; ?>
+                                </div>
+                                <div class="voucher-title"><?= htmlspecialchars($voucher['name']) ?></div>
+                            </div>
+                        </div>
+
+                        <!-- Voucher Description -->
+                        <div class="voucher-description">
+                            <?php if ($voucher['minimum_amount']): ?>
+                                Áp dụng cho đơn hàng từ <?= number_format($voucher['minimum_amount']) ?>đ
+                            <?php else: ?>
+                                Áp dụng cho mọi đơn hàng
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Voucher Code -->
+                        <div class="voucher-code">
+                            <?= $voucher['code'] ?>
+                        </div>
+
+                        <!-- Voucher Footer -->
+                        <div class="voucher-footer">
+                            <div class="voucher-expiry">
+                                <i class="far fa-clock"></i>
+                                HSD: <?= date('d.m.Y', strtotime($voucher['valid_until'])) ?>
+                            </div>
+                            <div class="voucher-actions">
+                                <button class="btn-save-voucher" data-coupon-id="<?= $voucher['id'] ?>">
+                                    <i class="fas fa-bookmark"></i>
+                                    Lưu mã
+                                </button>
+                                <button class="btn-copy-code" data-code="<?= $voucher['code'] ?>">
+                                    <i class="fas fa-copy"></i>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="text-center mt-4">
+            <a href="/5s-fashion/vouchers" class="btn btn-outline-primary">
+                <i class="fas fa-ticket-alt me-2"></i>
+                Xem tất cả voucher
+            </a>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 <!-- Featured Categories -->
 <?php if (!empty($featured_categories)): ?>
 <section class="categories-section py-5">
@@ -267,6 +349,417 @@ $custom_js = ['js/homepage.js'];
 
 // Set additional data
 $show_breadcrumb = false;
+
+// Inline CSS for voucher section
+$inline_css = "
+.voucher-section {
+    margin: 50px 0;
+    padding: 0 15px;
+}
+
+.voucher-section h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-weight: 600;
+    position: relative;
+}
+
+.voucher-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6b6b, #ffa726);
+    border-radius: 2px;
+}
+
+.voucher-card {
+    position: relative;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ffa726 100%);
+    border-radius: 20px;
+    padding: 25px;
+    color: white;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(255, 107, 107, 0.3);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.voucher-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 0% 50%, transparent 12px, white 13px, white 15px, transparent 16px),
+                radial-gradient(circle at 100% 50%, transparent 12px, white 13px, white 15px, transparent 16px);
+    background-size: 25px 25px;
+    background-position: 0% 50%, 100% 50%;
+    background-repeat: repeat-y;
+    pointer-events: none;
+    border-radius: 20px;
+}
+
+.voucher-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -8px;
+    right: -8px;
+    height: 16px;
+    background: radial-gradient(circle at 50% 50%, transparent 8px, rgba(255,255,255,0.1) 9px, rgba(255,255,255,0.1) 10px, transparent 11px);
+    background-size: 16px 16px;
+    background-repeat: repeat-x;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.voucher-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(255, 107, 107, 0.4);
+}
+
+.voucher-card.fixed {
+    background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 50%, #81C784 100%);
+    box-shadow: 0 15px 35px rgba(76, 175, 80, 0.3);
+}
+
+.voucher-card.fixed:hover {
+    box-shadow: 0 25px 50px rgba(76, 175, 80, 0.4);
+}
+
+.voucher-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.voucher-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 18px;
+    backdrop-filter: blur(10px);
+}
+
+.voucher-content {
+    flex: 1;
+}
+
+.voucher-discount {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    line-height: 1;
+}
+
+.voucher-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    opacity: 0.95;
+}
+
+.voucher-description {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.voucher-code {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 8px 15px;
+    border-radius: 25px;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    border: 2px dashed rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+}
+
+.voucher-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.voucher-expiry {
+    font-size: 12px;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.voucher-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-save-voucher, .btn-copy-code {
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 100px;
+    justify-content: center;
+}
+
+.btn-save-voucher {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+}
+
+.btn-save-voucher:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-copy-code {
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.btn-copy-code:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.btn-save-voucher:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Decorative elements */
+.voucher-card .decoration-1 {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 60px;
+    height: 60px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.voucher-card .decoration-2 {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    width: 30px;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+    .voucher-card {
+        margin-bottom: 25px;
+        min-height: 160px;
+        padding: 20px;
+    }
+
+    .voucher-discount {
+        font-size: 28px;
+    }
+
+    .voucher-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-save-voucher, .btn-copy-code {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .voucher-footer {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 576px) {
+    .voucher-section {
+        margin: 30px 0;
+        padding: 0 10px;
+    }
+
+    .voucher-card {
+        padding: 18px;
+        min-height: 140px;
+    }
+
+    .voucher-discount {
+        font-size: 24px;
+    }
+
+    .voucher-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+}
+";// Inline JavaScript for voucher functionality
+$inline_js = "
+// Save voucher functionality
+document.querySelectorAll('.btn-save-voucher').forEach(button => {
+    button.addEventListener('click', function() {
+        const couponId = this.getAttribute('data-coupon-id');
+
+        // Check if user is logged in
+        fetch('/5s-fashion/api/auth/check')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.data.authenticated) {
+                    showToast('Vui lòng đăng nhập để lưu voucher', 'warning');
+                    return;
+                }
+
+                // Save voucher
+                return fetch('/5s-fashion/api/voucher/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ coupon_id: couponId })
+                });
+            })
+            .then(response => {
+                if (response) return response.json();
+            })
+            .then(result => {
+                if (result) {
+                    if (result.success) {
+                        this.innerHTML = '<i class=\"fas fa-check\"></i> Đã lưu';
+                        this.disabled = true;
+                        this.classList.add('disabled');
+                        showToast('Voucher đã được lưu vào tài khoản của bạn!', 'success');
+                    } else {
+                        showToast(result.message || 'Không thể lưu voucher', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Có lỗi xảy ra, vui lòng thử lại', 'error');
+            });
+    });
+});
+
+// Copy voucher code functionality
+document.querySelectorAll('.btn-copy-code').forEach(button => {
+    button.addEventListener('click', function() {
+        const code = this.getAttribute('data-code');
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class=\"fas fa-check\"></i> Đã sao chép';
+                showToast('Đã sao chép mã voucher: ' + code, 'success');
+
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            });
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = code;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class=\"fas fa-check\"></i> Đã sao chép';
+            showToast('Đã sao chép mã voucher: ' + code, 'success');
+
+            setTimeout(() => {
+                this.innerHTML = originalText;
+            }, 2000);
+        }
+    });
+});
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification toast-' + type;
+
+    let iconClass = 'info-circle';
+    if (type === 'success') iconClass = 'check-circle';
+    else if (type === 'warning') iconClass = 'exclamation-triangle';
+    else if (type === 'error') iconClass = 'x-circle';
+
+    toast.innerHTML = '<div class=\"toast-content\">' +
+        '<i class=\"fas fa-' + iconClass + '\"></i>' +
+        '<span>' + message + '</span>' +
+        '</div>';
+
+    // Add toast styles
+    let bgColor = '#17a2b8';
+    if (type === 'success') bgColor = '#28a745';
+    else if (type === 'warning') bgColor = '#ffc107';
+    else if (type === 'error') bgColor = '#dc3545';
+
+    toast.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 15px 20px; background: ' + bgColor + '; color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateX(100%); transition: transform 0.3s ease; font-size: 14px; max-width: 300px;';
+
+    document.body.appendChild(toast);
+
+    // Animate in
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+";
 
 // Include main layout
 include VIEW_PATH . '/client/layouts/app.php';

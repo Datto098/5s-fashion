@@ -4,6 +4,20 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Load environment and constants first
+if (file_exists('../.env')) {
+    $lines = file('../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false && substr($line, 0, 1) !== '#') {
+            list($key, $value) = explode('=', $line, 2);
+            $_ENV[trim($key)] = trim($value);
+        }
+    }
+}
+
+// Define constants
+require_once '../app/config/constants.php';
+
 // Set content type to JSON by default
 header('Content-Type: application/json');
 
@@ -22,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 session_start();
 
 // Include required files
+require_once __DIR__ . '/../app/helpers/functions.php';
 require_once __DIR__ . '/../app/core/ApiResponse.php';
 require_once __DIR__ . '/../app/core/ApiController.php';
 require_once __DIR__ . '/../app/core/ApiRouter.php';

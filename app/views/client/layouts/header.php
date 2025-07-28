@@ -162,6 +162,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link text-white px-4 py-3" href="/5s-fashion/vouchers">
+                            <i class="fas fa-ticket-alt me-2"></i>Voucher
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link text-white px-4 py-3" href="/5s-fashion/blog">
                             <i class="fas fa-newspaper me-2"></i>Blog
                         </a>

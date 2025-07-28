@@ -64,6 +64,17 @@ $router->post('/wishlist/add', 'WishlistController@add');
 $router->post('/wishlist/remove', 'WishlistController@remove');
 $router->post('/wishlist/clear', 'WishlistController@clear');
 
+// Voucher routes
+$router->get('/vouchers', 'VoucherController@index');
+$router->get('/vouchers/my-vouchers', 'VoucherController@myVouchers');
+$router->post('/vouchers/save', 'VoucherController@save');
+$router->post('/vouchers/remove', 'VoucherController@remove');
+$router->get('/vouchers/validate', 'VoucherController@validate');
+$router->get('/vouchers/get-valid', 'VoucherController@getValidVouchers');
+$router->post('/vouchers/apply', 'VoucherController@apply');
+$router->post('/vouchers/remove-applied', 'VoucherController@removeApplied');
+$router->get('/vouchers/share/{id}', 'VoucherController@share');
+
 // Static pages
 $router->get('/about', 'HomeController@about');
 $router->get('/contact', 'HomeController@contact');

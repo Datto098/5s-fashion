@@ -107,6 +107,22 @@ function getActiveClass($menuPath, $currentPath) {
         </div>
 
         <div class="nav-section">
+            <div class="nav-section-title">Marketing</div>
+            <div class="nav-item">
+                <a href="/5s-fashion/admin/coupons" class="nav-link <?= getActiveClass('/5s-fashion/admin/coupons', $currentPath) ?>">
+                    <i class="fas fa-ticket-alt nav-icon"></i>
+                    <span class="nav-text">Quản lý Voucher</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/5s-fashion/admin/coupons/create" class="nav-link <?= getActiveClass('/5s-fashion/admin/coupons/create', $currentPath) ?>">
+                    <i class="fas fa-plus-circle nav-icon"></i>
+                    <span class="nav-text">Tạo Voucher</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="nav-section">
             <div class="nav-section-title">Hệ thống</div>
             <div class="nav-item">
                 <a href="/5s-fashion/admin/settings" class="nav-link <?= getActiveClass('/5s-fashion/admin/settings', $currentPath) ?>">

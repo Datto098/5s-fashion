@@ -32,8 +32,5 @@ require_once APP_PATH . '/core/Database.php';
 require_once APP_PATH . '/core/Model.php';
 require_once APP_PATH . '/core/Controller.php';
 
-// Register autoloader after loading App class
-spl_autoload_register(['App', 'autoload']);
-
 // Initialize application
 $app = new App();

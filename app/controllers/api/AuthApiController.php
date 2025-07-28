@@ -408,18 +408,39 @@ class AuthApiController extends ApiController
     }
 
     /**
+     * Check authentication status
+     */
+    public function check()
+    {
+        try {
+            if (isLoggedIn()) {
+                ApiResponse::success([
+                    'authenticated' => true,
+                    'user' => $this->formatUser($_SESSION['user'])
+                ], 'User is authenticated');
+            } else {
+                ApiResponse::success([
+                    'authenticated' => false
+                ], 'User is not authenticated');
+            }
+        } catch (Exception $e) {
+            ApiResponse::error('Failed to check authentication: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Format user data for response
      */
     private function formatUser($user)
     {
         return [
             'id' => (int)$user['id'],
-            'name' => $user['name'],
-            'email' => $user['email'],
-            'phone' => $user['phone'],
-            'role' => $user['role'],
-            'status' => $user['status'],
-            'created_at' => $user['created_at'],
+            'name' => $user['full_name'] ?? $user['name'] ?? null,
+            'email' => $user['email'] ?? null,
+            'phone' => $user['phone'] ?? null,
+            'role' => $user['role'] ?? null,
+            'status' => $user['status'] ?? null,
+            'created_at' => $user['created_at'] ?? null,
             'updated_at' => $user['updated_at'] ?? null
         ];
     }

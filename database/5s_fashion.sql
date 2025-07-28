@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jul 27, 2025 at 07:02 PM
+-- Generation Time: Jul 28, 2025 at 07:41 AM
 -- Server version: 9.1.0
 -- PHP Version: 8.3.14
 
@@ -170,6 +170,7 @@ CREATE TABLE IF NOT EXISTS `coupons` (
   `valid_from` timestamp NULL DEFAULT NULL,
   `valid_until` timestamp NULL DEFAULT NULL,
   `status` enum('active','inactive','expired') COLLATE utf8mb4_unicode_ci DEFAULT 'active',
+  `is_featured` tinyint(1) DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -177,17 +178,20 @@ CREATE TABLE IF NOT EXISTS `coupons` (
   KEY `coupons_status_index` (`status`),
   KEY `coupons_valid_from_index` (`valid_from`),
   KEY `coupons_valid_until_index` (`valid_until`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `coupons`
 --
 
-INSERT INTO `coupons` (`id`, `code`, `name`, `description`, `type`, `value`, `minimum_amount`, `maximum_discount`, `usage_limit`, `used_count`, `user_limit`, `valid_from`, `valid_until`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'WELCOME10', 'Chào mừng khách hàng mới', 'Giảm 10% cho đơn hàng đầu tiên', 'percentage', 10.00, 200000.00, NULL, 100, 0, NULL, '2025-07-25 13:10:32', '2025-08-24 13:10:32', 'active', '2025-07-25 13:10:32', '2025-07-25 13:10:32'),
-(2, 'FREESHIP', 'Miễn phí vận chuyển', 'Miễn phí ship cho đơn từ 500k', 'fixed_amount', 30000.00, 500000.00, NULL, 200, 0, NULL, '2025-07-25 13:10:32', '2025-09-23 13:10:32', 'active', '2025-07-25 13:10:32', '2025-07-25 13:10:32'),
-(3, 'SALE20', 'Giảm giá 20%', 'Giảm 20% cho đơn hàng trên 1 triệu', 'percentage', 20.00, 1000000.00, NULL, 50, 0, NULL, '2025-07-25 13:10:32', '2025-08-09 13:10:32', 'active', '2025-07-25 13:10:32', '2025-07-25 13:10:32'),
-(4, 'SUMMER50', 'Ưu đãi mùa hè', 'Giảm 50k cho đơn hàng mùa hè', 'fixed_amount', 50000.00, 300000.00, NULL, 150, 0, NULL, '2025-07-25 13:10:32', '2025-09-08 13:10:32', 'active', '2025-07-25 13:10:32', '2025-07-25 13:10:32');
+INSERT INTO `coupons` (`id`, `code`, `name`, `description`, `type`, `value`, `minimum_amount`, `maximum_discount`, `usage_limit`, `used_count`, `user_limit`, `valid_from`, `valid_until`, `status`, `is_featured`, `created_at`, `updated_at`) VALUES
+(1, 'WELCOME10', 'Chào mừng khách hàng mới', 'Giảm 10% cho đơn hàng đầu tiên', 'percentage', 10.00, 200000.00, NULL, 100, 0, NULL, '2025-07-25 13:10:32', '2025-08-24 13:10:32', 'active', 0, '2025-07-25 13:10:32', '2025-07-25 13:10:32'),
+(2, 'FREESHIP', 'Miễn phí vận chuyển', 'Miễn phí ship cho đơn từ 500k', 'fixed_amount', 30000.00, 500000.00, NULL, 200, 0, NULL, '2025-07-25 13:10:32', '2025-09-23 13:10:32', 'active', 0, '2025-07-25 13:10:32', '2025-07-25 13:10:32'),
+(3, 'SALE20', 'Giảm giá 20%', 'Giảm 20% cho đơn hàng trên 1 triệu', 'percentage', 20.00, 1000000.00, NULL, 50, 0, NULL, '2025-07-25 13:10:32', '2025-08-09 13:10:32', 'active', 0, '2025-07-25 13:10:32', '2025-07-25 13:10:32'),
+(4, 'SUMMER50', 'Ưu đãi mùa hè', 'Giảm 50k cho đơn hàng mùa hè', 'fixed_amount', 50000.00, 300000.00, NULL, 150, 0, NULL, '2025-07-25 13:10:32', '2025-09-08 13:10:32', 'active', 0, '2025-07-25 13:10:32', '2025-07-25 13:10:32'),
+(5, 'NEW11', 'NEW11', 'NEW11', 'percentage', 10.00, 10000.00, 20000.00, 10, 0, 1, '2025-07-28 06:13:00', '2025-07-30 06:13:00', 'active', 0, '2025-07-28 06:13:48', '2025-07-28 06:13:48'),
+(6, 'WELCOME20', 'Gi?m 20% cho khách hàng m?i', 'Chào m?ng b?n ??n v?i 5S Fashion! Gi?m 20% cho ??n hàng ??u tiên.', 'percentage', 20.00, 200000.00, 80000.00, 100, 0, NULL, '2025-07-28 06:29:57', '2025-08-27 06:29:57', 'active', 1, '2025-07-28 06:29:57', '2025-07-28 06:29:57'),
+(7, 'SAVE50K', 'Gi?m 50.000?', 'Gi?m ngay 50.000? cho ??n hàng t? 400.000?', 'fixed_amount', 50000.00, 400000.00, NULL, 200, 0, NULL, '2025-07-28 06:30:13', '2025-08-27 06:30:13', 'active', 1, '2025-07-28 06:30:13', '2025-07-28 06:30:13');
 
 -- --------------------------------------------------------
 
@@ -348,7 +352,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   KEY `order_items_order_id_foreign` (`order_id`),
   KEY `order_items_product_id_foreign` (`product_id`),
   KEY `order_items_variant_id_foreign` (`variant_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -753,6 +757,35 @@ INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `p
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `user_coupons`
+--
+
+DROP TABLE IF EXISTS `user_coupons`;
+CREATE TABLE IF NOT EXISTS `user_coupons` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `coupon_id` int NOT NULL,
+  `saved_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `used_at` timestamp NULL DEFAULT NULL,
+  `status` enum('saved','used','expired') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'saved',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_coupon_unique` (`user_id`,`coupon_id`),
+  KEY `user_coupons_user_id_foreign` (`user_id`),
+  KEY `user_coupons_coupon_id_foreign` (`coupon_id`),
+  KEY `user_coupons_status_index` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user_coupons`
+--
+
+INSERT INTO `user_coupons` (`id`, `user_id`, `coupon_id`, `saved_at`, `used_at`, `status`) VALUES
+(1, 1, 6, '2025-07-28 07:40:03', NULL, 'saved'),
+(2, 1, 7, '2025-07-28 07:40:20', NULL, 'saved');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `wishlist`
 --
 
@@ -767,31 +800,15 @@ CREATE TABLE IF NOT EXISTS `wishlist` (
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `user_id` (`user_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `wishlist`
 --
 
 INSERT INTO `wishlist` (`id`, `user_id`, `product_id`, `created_at`, `updated_at`) VALUES
-(1, 1, 6, '2025-07-27 18:57:29', '2025-07-27 18:57:29');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `wishlists`
---
-
-DROP TABLE IF EXISTS `wishlists`;
-CREATE TABLE IF NOT EXISTS `wishlists` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `product_id` int NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `wishlists_user_product_unique` (`user_id`,`product_id`),
-  KEY `wishlists_product_id_foreign` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(1, 1, 6, '2025-07-27 18:57:29', '2025-07-27 18:57:29'),
+(2, 1, 4, '2025-07-28 04:15:44', '2025-07-28 04:15:44');
 
 --
 -- Constraints for dumped tables
@@ -897,11 +914,11 @@ ALTER TABLE `stock_movements`
   ADD CONSTRAINT `stock_movements_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `wishlists`
+-- Constraints for table `user_coupons`
 --
-ALTER TABLE `wishlists`
-  ADD CONSTRAINT `wishlists_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `wishlists_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `user_coupons`
+  ADD CONSTRAINT `user_coupons_coupon_id_foreign` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_coupons_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

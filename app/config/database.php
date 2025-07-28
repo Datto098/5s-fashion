@@ -15,8 +15,8 @@ return [
             'database' => $_ENV['DB_NAME'] ?? '5s_fashion',
             'username' => $_ENV['DB_USER'] ?? 'root',
             'password' => $_ENV['DB_PASS'] ?? '',
-            'charset' => 'utf8mb4',
-            'collation' => 'utf8mb4_unicode_ci',
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
             'options' => [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
