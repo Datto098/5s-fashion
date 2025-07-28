@@ -9,7 +9,32 @@
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-SET time_zone = "+00:00";
+<br/><font size='1'><table class='xdebug-error xe-warning'dir='ltr'border='1'cellspacing='0'cellpadding='1'><tr><th align='left'bgcolor='#f57900'colspan="5"><span style='background-color: #cc0000; color: #fce94f; font-size: x-large;'>(!)</span> Warning: Undefined array key "name" in C:\wamp64\www\5s-fashion\app\controllers\api\AuthApiController.php on line <i>438</i></th></tr><tr><th align='left'bgcolor='#e9b96e'colspan='5'>Call Stack</th></tr><tr><th align='center'bgcolor='#eeeeec'>#</th><th align='left' bgcolor='#eeeeec'>Time</th><th align='left'bgcolor='#eeeeec'>Memory</th><th align='left' bgcolor='#eeeeec'>Function</th><th align='left'bgcolor='#eeeeec'>Location</th></tr><tr><td bgcolor='#eeeeec'align='center'>1</td><td bgcolor='#eeeeec' align='center'>0.0001</td><td bgcolor='#eeeeec'align='right'>450968</td><td bgcolor='#eeeeec'>{main}(  )</td><td title='C:\wamp64\www\5s-fashion\public\api.php'bgcolor='#eeeeec'>...\api.php<b>: </b>0</td></tr>
+<tr><td bgcolor='#eeeeec' align='center'>2</td><td bgcolor='#eeeeec'align='center'>0.0007</td><td bgcolor='#eeeeec' align='right'>550680</td><td bgcolor='#eeeeec'>require_once(<font color='#00bb00'>'C:\wamp64\www\5s-fashion\app\api\routes.php</font> )</td><td title='C: \wamp64\www\5 s-fashion\public\api.php ' bgcolor='#eeeeec '>...\api.php<b>:</b>72</td></tr>
+<tr><td bgcolor='#eeeeec ' align='center '>3</td><td bgcolor='#eeeeec ' align='center '>0.0008</td><td bgcolor='#eeeeec ' align='right '>578704</td><td bgcolor='#eeeeec '>ApiRouter->dispatch(  )</td><td title='C: \wamp64\www\5 s-fashion\app\api\routes.php ' bgcolor='#eeeeec '>...\routes.php<b>:</b>124</td></tr>
+<tr><td bgcolor='#eeeeec ' align='center '>4</td><td bgcolor='#eeeeec ' align='center '>0.0008</td><td bgcolor='#eeeeec ' align='right '>578744</td><td bgcolor='#eeeeec '>ApiRouter->executeHandler( <span>$handler = </span><span>&#39;AuthApiController@check&#39;</span>, <span>$path = </span><span>&#39;/auth/check&#39;</span> )</td><td title='C: \wamp64\www\5 s-fashion\app\core\ApiRouter.php ' bgcolor='#eeeeec '>...\ApiRouter.php<b>:</b>105</td></tr>
+<tr><td bgcolor='#eeeeec ' align='center '>5</td><td bgcolor='#eeeeec ' align='center '>0.0383</td><td bgcolor='#eeeeec ' align='right '>676864</td><td bgcolor='#eeeeec '>AuthApiController->check( <span>[]</span> )</td><td title='C: \wamp64\www\5 s-fashion\app\core\ApiRouter.php ' bgcolor='#eeeeec '>...\ApiRouter.php<b>:</b>231</td></tr>
+<tr><td bgcolor='#eeeeec ' align='center '>6</td><td bgcolor='#eeeeec ' align='center '>0.0383</td><td bgcolor='#eeeeec ' align='right '>677240</td><td bgcolor='#eeeeec '>AuthApiController->formatUser( <span>$user = </span><span>[&#39;id&#39; =&gt; 1, &#39;username&#39; =&gt; &#39;admin&#39;, &#39;email&#39; =&gt; &#39;admin@5sfashion.com&#39;, &#39;password_hash&#39; =&gt; &#39;$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi&#39;, &#39;full_name&#39; =&gt; &#39;Administrator&#39;, &#39;phone&#39; =&gt; &#39;0375099213&#39;, &#39;address_data&#39; =&gt; NULL, &#39;avatar&#39; =&gt; NULL, &#39;role&#39; =&gt; &#39;admin&#39;, &#39;status&#39; =&gt; &#39;active&#39;, &#39;email_verified_at&#39; =&gt; NULL, &#39;last_login_at&#39; =&gt; NULL, &#39;remember_token&#39; =&gt; NULL, &#39;reset_token&#39; =&gt; NULL, &#39;reset_token_expires_at&#39; =&gt; NULL, &#39;created_at&#39; =&gt; &#39;2025-07-25 20:10:32&#39;, &#39;updated_at&#39; =&gt; &#39;2025-07-26 22:23:35&#39;]</span> )</td><td title='C: \wamp64\www\5 s-fashion\app\controllers\api\AuthApiController.php ' bgcolor='#eeeeec '>...\AuthApiController.php<b>:</b>419</td></tr>
+</table></font>
+{
+    "success": true,
+    "message": "User is authenticated",
+    "data": {
+        "authenticated": true,
+        "user": {
+            "id": 1,
+            "name": null,
+            "email": "admin@5sfashion.com",
+            "phone": "0375099213",
+            "role": "admin",
+            "status": "active",
+            "created_at": "2025-07-25 20:10:32",
+            "updated_at": "2025-07-26 22:23:35"
+        }
+    },
+    "timestamp": "2025-07-28T07:37:39+00:00",
+    "status_code": 200
+}SET time_zone = "+00:00";
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
