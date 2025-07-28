@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+    <!-- Chatbot CSS -->
+    <link rel="stylesheet" href="<?= ASSET_URL ?>/css/chatbot.css">
+
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -195,5 +198,8 @@
             <p>Framework: PHP MVC | Database: MySQL | Theme: Red-White-Gray</p>
         </div>
     </div>
+
+    <!-- Chatbot JavaScript -->
+    <script src="<?= ASSET_URL ?>/js/chatbot.js"></script>
 </body>
 </html>

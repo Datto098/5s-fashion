@@ -1,0 +1,52 @@
+<?php
+/**
+ * Client Routes Array
+ * Simple array-based routes for App.php routing
+ */
+
+return [
+    // Home
+    '' => 'HomeController@index',
+    'home' => 'HomeController@index',
+
+    // Shop
+    'shop' => 'HomeController@shop',
+    'search' => 'HomeController@shop',
+
+    // Product
+    'product/{slug}' => 'HomeController@product',
+
+    // Cart
+    'cart' => 'HomeController@cart',
+
+    // Checkout
+    'checkout' => 'HomeController@checkout',
+
+    // Auth
+    'login' => 'AuthController@loginForm',
+    'register' => 'AuthController@registerForm',
+    'logout' => 'AuthController@logout',
+    'forgot-password' => 'AuthController@forgotPasswordForm',
+    'reset-password/{token}' => 'AuthController@resetPasswordForm',
+
+    // Account
+    'account' => 'AccountController@index',
+    'account/profile' => 'AccountController@profile',
+    'account/password' => 'AccountController@passwordForm',
+    'orders' => 'AccountController@orders',
+    'orders/{id}' => 'AccountController@orderDetail',
+    'addresses' => 'AccountController@addresses',
+
+    // Wishlist
+    'wishlist' => 'WishlistController@index',
+
+    // Static pages
+    'about' => 'HomeController@about',
+    'contact' => 'HomeController@contact',
+    'shipping' => 'PageController@shipping',
+    'returns' => 'PageController@returns',
+    'privacy' => 'PageController@privacy',
+    'terms' => 'PageController@terms',
+    'size-guide' => 'PageController@sizeGuide',
+    'faq' => 'PageController@faq',
+];
