@@ -144,7 +144,7 @@ class ProductsController extends BaseController
                 'is_taxable' => isset($_POST['is_taxable']) ? 1 : 0,
                 'status' => $_POST['status'] ?? 'active',
                 'visibility' => $_POST['visibility'] ?? 'public',
-                'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
+                'featured' => isset($_POST['is_featured']) ? 1 : 0,
                 'meta_title' => $_POST['meta_title'] ?? '',
                 'meta_description' => $_POST['meta_description'] ?? '',
                 'meta_keywords' => $_POST['meta_keywords'] ?? ''
@@ -301,7 +301,7 @@ class ProductsController extends BaseController
                 'is_taxable' => isset($_POST['is_taxable']) ? 1 : 0,
                 'status' => $_POST['status'] ?? 'active',
                 'visibility' => $_POST['visibility'] ?? 'public',
-                'is_featured' => isset($_POST['is_featured']) ? 1 : 0,
+                'featured' => isset($_POST['is_featured']) ? 1 : 0,
                 'meta_title' => $_POST['meta_title'] ?? '',
                 'meta_description' => $_POST['meta_description'] ?? '',
                 'meta_keywords' => $_POST['meta_keywords'] ?? ''
@@ -502,13 +502,13 @@ class ProductsController extends BaseController
                         break;
 
                     case 'feature':
-                        if ($this->productModel->update($productId, ['is_featured' => 1])) {
+                        if ($this->productModel->update($productId, ['featured' => 1])) {
                             $count++;
                         }
                         break;
 
                     case 'unfeature':
-                        if ($this->productModel->update($productId, ['is_featured' => 0])) {
+                        if ($this->productModel->update($productId, ['featured' => 0])) {
                             $count++;
                         }
                         break;
