@@ -14,6 +14,13 @@ function redirect($url)
         $url = BASE_URL . '/' . ltrim($url, '/');
     }
 
+    // Check if headers already sent
+    if (headers_sent($file, $line)) {
+        echo "<script>window.location.href = '{$url}';</script>";
+        echo "<noscript><meta http-equiv='refresh' content='0; url={$url}'></noscript>";
+        exit;
+    }
+
     header("Location: {$url}");
     exit;
 }

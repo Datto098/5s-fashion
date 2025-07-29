@@ -65,31 +65,31 @@ class AuthApiController extends ApiController
             // Create user
             $userQuery = "
                 INSERT INTO users (
-                    name, email, password, phone, role, status, created_at
+                    full_name, email, password_hash, phone, role, status, created_at
                 ) VALUES (
-                    :name, :email, :password, :phone, 'customer', 'active', NOW()
+                    :full_name, :email, :password_hash, :phone, 'customer', 'active', NOW()
                 )
             ";
 
             $stmt = $this->pdo->prepare($userQuery);
             $stmt->execute([
-                ':name' => trim($input['name']),
+                ':full_name' => trim($input['name']),
                 ':email' => trim($input['email']),
-                ':password' => $passwordHash,
+                ':password_hash' => $passwordHash,
                 ':phone' => $input['phone'] ?? null
             ]);
 
             $userId = $this->pdo->lastInsertId();
 
             // Get created user
-            $stmt = $this->pdo->prepare("SELECT id, name, email, phone, role, status, created_at FROM users WHERE id = :id");
+            $stmt = $this->pdo->prepare("SELECT id, full_name, email, phone, role, status, created_at FROM users WHERE id = :id");
             $stmt->execute([':id' => $userId]);
             $user = $stmt->fetch();
 
             // Generate JWT token
             $tokenPayload = [
                 'sub' => $user['id'],
-                'name' => $user['name'],
+                'full_name' => $user['full_name'],
                 'email' => $user['email'],
                 'role' => $user['role']
             ];
@@ -125,7 +125,7 @@ class AuthApiController extends ApiController
 
             // Find user by email
             $stmt = $this->pdo->prepare("
-                SELECT id, name, email, password, phone, role, status, created_at
+                SELECT id, full_name, email, password_hash, phone, role, status, created_at
                 FROM users
                 WHERE email = :email
             ");
@@ -144,7 +144,7 @@ class AuthApiController extends ApiController
             }
 
             // Verify password
-            if (!password_verify($input['password'], $user['password'])) {
+            if (!password_verify($input['password'], $user['password_hash'])) {
                 ApiResponse::error('Invalid credentials', 401);
                 return;
             }
@@ -156,7 +156,7 @@ class AuthApiController extends ApiController
             // Generate JWT token
             $tokenPayload = [
                 'sub' => $user['id'],
-                'name' => $user['name'],
+                'full_name' => $user['full_name'],
                 'email' => $user['email'],
                 'role' => $user['role']
             ];
@@ -164,7 +164,7 @@ class AuthApiController extends ApiController
             $token = JWT::encode($tokenPayload, 86400 * 7); // 7 days
 
             // Remove password from response
-            unset($user['password']);
+            unset($user['password_hash']);
 
             ApiResponse::success([
                 'message' => 'Login successful',
@@ -194,7 +194,7 @@ class AuthApiController extends ApiController
 
             // Get user details
             $stmt = $this->pdo->prepare("
-                SELECT id, name, email, phone, role, status, created_at, updated_at
+                SELECT id, full_name, email, phone, role, status, created_at, updated_at
                 FROM users
                 WHERE id = :id AND status = 'active'
             ");
@@ -231,7 +231,7 @@ class AuthApiController extends ApiController
             $input = $this->parseRequestBody();
 
             // Validate allowed fields
-            $allowedFields = ['name', 'phone'];
+            $allowedFields = ['full_name', 'phone'];
             $updateData = [];
             $params = [':id' => $currentUser['sub']];
 
@@ -264,7 +264,7 @@ class AuthApiController extends ApiController
 
             // Get updated user
             $stmt = $this->pdo->prepare("
-                SELECT id, name, email, phone, role, status, created_at, updated_at
+                SELECT id, full_name, email, phone, role, status, created_at, updated_at
                 FROM users
                 WHERE id = :id
             ");
@@ -309,7 +309,7 @@ class AuthApiController extends ApiController
             }
 
             // Get current user with password
-            $stmt = $this->pdo->prepare("SELECT password FROM users WHERE id = :id");
+            $stmt = $this->pdo->prepare("SELECT password_hash FROM users WHERE id = :id");
             $stmt->execute([':id' => $currentUser['sub']]);
             $user = $stmt->fetch();
 
@@ -319,7 +319,7 @@ class AuthApiController extends ApiController
             }
 
             // Verify current password
-            if (!password_verify($input['current_password'], $user['password'])) {
+            if (!password_verify($input['current_password'], $user['password_hash'])) {
                 ApiResponse::error('Current password is incorrect', 422);
                 return;
             }
@@ -330,11 +330,11 @@ class AuthApiController extends ApiController
             // Update password
             $stmt = $this->pdo->prepare("
                 UPDATE users
-                SET password = :password, updated_at = NOW()
+                SET password_hash = :password_hash, updated_at = NOW()
                 WHERE id = :id
             ");
             $stmt->execute([
-                ':password' => $newPasswordHash,
+                ':password_hash' => $newPasswordHash,
                 ':id' => $currentUser['sub']
             ]);
 
@@ -373,7 +373,7 @@ class AuthApiController extends ApiController
             // Generate new token
             $tokenPayload = [
                 'sub' => $currentUser['sub'],
-                'name' => $currentUser['name'],
+                'full_name' => $currentUser['full_name'],
                 'email' => $currentUser['email'],
                 'role' => $currentUser['role']
             ];
@@ -413,18 +413,58 @@ class AuthApiController extends ApiController
     public function check()
     {
         try {
-            if (isLoggedIn()) {
+            // For API, use JWT authentication
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+
+            if (!empty($authHeader) && strpos($authHeader, 'Bearer ') === 0) {
+                // JWT authentication for API
+                $currentUser = JWT::getCurrentUser();
+
+                if (!$currentUser) {
+                    ApiResponse::success([
+                        'authenticated' => false
+                    ], 'Invalid or expired token');
+                    return;
+                }
+
+                // Get fresh user data from database
+                $stmt = $this->pdo->prepare("
+                    SELECT id, full_name, email, phone, role, status, created_at, updated_at
+                    FROM users
+                    WHERE id = :id AND status = 'active'
+                ");
+                $stmt->execute([':id' => $currentUser['sub']]);
+                $user = $stmt->fetch();
+
+                if (!$user) {
+                    ApiResponse::success([
+                        'authenticated' => false
+                    ], 'User not found or inactive');
+                    return;
+                }
+
                 ApiResponse::success([
                     'authenticated' => true,
-                    'user' => $this->formatUser($_SESSION['user'])
+                    'user' => $this->formatUser($user)
                 ], 'User is authenticated');
+
             } else {
-                ApiResponse::success([
-                    'authenticated' => false
-                ], 'User is not authenticated');
+                // Session-based authentication for web interface
+                if (isLoggedIn()) {
+                    ApiResponse::success([
+                        'authenticated' => true,
+                        'user' => $this->formatUser($_SESSION['user'])
+                    ], 'User is authenticated');
+                } else {
+                    ApiResponse::success([
+                        'authenticated' => false
+                    ], 'User is not authenticated');
+                }
             }
         } catch (Exception $e) {
-            ApiResponse::error('Failed to check authentication: ' . $e->getMessage(), 500);
+            ApiResponse::success([
+                'authenticated' => false
+            ], 'Authentication check failed');
         }
     }
 
@@ -435,7 +475,7 @@ class AuthApiController extends ApiController
     {
         return [
             'id' => (int)$user['id'],
-            'name' => $user['full_name'] ?? $user['name'] ?? null,
+            'name' => $user['full_name'] ?? null,
             'email' => $user['email'] ?? null,
             'phone' => $user['phone'] ?? null,
             'role' => $user['role'] ?? null,

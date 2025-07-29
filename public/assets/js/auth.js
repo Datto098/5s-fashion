@@ -36,8 +36,11 @@ class AuthManager {
 		if (!form) return;
 
 		form.addEventListener('submit', (e) => {
-			e.preventDefault();
-			this.handleLogin();
+			// TEMPORARILY DISABLE AJAX AUTHENTICATION
+			// Allow normal form submission to server
+			console.log('Login form submitted - allowing normal POST');
+			// e.preventDefault();
+			// this.handleLogin();
 		});
 
 		// Real-time validation

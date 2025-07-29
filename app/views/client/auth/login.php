@@ -13,7 +13,7 @@ ob_start();
                         <p class="auth-subtitle">Chào mừng bạn quay lại 5S Fashion</p>
                     </div>
 
-                    <form action="<?= url('login') ?>" method="POST" class="auth-form">
+                    <form action="<?= url('login') ?>" method="POST" class="auth-form" id="loginForm">
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" name="email"
@@ -32,7 +32,7 @@ ob_start();
                             </label>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                        <button type="submit" class="btn btn-primary w-100 mb-3" id="loginBtn">
                             <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
                         </button>
 
@@ -47,7 +47,7 @@ ob_start();
                         <p class="mb-0">Chưa có tài khoản?
                             <a href="<?= url('register') ?>" class="text-primary">Đăng ký ngay</a>
                         </p>
-                    </div>
+Đ                    </div>
                 </div>
             </div>
         </div>
@@ -97,7 +97,51 @@ ob_start();
     padding: 0.75rem;
     font-weight: 600;
 }
+
+.auth-form .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Login form loaded');
+    console.log('Form action:', document.getElementById('loginForm').action);
+    console.log('Form method:', document.getElementById('loginForm').method);
+
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    let isSubmitting = false;
+
+    loginForm.addEventListener('submit', function(e) {
+        console.log('Form submit event triggered');
+        console.log('Is submitting:', isSubmitting);
+
+        // TEMPORARILY DISABLE PREVENTION FOR DEBUG
+        // Prevent double submit
+        // if (isSubmitting) {
+        //     e.preventDefault();
+        //     return false;
+        // }
+
+        // Set submitting state
+        isSubmitting = true;
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang đăng nhập...';
+
+        console.log('Form will be submitted normally');
+
+        // Reset after 10 seconds (increased timeout)
+        setTimeout(function() {
+            isSubmitting = false;
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập';
+            console.log('Form state reset');
+        }, 10000);
+    });
+});
+</script>
 
 <?php
 // Get the buffered content

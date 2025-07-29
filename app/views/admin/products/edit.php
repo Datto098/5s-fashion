@@ -197,26 +197,74 @@ $visibilityOptions = [
                             ?>
                             <?php if (!empty($galleryImages)): ?>
                                 <div class="current-gallery mb-3">
-                                    <div class="row">
-                                        <?php foreach ($galleryImages as $image): ?>
-                                            <div class="col-md-3 mb-2">
-                                                <img src="/5s-fashion/public/<?= htmlspecialchars($image) ?>"
-                                                     alt="" class="img-thumbnail" style="height: 100px; object-fit: cover;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted">Thư viện ảnh hiện tại (<?= count($galleryImages) ?> ảnh)</small>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllGalleryImages()" title="Xóa tất cả ảnh gallery">
+                                            <i class="fas fa-trash"></i> Xóa tất cả
+                                        </button>
+                                    </div>
+                                    <div class="row" id="currentGalleryContainer">
+                                        <?php foreach ($galleryImages as $index => $image): ?>
+                                            <div class="col-md-3 col-sm-4 col-6 mb-3" id="gallery-item-<?= $index ?>">
+                                                <div class="gallery-item position-relative">
+                                                    <?php
+                                                    // Convert image path for serve-file.php
+                                                    $imagePath = ltrim($image, '/');
+
+                                                    // Remove 'uploads/' prefix if present
+                                                    if (strpos($imagePath, 'uploads/') === 0) {
+                                                        $imagePath = substr($imagePath, 8); // Remove 'uploads/'
+                                                    }
+
+                                                    $encodedPath = urlencode($imagePath);
+                                                    ?>
+                                                    <img src="/5s-fashion/serve-file.php?file=<?= $encodedPath ?>"
+                                                         alt="Gallery Image <?= $index + 1 ?>"
+                                                         class="img-thumbnail w-100"
+                                                         style="height: 120px; object-fit: cover;">
+                                                    <div class="gallery-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                                                         style="background: rgba(0,0,0,0.7); opacity: 0; transition: opacity 0.3s;">
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-danger me-2"
+                                                                onclick="deleteGalleryImage(<?= $product['id'] ?>, <?= $index ?>)"
+                                                                title="Xóa ảnh này">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-primary"
+                                                                onclick="viewGalleryImage('<?= htmlspecialchars($image) ?>')"
+                                                                title="Xem ảnh">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="gallery-info mt-1">
+                                                        <small class="text-muted d-block">Ảnh #<?= $index + 1 ?></small>
+                                                        <small class="text-muted"><?= basename($image) ?></small>
+                                                    </div>
+                                                </div>
                                             </div>
                                         <?php endforeach; ?>
                                     </div>
-                                    <p class="text-muted small">Thư viện ảnh hiện tại</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    Chưa có ảnh gallery nào. Hãy upload ảnh bên dưới.
                                 </div>
                             <?php endif; ?>
-                            <div class="upload-area" id="galleryUpload">
-                                <input type="file" name="product_images[]" id="galleryImages" accept="image/*" multiple hidden>
-                                <div class="upload-content text-center p-4 border border-dashed rounded">
-                                    <i class="fas fa-images fa-2x text-muted mb-2"></i>
-                                    <p class="mb-1">Kéo thả nhiều ảnh vào đây hoặc <button type="button" class="btn btn-link p-0">chọn files</button></p>
-                                    <small class="text-muted">Có thể chọn nhiều file ảnh cùng lúc</small>
+
+                            <div class="upload-section">
+                                <label class="form-label">Thêm ảnh mới vào thư viện</label>
+                                <div class="upload-area" id="galleryUpload">
+                                    <input type="file" name="product_images[]" id="galleryImages" accept="image/*" multiple hidden>
+                                    <div class="upload-content text-center p-4 border border-dashed rounded">
+                                        <i class="fas fa-images fa-2x text-muted mb-2"></i>
+                                        <p class="mb-1">Kéo thả nhiều ảnh vào đây hoặc <button type="button" class="btn btn-link p-0">chọn files</button></p>
+                                        <small class="text-muted">Có thể chọn nhiều file ảnh cùng lúc (JPG, PNG, WebP - Tối đa 5MB/ảnh)</small>
+                                    </div>
                                 </div>
+                                <div id="galleryPreview" class="mt-3 row" style="display: none;"></div>
                             </div>
-                            <div id="galleryPreview" class="mt-3 row" style="display: none;"></div>
                         </div>
                     </div>
                 </div>
@@ -501,7 +549,225 @@ document.addEventListener('DOMContentLoaded', function() {
         small.textContent = `${count}/160 ký tự`;
         small.className = count > 160 ? 'text-danger' : 'text-muted';
     });
+
+    // Gallery hover effects
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    galleryItems.forEach(item => {
+        const overlay = item.querySelector('.gallery-overlay');
+        item.addEventListener('mouseenter', () => {
+            overlay.style.opacity = '1';
+        });
+        item.addEventListener('mouseleave', () => {
+            overlay.style.opacity = '0';
+        });
+    });
 });
+
+// Gallery Management Functions
+function deleteGalleryImage(productId, imageIndex) {
+    if (!confirm('Bạn có chắc chắn muốn xóa ảnh này không?')) {
+        return;
+    }
+
+    // Show loading state
+    const galleryItem = document.getElementById(`gallery-item-${imageIndex}`);
+    const originalContent = galleryItem.innerHTML;
+    galleryItem.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin"></i> Đang xóa...</div>';
+
+    fetch('/5s-fashion/admin/products/deletegalleryimage', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            productId: productId,
+            imageIndex: imageIndex
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the gallery item with animation
+            galleryItem.style.transition = 'all 0.3s ease';
+            galleryItem.style.opacity = '0';
+            galleryItem.style.transform = 'scale(0.8)';
+
+            setTimeout(() => {
+                galleryItem.remove();
+
+                // Update gallery count and reindex remaining items
+                updateGalleryDisplay(data.remainingImages);
+
+                // Show success message
+                showNotification('success', data.message);
+
+                // Reload page after 2 seconds to refresh indexes
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }, 300);
+        } else {
+            // Restore original content on error
+            galleryItem.innerHTML = originalContent;
+            showNotification('error', 'Lỗi: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        galleryItem.innerHTML = originalContent;
+        showNotification('error', 'Có lỗi xảy ra khi xóa ảnh');
+    });
+}
+
+function clearAllGalleryImages() {
+    if (!confirm('Bạn có chắc chắn muốn xóa TẤT CẢ ảnh gallery không? Hành động này không thể hoàn tác!')) {
+        return;
+    }
+
+    const productId = <?= $product['id'] ?>;
+    const galleryContainer = document.getElementById('currentGalleryContainer');
+    const galleryItems = galleryContainer.querySelectorAll('[id^="gallery-item-"]');
+
+    if (galleryItems.length === 0) {
+        showNotification('info', 'Không có ảnh nào để xóa');
+        return;
+    }
+
+    // Show loading
+    galleryContainer.innerHTML = '<div class="text-center p-4"><i class="fas fa-spinner fa-spin fa-2x"></i><br><span class="mt-2 d-block">Đang xóa tất cả ảnh...</span></div>';
+
+    // Delete all images by calling the API multiple times
+    let deletedCount = 0;
+    const totalImages = galleryItems.length;
+
+    // Always delete index 0 since array gets reindexed after each delete
+    function deleteNextImage() {
+        if (deletedCount >= totalImages) {
+            showNotification('success', `Đã xóa thành công ${totalImages} ảnh gallery`);
+            setTimeout(() => window.location.reload(), 1500);
+            return;
+        }
+
+        fetch('/5s-fashion/admin/products/deletegalleryimage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                productId: productId,
+                imageIndex: 0 // Always delete first image
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                deletedCount++;
+                deleteNextImage(); // Delete next image
+            } else {
+                throw new Error(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('error', `Lỗi khi xóa ảnh thứ ${deletedCount + 1}: ${error.message}`);
+            setTimeout(() => window.location.reload(), 2000);
+        });
+    }
+
+    deleteNextImage();
+}
+
+function viewGalleryImage(imagePath) {
+    // Convert image path for serve-file.php
+    let cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+
+    // Remove 'uploads/' prefix if present
+    if (cleanPath.startsWith('uploads/')) {
+        cleanPath = cleanPath.substring(8); // Remove 'uploads/'
+    }
+
+    const encodedPath = encodeURIComponent(cleanPath);
+    const serveUrl = `/5s-fashion/serve-file.php?file=${encodedPath}`;
+
+    // Create modal to view image
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xem ảnh gallery</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="${serveUrl}" class="img-fluid" alt="Gallery Image">
+                    <div class="mt-2">
+                        <small class="text-muted">${imagePath}</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <a href="${serveUrl}" target="_blank" class="btn btn-primary">Mở trong tab mới</a>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+
+    // Remove modal from DOM when hidden
+    modal.addEventListener('hidden.bs.modal', () => {
+        modal.remove();
+    });
+}
+
+function updateGalleryDisplay(remainingCount) {
+    const gallerySection = document.querySelector('.current-gallery .d-flex small');
+    if (gallerySection) {
+        gallerySection.textContent = `Thư viện ảnh hiện tại (${remainingCount} ảnh)`;
+    }
+
+    // If no images left, show the info alert
+    if (remainingCount === 0) {
+        const currentGallery = document.querySelector('.current-gallery');
+        currentGallery.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Chưa có ảnh gallery nào. Hãy upload ảnh bên dưới.
+            </div>
+        `;
+    }
+}
+
+function showNotification(type = 'info', message = '') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification-toast');
+    existingNotifications.forEach(n => n.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} notification-toast position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} me-2"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
 </script>
 
 <style>
@@ -521,6 +787,65 @@ document.addEventListener('DOMContentLoaded', function() {
 .current-image img,
 .current-gallery img {
     border: 2px solid #dee2e6;
+}
+
+/* Gallery Management Styles */
+.gallery-item {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.gallery-overlay {
+    border-radius: 8px;
+}
+
+.gallery-overlay .btn {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.gallery-overlay .btn:hover {
+    opacity: 1;
+}
+
+.gallery-info {
+    padding: 8px;
+    background: #f8f9fa;
+    font-size: 11px;
+}
+
+.gallery-info small {
+    display: block;
+    word-break: break-all;
+}
+
+.upload-section {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.notification-toast {
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 .form-check-input:checked {

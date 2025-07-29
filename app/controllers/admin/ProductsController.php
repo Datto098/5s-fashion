@@ -331,6 +331,30 @@ class ProductsController extends BaseController
                 }
             }
 
+            // Handle gallery images upload
+            if (!empty($_FILES['product_images']['name'][0])) {
+                error_log("DEBUG: Uploading gallery images");
+                error_log("DEBUG: Gallery files: " . json_encode($_FILES['product_images']));
+
+                $galleryUploadResult = $this->uploadMultipleProductImages($_FILES['product_images']);
+                error_log("DEBUG: Gallery upload result: " . json_encode($galleryUploadResult));
+
+                if ($galleryUploadResult['success']) {
+                    // Get existing gallery images
+                    $existingGallery = [];
+                    if (!empty($existingProduct['gallery'])) {
+                        $existingGallery = json_decode($existingProduct['gallery'], true) ?: [];
+                    }
+
+                    // Merge with new images
+                    $allGalleryImages = array_merge($existingGallery, $galleryUploadResult['paths']);
+                    $updateData['gallery'] = json_encode($allGalleryImages);
+                    error_log("DEBUG: Updated gallery: " . $updateData['gallery']);
+                } else {
+                    throw new Exception($galleryUploadResult['error']);
+                }
+            }
+
             // Update product
             $result = $this->productModel->update($id, $updateData);
 
@@ -410,6 +434,85 @@ class ProductsController extends BaseController
                 header('Location: /5s-fashion/admin/products?error=' . urlencode($e->getMessage()));
                 exit;
             }
+        }
+    }
+
+    /**
+     * Delete individual gallery image - URL: /admin/products/deletegalleryimage
+     */
+    public function deletegalleryimage()
+    {
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+                exit;
+            }
+
+            $input = json_decode(file_get_contents('php://input'), true);
+            $productId = $input['productId'] ?? $_POST['product_id'] ?? null;
+            $imageIndex = $input['imageIndex'] ?? $_POST['image_index'] ?? null;
+
+            if (!$productId || $imageIndex === null) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Missing required parameters']);
+                exit;
+            }
+
+            // Check if product exists
+            $product = $this->productModel->find($productId);
+            if (!$product) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy sản phẩm']);
+                exit;
+            }
+
+            // Get current gallery
+            $galleryImages = [];
+            if (!empty($product['gallery'])) {
+                $galleryImages = json_decode($product['gallery'], true) ?: [];
+            }
+
+            // Check if image index exists
+            if (!isset($galleryImages[$imageIndex])) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy ảnh']);
+                exit;
+            }
+
+            // Get image path to delete
+            $imageToDelete = $galleryImages[$imageIndex];
+
+            // Remove image from array
+            unset($galleryImages[$imageIndex]);
+            $galleryImages = array_values($galleryImages); // Re-index array
+
+            // Update product gallery
+            $newGalleryJson = empty($galleryImages) ? null : json_encode($galleryImages);
+            $updateData = ['gallery' => $newGalleryJson];
+
+            $result = $this->productModel->update($productId, $updateData);
+
+            if ($result) {
+                // Delete physical file
+                $this->deleteProductImage($imageToDelete);
+
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Xóa ảnh thành công',
+                    'remainingImages' => count($galleryImages)
+                ]);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Không thể cập nhật database']);
+            }
+            exit;
+
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            exit;
         }
     }
 
@@ -672,6 +775,75 @@ class ProductsController extends BaseController
         if (file_exists($fullPath)) {
             unlink($fullPath);
         }
+    }
+
+    /**
+     * Upload multiple product images for gallery
+     */
+    private function uploadMultipleProductImages($files)
+    {
+        error_log("DEBUG uploadMultipleProductImages - Files info: " . json_encode($files));
+
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        $uploadedPaths = [];
+        $errors = [];
+
+        if (!is_array($files['tmp_name'])) {
+            return ['success' => false, 'error' => 'Invalid file format'];
+        }
+
+        $uploadDir = __DIR__ . '/../../../public/uploads/products/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        // Process each file
+        foreach ($files['tmp_name'] as $key => $tmpName) {
+            if ($files['error'][$key] !== UPLOAD_ERR_OK) {
+                continue; // Skip files with errors
+            }
+
+            $fileType = $files['type'][$key];
+            $fileSize = $files['size'][$key];
+            $fileName = $files['name'][$key];
+
+            // Validate file type
+            if (!in_array($fileType, $allowedTypes)) {
+                $errors[] = "File {$fileName}: Chỉ chấp nhận file ảnh";
+                continue;
+            }
+
+            // Validate file size
+            if ($fileSize > $maxSize) {
+                $errors[] = "File {$fileName}: Kích thước không được vượt quá 5MB";
+                continue;
+            }
+
+            // Generate unique filename
+            $newFileName = uniqid() . '_' . time() . '_' . $key . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
+            $filePath = $uploadDir . $newFileName;
+
+            // Upload file
+            if (move_uploaded_file($tmpName, $filePath)) {
+                $uploadedPaths[] = '/uploads/products/' . $newFileName;
+                error_log("DEBUG uploadMultipleProductImages - Uploaded: " . $newFileName);
+            } else {
+                $errors[] = "File {$fileName}: Không thể upload";
+            }
+        }
+
+        if (!empty($errors)) {
+            error_log("DEBUG uploadMultipleProductImages - Errors: " . json_encode($errors));
+            return ['success' => false, 'error' => implode('; ', $errors)];
+        }
+
+        if (empty($uploadedPaths)) {
+            return ['success' => false, 'error' => 'Không có file nào được upload'];
+        }
+
+        error_log("DEBUG uploadMultipleProductImages - Success: " . json_encode($uploadedPaths));
+        return ['success' => true, 'paths' => $uploadedPaths];
     }
 
     /**

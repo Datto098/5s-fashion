@@ -40,6 +40,12 @@ return [
     // Wishlist
     'wishlist' => 'WishlistController@index',
 
+    // AJAX Routes
+    'ajax/cart/add' => 'AjaxController@addToCart',
+    'ajax/cart/update' => 'AjaxController@updateCart',
+    'ajax/cart/remove' => 'AjaxController@removeFromCart',
+    'ajax/cart/items' => 'AjaxController@getCartItems',
+
     // Static pages
     'about' => 'HomeController@about',
     'contact' => 'HomeController@contact',

@@ -106,8 +106,11 @@ class App
             $segments = explode('/', $fullPath);
             $firstSegment = $segments[0];
 
+            // Skip special URLs that shouldn't be treated as categories
+            $skipPatterns = ['ajax', 'api', 'admin', 'uploads', 'assets', 'public'];
+
             // Handle category-like URLs (ao-thun-nam, giay-the-thao, etc.)
-            if (preg_match('/^[a-z0-9-]+$/', $firstSegment)) {
+            if (!in_array($firstSegment, $skipPatterns) && preg_match('/^[a-z0-9-]+$/', $firstSegment)) {
                 $_GET['category'] = $firstSegment;
                 $this->handleRoute('HomeController@shop');
                 return;

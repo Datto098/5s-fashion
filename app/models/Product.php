@@ -307,7 +307,7 @@ class Product extends BaseModel
      */
     public function getRelatedProducts($productId, $categoryId, $limit = 8)
     {
-        $sql = "SELECT p.*, c.name as category_name, b.name as brand_name,
+        $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug, b.name as brand_name,
                 COALESCE(p.sale_price, p.price) as current_price,
                 CASE WHEN p.sale_price IS NOT NULL THEN 1 ELSE 0 END as is_sale,
                 CASE WHEN DATEDIFF(NOW(), p.created_at) <= 30 THEN 1 ELSE 0 END as is_new,

@@ -18,6 +18,11 @@ class AuthController extends Controller
      */
     public function loginForm()
     {
+        // If this is a POST request, handle login instead
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            return $this->login();
+        }
+
         // If already logged in, redirect
         if (isLoggedIn()) {
             $user = getUser();
@@ -40,67 +45,115 @@ class AuthController extends Controller
      */
     public function login()
     {
+        error_log("AuthController: login() method called with REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
+
+        // Ensure this is called only for POST requests (via loginForm method)
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            error_log("AuthController: Not POST request, redirecting to login form");
             redirect('login');
+            return;
         }
+
+        error_log("AuthController: Processing POST login request");
 
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         $remember = isset($_POST['remember']);
 
+        error_log("AuthController: Login attempt for email: " . $email);
+
         // Validation
         if (empty($email) || empty($password)) {
             setFlash('error', 'Vui lòng nhập đầy đủ thông tin');
             redirect('login');
+            return;
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             setFlash('error', 'Email không hợp lệ');
             redirect('login');
+            return;
         }
 
-        // Check user credentials
-        $user = $this->userModel->findByEmail($email);
+        try {
+            // Check user credentials
+            $user = $this->userModel->findByEmail($email);
+            error_log("AuthController: User found: " . ($user ? "Yes" : "No"));
 
-        if (!$user || !password_verify($password, $user['password_hash'])) {
-            setFlash('error', 'Email hoặc mật khẩu không chính xác');
+            if (!$user) {
+                setFlash('error', 'Email hoặc mật khẩu không chính xác');
+                redirect('login');
+                return;
+            }
+
+            // Debug password verification
+            error_log("AuthController: Verifying password for user: " . $user['email']);
+            error_log("AuthController: Password hash exists: " . (isset($user['password_hash']) ? "Yes" : "No"));
+
+            if (!password_verify($password, $user['password_hash'])) {
+                error_log("AuthController: Password verification failed");
+                setFlash('error', 'Email hoặc mật khẩu không chính xác');
+                redirect('login');
+                return;
+            }
+
+            if ($user['status'] !== 'active') {
+                setFlash('error', 'Tài khoản của bạn đã bị khóa');
+                redirect('login');
+                return;
+            }
+
+            // Login successful
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_role'] = $user['role'];
+            $_SESSION['user'] = $user;
+
+            // Debug: Log successful login
+            error_log("Login successful for user: " . $user['email'] . " (Role: " . $user['role'] . ")");
+
+            // If admin user, also set admin session keys
+            if ($user['role'] === 'admin') {
+                $_SESSION['admin_logged_in'] = true;
+                $_SESSION['admin_id'] = $user['id'];
+                $_SESSION['admin_user'] = [
+                    'id' => $user['id'],
+                    'email' => $user['email'],
+                    'name' => $user['full_name'],
+                    'role' => $user['role']
+                ];
+            }
+
+            // Update last login
+            // $this->userModel->updateLastLogin($user['id']);
+
+            // Force save session
+            session_write_close();
+            session_start(); // Restart to ensure session is saved
+
+            setFlash('success', 'Đăng nhập thành công!');
+
+            // Debug: Check session after setting
+            error_log("Session after login - admin_logged_in: " . (isset($_SESSION['admin_logged_in']) ? 'true' : 'false'));
+            error_log("Session after login - user_role: " . ($_SESSION['user_role'] ?? 'not set'));
+
+            // Debug: Check what URL we're redirecting to
+            $redirectUrl = ($user['role'] === 'admin') ? 'admin' : '/';
+            error_log("Redirecting to: " . $redirectUrl);
+            error_log("BASE_URL: " . BASE_URL);
+
+            // Redirect based on role with proper URL construction
+            if ($user['role'] === 'admin') {
+                header('Location: ' . BASE_URL . '/admin');
+                exit();
+            } else {
+                header('Location: ' . BASE_URL . '/');
+                exit();
+            }
+
+        } catch (Exception $e) {
+            error_log("AuthController: Login error: " . $e->getMessage());
+            setFlash('error', 'Có lỗi xảy ra trong quá trình đăng nhập');
             redirect('login');
-        }
-
-        if ($user['status'] !== 'active') {
-            setFlash('error', 'Tài khoản của bạn đã bị khóa');
-            redirect('login');
-        }
-
-        // Login successful
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_role'] = $user['role'];
-        $_SESSION['user'] = $user; // This is what getUser() expects
-
-        // If admin user, also set admin session keys
-        if ($user['role'] === 'admin') {
-            $_SESSION['admin_logged_in'] = true;
-            $_SESSION['admin_id'] = $user['id'];
-            $_SESSION['admin_user'] = [
-                'id' => $user['id'],
-                'email' => $user['email'],
-                'name' => $user['full_name'],
-                'role' => $user['role']
-            ];
-        }
-
-        // Update last login
-        $this->userModel->updateLastLogin($user['id']);
-
-        setFlash('success', 'Đăng nhập thành công!');
-
-        // Redirect based on role
-        if ($user['role'] === 'admin') {
-            // For admin users, redirect to admin panel
-            redirect('admin');
-        } else {
-            // For customers, redirect to homepage
-            redirect('/');
         }
     }
 
