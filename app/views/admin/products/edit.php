@@ -339,7 +339,7 @@ $visibilityOptions = [
                         </div>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="isFeatured" name="is_featured"
-                                   <?= (!empty($product['is_featured'])) ? 'checked' : '' ?>>
+                                   <?= (!empty($product['featured'])) ? 'checked' : '' ?>>
                             <label class="form-check-label" for="isFeatured">
                                 Sản phẩm nổi bật
                             </label>

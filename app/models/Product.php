@@ -47,15 +47,11 @@ class Product extends BaseModel
         try {
             $db = Database::getInstance();
 
-            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
-                           AVG(r.rating) as rating,
-                           COUNT(r.id) as reviews_count
+            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
                     FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
-                    LEFT JOIN reviews r ON p.id = r.product_id
                     WHERE p.status = 'published'
                     AND p.featured = 1
-                    GROUP BY p.id
                     ORDER BY p.created_at DESC
                     LIMIT ?";
 
@@ -63,23 +59,13 @@ class Product extends BaseModel
 
             // If no featured products, get latest published products
             if (empty($products)) {
-                $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
-                               AVG(r.rating) as rating,
-                               COUNT(r.id) as reviews_count
+                $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
                         FROM products p
                         LEFT JOIN categories c ON p.category_id = c.id
-                        LEFT JOIN reviews r ON p.id = r.product_id
                         WHERE p.status = 'published'
-                        GROUP BY p.id
                         ORDER BY p.created_at DESC
                         LIMIT ?";
                 $products = $db->fetchAll($sql, [$limit]);
-            }
-
-            // Format the results
-            foreach ($products as &$product) {
-                $product['rating'] = $product['rating'] ? round($product['rating'], 1) : 0;
-                $product['reviews_count'] = (int)$product['reviews_count'];
             }
 
             return $products;
@@ -98,24 +84,14 @@ class Product extends BaseModel
         try {
             $db = Database::getInstance();
 
-            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
-                           AVG(r.rating) as rating,
-                           COUNT(r.id) as reviews_count
+            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
                     FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
-                    LEFT JOIN reviews r ON p.id = r.product_id
                     WHERE p.status = 'published'
-                    GROUP BY p.id
                     ORDER BY p.created_at DESC
                     LIMIT ?";
 
             $products = $db->fetchAll($sql, [$limit]);
-
-            // Format the results
-            foreach ($products as &$product) {
-                $product['rating'] = $product['rating'] ? round($product['rating'], 1) : 0;
-                $product['reviews_count'] = (int)$product['reviews_count'];
-            }
 
             return $products;
 
@@ -133,33 +109,19 @@ class Product extends BaseModel
         try {
             $db = Database::getInstance();
 
-            // Get products ordered by sales count (from order_items table if exists)
-            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
-                           AVG(r.rating) as rating,
-                           COUNT(r.id) as reviews_count,
-                           COALESCE(SUM(oi.quantity), 0) as total_sold
+            // Get products ordered by sales count (simplified for existing schema)
+            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
                     FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
-                    LEFT JOIN reviews r ON p.id = r.product_id
-                    LEFT JOIN order_items oi ON p.id = oi.product_id
-                    LEFT JOIN orders o ON oi.order_id = o.id AND o.status = 'completed'
                     WHERE p.status = 'published'
-                    GROUP BY p.id
-                    ORDER BY total_sold DESC, p.created_at DESC
+                    ORDER BY p.created_at DESC
                     LIMIT ?";
 
             $products = $db->fetchAll($sql, [$limit]);
 
-            // If no sales data, fallback to featured products
+            // If no products, fallback to featured products
             if (empty($products)) {
                 return $this->getFeaturedProducts($limit);
-            }
-
-            // Format the results
-            foreach ($products as &$product) {
-                $product['rating'] = $product['rating'] ? round($product['rating'], 1) : 0;
-                $product['reviews_count'] = (int)$product['reviews_count'];
-                $product['total_sold'] = (int)$product['total_sold'];
             }
 
             return $products;
