@@ -143,11 +143,34 @@ function toggleCartSidebar() {
 	overlay.classList.toggle('show');
 
 	if (sidebar.classList.contains('show')) {
-		loadCartItems();
+		// Load fresh cart data from server when opening
+		loadCartItemsFromServer();
 		document.body.style.overflow = 'hidden';
 	} else {
 		document.body.style.overflow = '';
 	}
+}
+
+function closeCartSidebar() {
+	const sidebar = document.getElementById('cartSidebar');
+	const overlay = document.getElementById('cartSidebarOverlay');
+
+	sidebar.classList.remove('show');
+	overlay.classList.remove('show');
+	document.body.style.overflow = '';
+}
+
+function viewCart() {
+	window.location.href = '/5s-fashion/cart';
+}
+
+function checkout() {
+	// Check if cart has items
+	if (cart.length === 0) {
+		showToast('Giỏ hàng trống', 'warning');
+		return;
+	}
+	window.location.href = '/5s-fashion/checkout';
 }
 
 function addToCart(productId, quantity = 1, variant = null) {
@@ -306,8 +329,8 @@ function updateCartQuantity(key, quantity) {
 }
 
 function loadCartItems() {
-	const cartContainer = document.getElementById('cart-items');
-	const cartTotal = document.getElementById('cart-total');
+	const cartContainer = document.getElementById('cartItems');
+	const cartTotal = document.getElementById('cartTotal');
 
 	if (!cartContainer) return;
 
@@ -316,10 +339,10 @@ function loadCartItems() {
             <div class="empty-cart text-center py-4">
                 <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
                 <p class="text-muted">Giỏ hàng trống</p>
-                <a href="/shop" class="btn btn-primary btn-sm">Mua Sắm Ngay</a>
+                <a href="/5s-fashion/shop" class="btn btn-primary btn-sm">Mua Sắm Ngay</a>
             </div>
         `;
-		cartTotal.textContent = '0₫';
+		if (cartTotal) cartTotal.textContent = '0₫';
 		return;
 	}
 
@@ -334,13 +357,20 @@ function loadCartItems() {
             <div class="cart-item mb-3 pb-3 border-bottom">
                 <div class="row align-items-center">
                     <div class="col-3">
-                        <img src="${
-							item.image || '/assets/images/no-image.jpg'
-						}"
-                             alt="${item.name}" class="img-fluid rounded">
+                        <img src="${getImageUrl(
+							item.product_image || item.image
+						)}"
+                             alt="${
+									item.product_name || item.name
+								}" class="img-fluid rounded">
                     </div>
                     <div class="col-9">
-                        <h6 class="mb-1">${item.name}</h6>
+                        <h6 class="mb-1">${item.product_name || item.name}</h6>
+                        ${
+							item.variant
+								? `<small class="text-muted">${item.variant}</small>`
+								: ''
+						}
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="quantity-controls">
                                 <button class="btn btn-sm btn-outline-secondary"
@@ -369,7 +399,7 @@ function loadCartItems() {
 	});
 
 	cartContainer.innerHTML = html;
-	cartTotal.textContent = formatCurrency(total);
+	if (cartTotal) cartTotal.textContent = formatCurrency(total);
 }
 
 function updateCartCounter(count = null) {

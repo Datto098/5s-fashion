@@ -2,7 +2,7 @@
 // Create cart sidebar partial for client website
 ?>
 <div class="cart-sidebar" id="cartSidebar">
-    <div class="cart-overlay" onclick="closeCartSidebar()"></div>
+    <div class="cart-overlay" id="cartSidebarOverlay" onclick="closeCartSidebar()"></div>
     <div class="cart-content">
         <!-- Cart Header -->
         <div class="cart-header">
@@ -90,7 +90,8 @@
     transition: right 0.3s ease;
 }
 
-.cart-sidebar.active {
+.cart-sidebar.active,
+.cart-sidebar.show {
     right: 0;
 }
 
@@ -106,7 +107,9 @@
     transition: all 0.3s ease;
 }
 
-.cart-sidebar.active .cart-overlay {
+.cart-sidebar.active .cart-overlay,
+.cart-sidebar.show .cart-overlay,
+.cart-overlay.show {
     opacity: 1;
     visibility: visible;
 }

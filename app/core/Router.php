@@ -109,6 +109,9 @@ class Router
             $pattern = $this->convertToRegex($route['path']);
 
             if (preg_match($pattern, $requestUri, $matches)) {
+                // Debug: Log successful route match
+                error_log("Router: Matched route - Method: {$requestMethod}, URI: {$requestUri}, Handler: {$route['handler']}");
+
                 // Remove full match
                 array_shift($matches);
 
@@ -117,6 +120,9 @@ class Router
                 return;
             }
         }
+
+        // Debug: Log no route found
+        error_log("Router: No route found - Method: {$requestMethod}, URI: {$requestUri}");
 
         // No route found, call 404 handler
         if ($this->notFoundHandler) {
@@ -151,6 +157,8 @@ class Router
      */
     private function callHandler($handler, $params = [])
     {
+        error_log("Router: Calling handler - {$handler} with params: " . json_encode($params));
+
         if (is_callable($handler)) {
             // Closure or function
             call_user_func_array($handler, $params);
@@ -162,22 +170,27 @@ class Router
                 // Include controller file
                 $controllerFile = APP_PATH . '/controllers/' . $controller . '.php';
                 if (!file_exists($controllerFile)) {
+                    error_log("Router ERROR: Controller file not found: {$controllerFile}");
                     throw new Exception("Controller file not found: {$controllerFile}");
                 }
 
                 require_once $controllerFile;
 
                 if (!class_exists($controller)) {
+                    error_log("Router ERROR: Controller class not found: {$controller}");
                     throw new Exception("Controller class not found: {$controller}");
                 }
 
                 $controllerInstance = new $controller();
 
                 if (!method_exists($controllerInstance, $method)) {
+                    error_log("Router ERROR: Method {$method} not found in controller {$controller}");
                     throw new Exception("Method {$method} not found in controller {$controller}");
                 }
 
+                error_log("Router: About to call {$controller}->{$method}");
                 call_user_func_array([$controllerInstance, $method], $params);
+                error_log("Router: Finished calling {$controller}->{$method}");
             } else {
                 // Simple function name
                 if (function_exists($handler)) {
