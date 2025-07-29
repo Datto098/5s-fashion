@@ -84,7 +84,7 @@ class Product extends BaseModel
         try {
             $db = Database::getInstance();
 
-            $sql = "SELECT p.*, c.name as category_name
+            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
                     FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
                     WHERE p.status = 'published'
@@ -110,7 +110,7 @@ class Product extends BaseModel
             $db = Database::getInstance();
 
             // Get products ordered by sales count (simplified for existing schema)
-            $sql = "SELECT p.*, c.name as category_name
+            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
                     FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
                     WHERE p.status = 'published'
@@ -474,7 +474,7 @@ class Product extends BaseModel
     public function getFullDetails($id)
     {
         $sql = "SELECT p.*,
-                       c.name as category_name
+                       c.name as category_name, c.slug as category_slug
                 FROM {$this->table} p
                 LEFT JOIN categories c ON p.category_id = c.id
                 WHERE p.id = ?";
