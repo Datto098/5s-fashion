@@ -1,7 +1,4 @@
-<?php
-$pageTitle = 'Voucher Khuyến Mãi';
-require_once 'app/views/client/layouts/header.php';
-?>
+
 
 <div class="container my-5">
     <!-- Page Header -->
@@ -596,4 +593,4 @@ style.textContent = `
 document.head.appendChild(style);
 </script>
 
-<?php require_once 'app/views/client/layouts/footer.php'; ?>
+

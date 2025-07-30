@@ -14,7 +14,7 @@ define('MODEL_PATH', APP_PATH . '/models');
 define('UPLOAD_PATH', PUBLIC_PATH . '/uploads');
 
 // URL Constants
-$isPublicDir = (basename($_SERVER['SCRIPT_NAME']) === 'index.php' && strpos($_SERVER['SCRIPT_NAME'], '/public/') !== false);
+$isPublicDir = false; 
 $defaultUrl = ($_SERVER['SERVER_PORT'] == '8080')
     ? 'http://localhost:8080'
     : 'http://localhost/5s-fashion';

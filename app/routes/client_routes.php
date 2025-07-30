@@ -55,4 +55,13 @@ return [
     'terms' => 'PageController@terms',
     'size-guide' => 'PageController@sizeGuide',
     'faq' => 'PageController@faq',
+
+    // Vouchers
+    'vouchers' => 'VoucherController@index',
+    'vouchers/my-vouchers' => 'VoucherController@myVouchers',
+
+    //Posts
+    'blog' => 'PostController@index',
+    'blog/{id}' => 'PostController@show',
+
 ];
