@@ -90,8 +90,8 @@ $router->get('/faq', 'PageController@faq');
 $router->post('/newsletter', 'NewsletterController@subscribe');
 
 // Blog routes (future)
-$router->get('/blog', 'BlogController@index');
-$router->get('/blog/{slug}', 'BlogController@show');
+$router->get('/blog', 'PostController@index');
+$router->get('/blog/{id}', 'PostController@show');
 
 // Category routes
 $router->get('/category/{slug}', function($slug) {
