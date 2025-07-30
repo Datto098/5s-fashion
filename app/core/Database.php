@@ -136,12 +136,20 @@ class Database
 
     public function commit()
     {
-        return $this->connection->commit();
+        // Only commit if there's an active transaction
+        if ($this->connection->inTransaction()) {
+            return $this->connection->commit();
+        }
+        return true;
     }
 
     public function rollback()
     {
-        return $this->connection->rollback();
+        // Only rollback if there's an active transaction
+        if ($this->connection->inTransaction()) {
+            return $this->connection->rollback();
+        }
+        return true;
     }
 
     public function escape($value)

@@ -45,6 +45,11 @@ return [
     'ajax/cart/update' => 'AjaxController@updateCart',
     'ajax/cart/remove' => 'AjaxController@removeFromCart',
     'ajax/cart/items' => 'AjaxController@getCartItems',
+    'ajax/wishlist/toggle' => 'AjaxController@toggleWishlist',
+    'ajax/product/data' => 'AjaxController@getProductData',
+
+    // Wishlist Routes
+    'wishlist/count' => 'WishlistController@count',
 
     // Static pages
     'about' => 'HomeController@about',

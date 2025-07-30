@@ -836,4 +836,179 @@ class Product extends BaseModel
 
         return $export;
     }
+
+    // ==================== VARIANT SUPPORT METHODS ====================
+
+    /**
+     * Check if product has variants
+     */
+    public function hasVariants()
+    {
+        if (isset($this->has_variants)) {
+            return (bool) $this->has_variants;
+        }
+
+        $sql = "SELECT has_variants FROM products WHERE id = :id";
+        $result = $this->db->fetchOne($sql, ['id' => $this->id ?? 0]);
+        return $result ? (bool) $result['has_variants'] : false;
+    }
+
+    /**
+     * Get product variants by status
+     */
+    public function getVariantsByStatus($activeOnly = true)
+    {
+        $whereClause = $activeOnly ? "AND status = 'active'" : '';
+        $sql = "SELECT * FROM product_variants WHERE product_id = :product_id {$whereClause} ORDER BY sort_order";
+        return $this->db->fetchAll($sql, ['product_id' => $this->id ?? 0]);
+    }
+
+    /**
+     * Get variants with attributes
+     */
+    public function getVariantsWithAttributes()
+    {
+        return ProductVariant::getProductVariantsWithDetails($this->id ?? 0);
+    }
+
+    /**
+     * Get available attributes for this product (from existing variants)
+     */
+    public function getAvailableAttributes()
+    {
+        $sql = "
+            SELECT DISTINCT pa.id, pa.name, pa.type, pa.slug,
+                   pav.id as value_id, pav.value, pav.color_code, pav.image as attribute_image
+            FROM product_variants pv
+            JOIN product_variant_attributes pva ON pv.id = pva.variant_id
+            JOIN product_attribute_values pav ON pva.attribute_value_id = pav.id
+            JOIN product_attributes pa ON pav.attribute_id = pa.id
+            WHERE pv.product_id = :product_id AND pv.status = 'active'
+            ORDER BY pa.sort_order, pav.sort_order
+        ";
+
+        $attributes = $this->db->fetchAll($sql, ['product_id' => $this->id ?? 0]);
+
+        // Group by attribute type
+        $grouped = [];
+        foreach ($attributes as $attr) {
+            if (!isset($grouped[$attr['type']])) {
+                $grouped[$attr['type']] = [
+                    'id' => $attr['id'],
+                    'name' => $attr['name'],
+                    'type' => $attr['type'],
+                    'slug' => $attr['slug'],
+                    'values' => []
+                ];
+            }
+
+            $grouped[$attr['type']]['values'][] = [
+                'id' => $attr['value_id'],
+                'value' => $attr['value'],
+                'color_code' => $attr['color_code'],
+                'image' => $attr['attribute_image']
+            ];
+        }
+
+        return array_values($grouped);
+    }
+
+    /**
+     * Get total stock from all variants for current product instance
+     */
+    public function getCurrentTotalStock()
+    {
+        if ($this->hasVariants()) {
+            $sql = "SELECT SUM(stock_quantity) as total_stock FROM product_variants WHERE product_id = :product_id AND status = 'active'";
+            $result = $this->db->fetchOne($sql, ['product_id' => $this->id ?? 0]);
+            return $result ? (int) $result['total_stock'] : 0;
+        }
+
+        return (int) ($this->stock_quantity ?? 0);
+    }
+
+    /**
+     * Get price range for variants of this product
+     */
+    public function getVariantPriceRange()
+    {
+        if (!$this->hasVariants()) {
+            return [
+                'min_price' => $this->sale_price ?: $this->price,
+                'max_price' => $this->sale_price ?: $this->price,
+                'has_range' => false
+            ];
+        }
+
+        $sql = "
+            SELECT
+                MIN(COALESCE(sale_price, price)) as min_price,
+                MAX(COALESCE(sale_price, price)) as max_price
+            FROM product_variants
+            WHERE product_id = :product_id AND status = 'active'
+        ";
+
+        $result = $this->db->fetchOne($sql, ['product_id' => $this->id ?? 0]);
+
+        if (!$result) {
+            return [
+                'min_price' => $this->sale_price ?: $this->price,
+                'max_price' => $this->sale_price ?: $this->price,
+                'has_range' => false
+            ];
+        }
+
+        return [
+            'min_price' => $result['min_price'] ?: ($this->sale_price ?: $this->price),
+            'max_price' => $result['max_price'] ?: ($this->sale_price ?: $this->price),
+            'has_range' => $result['min_price'] != $result['max_price']
+        ];
+    }
+
+    /**
+     * Find variant by attribute combination
+     */
+    public function findVariantByAttributes($attributeValueIds)
+    {
+        if (empty($attributeValueIds)) {
+            return null;
+        }
+
+        // Sort the attribute value IDs for consistent comparison
+        sort($attributeValueIds);
+        $attributeValueIdsStr = implode(',', $attributeValueIds);
+
+        $sql = "
+            SELECT pv.*,
+                   GROUP_CONCAT(pva.attribute_value_id ORDER BY pva.attribute_value_id) as variant_attributes
+            FROM product_variants pv
+            JOIN product_variant_attributes pva ON pv.id = pva.variant_id
+            WHERE pv.product_id = :product_id AND pv.status = 'active'
+            GROUP BY pv.id
+            HAVING variant_attributes = :attribute_values
+        ";
+
+        return $this->db->fetchOne($sql, [
+            'product_id' => $this->id ?? 0,
+            'attribute_values' => $attributeValueIdsStr
+        ]);
+    }
+
+    /**
+     * Enable variants for this product
+     */
+    public function enableVariants()
+    {
+        $sql = "UPDATE products SET has_variants = 1 WHERE id = :id";
+        return $this->db->execute($sql, ['id' => $this->id ?? 0]);
+    }
+
+    /**
+     * Disable variants for this product
+     */
+    public function disableVariants()
+    {
+        $sql = "UPDATE products SET has_variants = 0 WHERE id = :id";
+        return $this->db->execute($sql, ['id' => $this->id ?? 0]);
+    }
 }

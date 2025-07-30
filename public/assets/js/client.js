@@ -3,6 +3,19 @@
  * 5S Fashion E-commerce Platform
  */
 
+// Get base URL dynamically
+const BASE_URL = (() => {
+	const pathParts = window.location.pathname
+		.split('/')
+		.filter((part) => part);
+	// If we're in a subdirectory like /5s-fashion/, use it as base
+	if (pathParts.length > 0 && !pathParts[0].includes('.')) {
+		return '/' + pathParts[0];
+	}
+	// Otherwise use root
+	return '';
+})();
+
 // Global variables
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 // Wishlist is now handled via API, no localStorage needed
@@ -15,11 +28,11 @@ let cart = JSON.parse(localStorage.getItem('cart')) || [];
 // Helper function to get proper image URL
 function getImageUrl(imagePath) {
 	if (!imagePath) {
-		return '/5s-fashion/assets/images/no-image.jpg';
+		return `${BASE_URL}/assets/images/no-image.jpg`;
 	}
 
 	// If it's already a full serve-file.php URL, return as is
-	if (imagePath.startsWith('/5s-fashion/serve-file.php')) {
+	if (imagePath.startsWith(`${BASE_URL}/serve-file.php`)) {
 		return imagePath;
 	}
 
@@ -28,28 +41,33 @@ function getImageUrl(imagePath) {
 		return imagePath;
 	}
 
-	// If it starts with /uploads/, remove the leading slash
-	if (imagePath.startsWith('/uploads/')) {
-		imagePath = imagePath.substring(1);
+	// Handle API response format: /uploads/products/filename.webp
+	if (imagePath.startsWith('/uploads/products/')) {
+		// Remove /uploads/ prefix since serve-file.php adds /public/uploads/ automatically
+		const fileName = imagePath.replace('/uploads/', '');
+		return `${BASE_URL}/serve-file.php?file=${encodeURIComponent(
+			fileName
+		)}`;
 	}
 
-	// If it starts with uploads/, use serve-file.php
-	if (imagePath.startsWith('uploads/')) {
-		return (
-			'/5s-fashion/serve-file.php?file=' + encodeURIComponent(imagePath)
-		);
+	// Handle format: uploads/products/filename.webp
+	if (imagePath.startsWith('uploads/products/')) {
+		// Remove uploads/ prefix since serve-file.php adds /public/uploads/ automatically
+		const fileName = imagePath.replace('uploads/', '');
+		return `${BASE_URL}/serve-file.php?file=${encodeURIComponent(
+			fileName
+		)}`;
 	}
 
-	// For products/ path, add uploads/ prefix
+	// For direct products/ path
 	if (imagePath.startsWith('products/')) {
-		return (
-			'/5s-fashion/serve-file.php?file=' +
-			encodeURIComponent('uploads/' + imagePath)
-		);
+		return `${BASE_URL}/serve-file.php?file=${encodeURIComponent(
+			imagePath
+		)}`;
 	}
 
 	// Default fallback
-	return '/5s-fashion/assets/images/no-image.jpg';
+	return `${BASE_URL}/assets/images/no-image.jpg`;
 }
 
 // DOM Ready
@@ -161,7 +179,7 @@ function closeCartSidebar() {
 }
 
 function viewCart() {
-	window.location.href = '/5s-fashion/cart';
+	window.location.href = `${BASE_URL}/cart`;
 }
 
 function checkout() {
@@ -170,7 +188,7 @@ function checkout() {
 		showToast('Giỏ hàng trống', 'warning');
 		return;
 	}
-	window.location.href = '/5s-fashion/checkout';
+	window.location.href = `${BASE_URL}/checkout`;
 }
 
 function addToCart(productId, quantity = 1, variant = null) {
@@ -186,7 +204,7 @@ function addToCart(productId, quantity = 1, variant = null) {
 	showLoading();
 
 	// Make API call to add product to cart
-	fetch('/5s-fashion/ajax/cart/add', {
+	fetch(`${BASE_URL}/ajax/cart/add`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -240,7 +258,7 @@ function removeFromCart(key) {
 	const variant = item.variant;
 
 	// Send AJAX request to server to remove item from cart
-	fetch('/5s-fashion/ajax/cart/remove', {
+	fetch(`${BASE_URL}/ajax/cart/remove`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -292,7 +310,7 @@ function updateCartQuantity(key, quantity) {
 	const variant = item.variant;
 
 	// Send AJAX request to server to update quantity
-	fetch('/5s-fashion/ajax/cart/update', {
+	fetch(`${BASE_URL}/ajax/cart/update`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -339,7 +357,7 @@ function loadCartItems() {
             <div class="empty-cart text-center py-4">
                 <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
                 <p class="text-muted">Giỏ hàng trống</p>
-                <a href="/5s-fashion/shop" class="btn btn-primary btn-sm">Mua Sắm Ngay</a>
+                <a href="${BASE_URL}/shop" class="btn btn-primary btn-sm">Mua Sắm Ngay</a>
             </div>
         `;
 		if (cartTotal) cartTotal.textContent = '0₫';
@@ -421,7 +439,7 @@ function updateCartCounter(count = null) {
 
 // Load cart items from server session
 function loadCartItemsFromServer() {
-	fetch('/5s-fashion/ajax/cart/items', {
+	fetch(`${BASE_URL}/ajax/cart/items`, {
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json',
@@ -475,7 +493,7 @@ function toggleWishlist(productId) {
 			'Vui lòng đăng nhập để sử dụng danh sách yêu thích!',
 			'warning'
 		);
-		window.location.href = '/5s-fashion/login';
+		window.location.href = `${BASE_URL}/login`;
 		return;
 	}
 
@@ -491,7 +509,7 @@ function toggleWishlist(productId) {
 	}
 
 	// Call API to toggle wishlist
-	fetch('/5s-fashion/ajax/wishlist/toggle', {
+	fetch(`${BASE_URL}/ajax/wishlist/toggle`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded',
@@ -547,7 +565,7 @@ function updateWishlistCounterFromAPI() {
 		return;
 	}
 
-	fetch('/5s-fashion/wishlist/count')
+	fetch(`${BASE_URL}/wishlist/count`)
 		.then((response) => response.json())
 		.then((data) => {
 			const counter = document.getElementById('wishlist-count');
@@ -586,7 +604,7 @@ function updateWishlistButtonsFromAPI() {
 	}
 
 	// Get current wishlist from API and update button states
-	fetch('/5s-fashion/wishlist')
+	fetch(`${BASE_URL}/wishlist`)
 		.then((response) => response.text())
 		.then((html) => {
 			// Parse the HTML to extract wishlist product IDs
@@ -631,12 +649,21 @@ function quickView(productId) {
 	// Show loading modal
 	showLoading();
 
-	fetch(`/api/products/${productId}`)
-		.then((response) => response.json())
+	fetch(`${BASE_URL}/ajax/product/data?id=${productId}`)
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			return response.json();
+		})
 		.then((data) => {
 			hideLoading();
 			if (data.success) {
 				showQuickViewModal(data.product);
+			} else {
+				throw new Error(
+					data.message || 'Không thể tải thông tin sản phẩm'
+				);
 			}
 		})
 		.catch((error) => {
@@ -660,24 +687,28 @@ function showQuickViewModal(product) {
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <img src="${
-								product.image || '/assets/images/no-image.jpg'
-							}"
-                                 alt="${product.name}" class="img-fluid">
+                            <img src="${getImageUrl(product.featured_image)}"
+                                 alt="${
+										product.name
+									}" class="product-image img-fluid">
                         </div>
                         <div class="col-md-6">
-                            <p class="text-muted">${product.category}</p>
-                            <h4>${formatCurrency(product.price)}</h4>
-                            <p>${product.short_description || ''}</p>
+                            <p class="text-muted">${
+								product.category_name || 'Chưa phân loại'
+							}</p>
+                            <h4>${formatCurrency(
+								product.sale_price || product.price
+							)}</h4>
+                            <p>${product.description || ''}</p>
                             <div class="mt-3">
                                 <button class="btn btn-primary me-2" onclick="addToCart(${
 									product.id
 								})">
                                     <i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ
                                 </button>
-                                <a href="/product/${
-									product.slug
-								}" class="btn btn-outline-primary">
+                                <a href="${BASE_URL}/product/${
+		product.slug
+	}" class="btn btn-outline-primary">
                                     Xem Chi Tiết
                                 </a>
                             </div>
@@ -855,7 +886,7 @@ function initializeSearch() {
 }
 
 function fetchSearchSuggestions(query) {
-	fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`)
+	fetch(`${BASE_URL}/api/search/suggestions?q=${encodeURIComponent(query)}`)
 		.then((response) => response.json())
 		.then((data) => {
 			if (data.success) {

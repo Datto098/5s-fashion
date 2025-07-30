@@ -106,6 +106,7 @@ $router->get('/brand/{slug}', function($slug) {
 });
 
 // AJAX endpoints for client
+$router->post('/ajax/init-session', 'AjaxController@initSession');
 $router->post('/ajax/cart/add', 'AjaxController@addToCart');
 $router->post('/ajax/cart/update', 'AjaxController@updateCart');
 $router->post('/ajax/cart/remove', 'AjaxController@removeFromCart');
@@ -172,6 +173,25 @@ $router->post('/admin/{controller}/{action}/{id}', function($controller, $action
 
 $router->post('/admin/{controller}/{id}/{action}', function($controller, $id, $action) {
     $_GET['url'] = 'admin/' . $controller . '/' . $id . '/' . $action;
+    require_once APP_PATH . '/core/App.php';
+    $app = new App();
+});
+
+// Additional routes for nested controllers like /admin/products/1/variants/generate
+$router->post('/admin/{controller}/{id}/{subcontroller}/{action}', function($controller, $id, $subcontroller, $action) {
+    $_GET['url'] = 'admin/' . $controller . '/' . $id . '/' . $subcontroller . '/' . $action;
+    require_once APP_PATH . '/core/App.php';
+    $app = new App();
+});
+
+$router->get('/admin/{controller}/{id}/{subcontroller}', function($controller, $id, $subcontroller) {
+    $_GET['url'] = 'admin/' . $controller . '/' . $id . '/' . $subcontroller;
+    require_once APP_PATH . '/core/App.php';
+    $app = new App();
+});
+
+$router->get('/admin/{controller}/{id}/{subcontroller}/{action}', function($controller, $id, $subcontroller, $action) {
+    $_GET['url'] = 'admin/' . $controller . '/' . $id . '/' . $subcontroller . '/' . $action;
     require_once APP_PATH . '/core/App.php';
     $app = new App();
 });

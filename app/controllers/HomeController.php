@@ -4,6 +4,9 @@
  * 5S Fashion E-commerce Platform
  */
 
+require_once __DIR__ . '/../models/ProductVariant.php';
+require_once __DIR__ . '/../core/Database.php';
+
 class HomeController extends Controller
 {
     private $productModel;
@@ -125,8 +128,40 @@ class HomeController extends Controller
             return;
         }
 
-        // Get product variants
-        $variants = $this->productModel->getProductVariants($product['id']);
+        // Get product variants with attributes if product has variants
+        $variants = [];
+        $attributes = [];
+
+        if (isset($product['has_variants']) && $product['has_variants']) {
+            $variants = ProductVariant::getProductVariantsWithDetails($product['id']);
+
+            // Get available attributes for this product
+            $db = Database::getInstance();
+            $sql = "
+                SELECT DISTINCT pa.id, pa.name, pa.type, pa.slug,
+                       JSON_ARRAYAGG(
+                           JSON_OBJECT(
+                               'id', pav.id,
+                               'value', pav.value,
+                               'color_code', pav.color_code,
+                               'image', pav.image
+                           )
+                       ) as `values`
+                FROM product_variants pv
+                JOIN product_variant_attributes pva ON pv.id = pva.variant_id
+                JOIN product_attribute_values pav ON pva.attribute_value_id = pav.id
+                JOIN product_attributes pa ON pav.attribute_id = pa.id
+                WHERE pv.product_id = :product_id AND pv.status = 'active'
+                GROUP BY pa.id, pa.name, pa.type, pa.slug
+                ORDER BY pa.sort_order
+            ";
+            $attributes = $db->fetchAll($sql, ['product_id' => $product['id']]);
+
+            // Decode JSON values
+            foreach ($attributes as &$attribute) {
+                $attribute['values'] = json_decode($attribute['values'], true) ?? [];
+            }
+        }
 
         // Get related products
         $relatedProducts = $this->productModel->getRelatedProducts($product['id'], $product['category_id'], 8);
@@ -138,6 +173,7 @@ class HomeController extends Controller
             'title' => $product['name'] . ' - 5S Fashion',
             'product' => $product,
             'variants' => $variants,
+            'attributes' => $attributes,
             'related_products' => $relatedProducts,
             'reviews' => $reviews
         ];
