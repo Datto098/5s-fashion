@@ -35,6 +35,79 @@ class App
     {
         $this->controller = 'DashboardController'; // Default admin controller
 
+        // Special handling for nested routes like /admin/products/{id}/variants/{action}
+        if (isset($url[0], $url[1], $url[2], $url[3])) {
+            // Check for pattern: controller/id/subcontroller/action
+            if ($url[0] === 'products' && $url[2] === 'variants') {
+                $this->controller = 'ProductVariantsController';
+                $productId = $url[1];
+                $action = $url[3];
+
+                // Check for 5-parameter route: /admin/products/{productId}/variants/{variantId}/{action}
+                if (isset($url[4])) {
+                    $variantId = $url[3];
+                    $action = $url[4];
+
+                    if ($action === 'data') {
+                        $controllerFile = APP_PATH . '/controllers/admin/' . $this->controller . '.php';
+                        if (file_exists($controllerFile)) {
+                            require_once $controllerFile;
+                            $this->controller = new $this->controller;
+                            $this->method = 'getVariantData';
+                            $this->params = [$variantId];
+                            call_user_func_array([$this->controller, $this->method], $this->params);
+                            return;
+                        }
+                    } elseif ($action === 'update') {
+                        $controllerFile = APP_PATH . '/controllers/admin/' . $this->controller . '.php';
+                        if (file_exists($controllerFile)) {
+                            require_once $controllerFile;
+                            $this->controller = new $this->controller;
+                            $this->method = 'update';
+                            $this->params = [$productId, $variantId];
+                            call_user_func_array([$this->controller, $this->method], $this->params);
+                            return;
+                        }
+                    } elseif ($action === 'delete') {
+                        $controllerFile = APP_PATH . '/controllers/admin/' . $this->controller . '.php';
+                        if (file_exists($controllerFile)) {
+                            require_once $controllerFile;
+                            $this->controller = new $this->controller;
+                            $this->method = 'delete';
+                            $this->params = [$productId, $variantId];
+                            call_user_func_array([$this->controller, $this->method], $this->params);
+                            return;
+                        }
+                    }
+                }                $controllerFile = APP_PATH . '/controllers/admin/' . $this->controller . '.php';
+                if (file_exists($controllerFile)) {
+                    require_once $controllerFile;
+                    $this->controller = new $this->controller;
+
+                    // Map actions
+                    switch ($action) {
+                        case 'generate':
+                            $this->method = 'generateVariants';
+                            $this->params = [$productId];
+                            break;
+                        case 'create':
+                            $this->method = 'create';
+                            $this->params = [$productId];
+                            break;
+                        default:
+                            $this->method = 'index';
+                            $this->params = [$productId];
+                            break;
+                    }
+
+                    // Call the controller method with parameters
+                    call_user_func_array([$this->controller, $this->method], $this->params);
+                    return;
+                }
+            }
+        }
+
+        // Standard admin routing
         // Set controller
         if (isset($url[0])) {
             $controllerName = ucfirst($url[0]) . 'Controller';
@@ -79,6 +152,16 @@ class App
 
         // Get the full URL path
         $fullPath = implode('/', $url);
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        // For AJAX routes, check HTTP method
+        if (strpos($fullPath, 'ajax/') === 0) {
+            // AJAX routes should handle POST requests properly
+            if (isset($routes[$fullPath])) {
+                $this->handleRoute($routes[$fullPath]);
+                return;
+            }
+        }
 
         // Check for exact route matches first
         foreach ($routes as $route => $handler) {

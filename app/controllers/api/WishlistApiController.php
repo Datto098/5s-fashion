@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../core/ApiController.php';
+require_once __DIR__ . '/../../core/Database.php';
 
 /**
  * Wishlist API Controller
@@ -9,6 +10,12 @@ require_once __DIR__ . '/../../core/ApiController.php';
 class WishlistApiController extends ApiController
 {
     private $sessionKey = 'wishlist';
+
+    public function __construct()
+    {
+        parent::__construct();
+        // Database is already initialized in parent
+    }
 
     /**
      * Get wishlist items

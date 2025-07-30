@@ -563,8 +563,8 @@ function showToast(message, type = 'info') {
 
 function updateCartCounter() {
 	// Use existing cart counter function from client.js
-	if (typeof window.updateCartCounter === 'function') {
-		window.updateCartCounter();
+	if (typeof window.updateCartCounterGlobal === 'function') {
+		window.updateCartCounterGlobal();
 	} else {
 		// Simple fallback
 		const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');

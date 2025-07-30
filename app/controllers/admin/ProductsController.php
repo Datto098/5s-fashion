@@ -27,8 +27,13 @@ class ProductsController extends BaseController
         $this->categoryModel = new Category();
     }
 
-    public function index()
+    public function index($productId = null, $action = null)
     {
+        // Handle variants routing: /admin/products/{id}/variants
+        if ($productId && $action === 'variants') {
+            return $this->variants($productId);
+        }
+
         try {
             // Get search and filter parameters
             $search = $_GET['search'] ?? '';
@@ -132,6 +137,7 @@ class ProductsController extends BaseController
                 'short_description' => $_POST['short_description'] ?? '',
                 'category_id' => (int)$_POST['category_id'],
                 'price' => (float)$_POST['price'],
+                'sale_price' => !empty($_POST['sale_price']) ? (float)$_POST['sale_price'] : null,
                 'compare_price' => !empty($_POST['compare_price']) ? (float)$_POST['compare_price'] : null,
                 'cost_price' => !empty($_POST['cost_price']) ? (float)$_POST['cost_price'] : null,
                 'sku' => $_POST['sku'] ?? $this->generateSKU(),
@@ -147,7 +153,12 @@ class ProductsController extends BaseController
                 'featured' => isset($_POST['is_featured']) ? 1 : 0,
                 'meta_title' => $_POST['meta_title'] ?? '',
                 'meta_description' => $_POST['meta_description'] ?? '',
-                'meta_keywords' => $_POST['meta_keywords'] ?? ''
+                'meta_keywords' => $_POST['meta_keywords'] ?? '',
+                // New variant-related fields
+                'has_variants' => isset($_POST['has_variants']) ? 1 : 0,
+                'manage_stock' => isset($_POST['manage_stock']) ? 1 : 0,
+                'stock_quantity' => !empty($_POST['stock_quantity']) ? (int)$_POST['stock_quantity'] : 0,
+                'low_stock_threshold' => !empty($_POST['low_stock_threshold']) ? (int)$_POST['low_stock_threshold'] : 5
             ];
 
             // Handle image upload
@@ -289,6 +300,7 @@ class ProductsController extends BaseController
                 'short_description' => $_POST['short_description'] ?? '',
                 'category_id' => (int)$_POST['category_id'],
                 'price' => (float)$_POST['price'],
+                'sale_price' => !empty($_POST['sale_price']) ? (float)$_POST['sale_price'] : null,
                 'compare_price' => !empty($_POST['compare_price']) ? (float)$_POST['compare_price'] : null,
                 'cost_price' => !empty($_POST['cost_price']) ? (float)$_POST['cost_price'] : null,
                 'sku' => $_POST['sku'] ?? $existingProduct['sku'],
@@ -304,7 +316,12 @@ class ProductsController extends BaseController
                 'featured' => isset($_POST['is_featured']) ? 1 : 0,
                 'meta_title' => $_POST['meta_title'] ?? '',
                 'meta_description' => $_POST['meta_description'] ?? '',
-                'meta_keywords' => $_POST['meta_keywords'] ?? ''
+                'meta_keywords' => $_POST['meta_keywords'] ?? '',
+                // Add variant-related fields
+                'has_variants' => isset($_POST['has_variants']) ? 1 : 0,
+                'manage_stock' => isset($_POST['manage_stock']) ? 1 : 0,
+                'stock_quantity' => !empty($_POST['stock_quantity']) ? (int)$_POST['stock_quantity'] : 0,
+                'low_stock_threshold' => !empty($_POST['low_stock_threshold']) ? (int)$_POST['low_stock_threshold'] : 5
             ];
 
             // Update slug if name changed
@@ -1116,6 +1133,35 @@ class ProductsController extends BaseController
 
         } catch (Exception $e) {
             error_log("Error cleaning up product files: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Manage product variants
+     */
+    public function variants($productId)
+    {
+        try {
+            // Get product details
+            $product = $this->productModel->find($productId);
+            if (!$product) {
+                throw new Exception('Không tìm thấy sản phẩm');
+            }
+
+            // Check if product has variants enabled
+            if (empty($product['has_variants'])) {
+                header('Location: /5s-fashion/admin/products/' . $productId . '/edit?error=' . urlencode('Sản phẩm này chưa bật chế độ biến thể'));
+                exit;
+            }
+
+            // Include ProductVariantsController to handle variants
+            require_once __DIR__ . '/ProductVariantsController.php';
+            $variantsController = new ProductVariantsController();
+            $variantsController->index($productId);
+
+        } catch (Exception $e) {
+            header('Location: /5s-fashion/admin/products?error=' . urlencode($e->getMessage()));
+            exit;
         }
     }
 }

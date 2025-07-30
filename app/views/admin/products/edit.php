@@ -25,6 +25,11 @@ $visibilityOptions = [
                     <a href="/5s-fashion/admin/products" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
+                    <?php if (!empty($product['has_variants'])): ?>
+                        <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants" class="btn btn-info ms-2">
+                            <i class="fas fa-cogs"></i> Quản lý biến thể
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -125,6 +130,113 @@ $visibilityOptions = [
                                     <span class="input-group-text">đ</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory & Variants -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-boxes"></i> Kho hàng & Biến thể
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hasVariants" name="has_variants" value="1"
+                                           <?= !empty($product['has_variants']) ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="hasVariants">
+                                        Sản phẩm có biến thể (màu sắc, kích thước...)
+                                    </label>
+                                </div>
+                                <small class="text-muted">Bật tùy chọn này nếu sản phẩm có nhiều phiên bản khác nhau</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="manageStock" name="manage_stock" value="1"
+                                           <?= !empty($product['manage_stock']) ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="manageStock">
+                                        Quản lý tồn kho
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Simple Inventory (for products without variants) -->
+                        <div id="simpleInventory" class="inventory-section" style="<?= !empty($product['has_variants']) ? 'display:none' : '' ?>">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="stockQuantity" class="form-label">Số lượng tồn kho</label>
+                                    <input type="number" class="form-control" id="stockQuantity" name="stock_quantity"
+                                           value="<?= $product['stock_quantity'] ?? '' ?>" min="0">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="lowStockThreshold" class="form-label">Ngưỡng cảnh báo hết hàng</label>
+                                    <input type="number" class="form-control" id="lowStockThreshold" name="low_stock_threshold"
+                                           value="<?= $product['low_stock_threshold'] ?? '5' ?>" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Variant Management (for products with variants) -->
+                        <div id="variantManagement" class="variant-section" style="<?= empty($product['has_variants']) ? 'display:none' : '' ?>">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Sản phẩm có biến thể:</strong>
+                                <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants" class="btn btn-sm btn-outline-primary ms-2" target="_blank">
+                                    <i class="fas fa-cog"></i> Quản lý biến thể & tồn kho
+                                </a>
+                            </div>
+
+                            <?php if (!empty($product['has_variants'])): ?>
+                                <!-- Display current variants summary -->
+                                <div class="variants-summary">
+                                    <h6>Tóm tắt biến thể hiện tại:</h6>
+                                    <?php
+                                    // Get variants data (you may need to pass this from controller)
+                                    $variants = $product['variants'] ?? [];
+                                    if (!empty($variants)):
+                                    ?>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>SKU</th>
+                                                        <th>Tên biến thể</th>
+                                                        <th>Tồn kho</th>
+                                                        <th>Trạng thái</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($variants as $variant): ?>
+                                                        <tr>
+                                                            <td><code><?= htmlspecialchars($variant['sku']) ?></code></td>
+                                                            <td><?= htmlspecialchars($variant['variant_name']) ?></td>
+                                                            <td>
+                                                                <span class="badge <?= $variant['stock_quantity'] > 0 ? 'bg-success' : 'bg-danger' ?>">
+                                                                    <?= $variant['stock_quantity'] ?>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge <?= $variant['status'] === 'active' ? 'bg-success' : 'bg-secondary' ?>">
+                                                                    <?= ucfirst($variant['status']) ?>
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Chưa có biến thể nào. <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants">Tạo biến thể ngay</a>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -440,6 +552,33 @@ $visibilityOptions = [
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle variants toggle
+    const hasVariantsCheckbox = document.getElementById('hasVariants');
+    const simpleInventory = document.getElementById('simpleInventory');
+    const variantManagement = document.getElementById('variantManagement');
+
+    if (hasVariantsCheckbox) {
+        hasVariantsCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                simpleInventory.style.display = 'none';
+                variantManagement.style.display = 'block';
+                // Clear simple inventory values when switching to variants
+                document.getElementById('stockQuantity').value = '';
+            } else {
+                simpleInventory.style.display = 'block';
+                variantManagement.style.display = 'none';
+            }
+        });
+
+        // Auto-enable manage_stock when has_variants is checked
+        hasVariantsCheckbox.addEventListener('change', function() {
+            const manageStockCheckbox = document.getElementById('manageStock');
+            if (this.checked && manageStockCheckbox) {
+                manageStockCheckbox.checked = true;
+            }
+        });
+    }
+
     // Featured Image Upload
     const featuredUpload = document.getElementById('featuredImageUpload');
     const featuredInput = document.getElementById('featuredImage');

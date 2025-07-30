@@ -99,6 +99,55 @@
                     </div>
                 </div>
 
+                <!-- Inventory & Variants -->
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">Kho hàng & Biến thể</h3>
+                    </div>
+                    <div class="admin-card-body">
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="has_variants" id="has_variants" value="1" <?= !empty($_POST['has_variants']) ? 'checked' : '' ?>>
+                                <span class="checkbox-indicator"></span>
+                                <span class="checkbox-label">Sản phẩm có biến thể (màu sắc, kích thước...)</span>
+                            </label>
+                            <small class="form-help">Bật tùy chọn này nếu sản phẩm có nhiều phiên bản khác nhau</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="manage_stock" id="manage_stock" value="1" <?= !empty($_POST['manage_stock']) ? 'checked' : '' ?>>
+                                <span class="checkbox-indicator"></span>
+                                <span class="checkbox-label">Quản lý tồn kho</span>
+                            </label>
+                        </div>
+
+                        <div id="simple_inventory" class="inventory-section" style="<?= !empty($_POST['has_variants']) ? 'display:none' : '' ?>">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="stock_quantity">
+                                        Số lượng tồn kho
+                                    </label>
+                                    <input type="number" name="stock_quantity" id="stock_quantity" class="form-input" min="0"
+                                           placeholder="0" value="<?= htmlspecialchars($_POST['stock_quantity'] ?? '') ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="low_stock_threshold">
+                                        Ngưỡng cảnh báo hết hàng
+                                    </label>
+                                    <input type="number" name="low_stock_threshold" id="low_stock_threshold" class="form-input" min="0"
+                                           placeholder="5" value="<?= htmlspecialchars($_POST['low_stock_threshold'] ?? '5') ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="variant_notice" class="alert alert-info" style="<?= empty($_POST['has_variants']) ? 'display:none' : '' ?>">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Sản phẩm có biến thể:</strong> Sau khi tạo sản phẩm, bạn có thể quản lý biến thể và tồn kho riêng biệt cho từng phiên bản.
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Images -->
                 <div class="admin-card">
                     <div class="admin-card-header">
@@ -296,6 +345,31 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!slugInput.value || slugInput.dataset.auto !== 'false') {
             slugInput.value = generateSlug(this.value);
             slugInput.dataset.auto = 'true';
+        }
+    });
+
+    // Handle variants toggle
+    const hasVariantsCheckbox = document.getElementById('has_variants');
+    const simpleInventory = document.getElementById('simple_inventory');
+    const variantNotice = document.getElementById('variant_notice');
+
+    hasVariantsCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            simpleInventory.style.display = 'none';
+            variantNotice.style.display = 'block';
+            // Clear simple inventory values when switching to variants
+            document.getElementById('stock_quantity').value = '';
+        } else {
+            simpleInventory.style.display = 'block';
+            variantNotice.style.display = 'none';
+        }
+    });
+
+    // Auto-enable manage_stock when has_variants is checked
+    hasVariantsCheckbox.addEventListener('change', function() {
+        const manageStockCheckbox = document.getElementById('manage_stock');
+        if (this.checked) {
+            manageStockCheckbox.checked = true;
         }
     });
 

@@ -153,8 +153,13 @@ class WishlistController extends Controller
     public function count()
     {
         $user = getUser();
-        $count = $this->getWishlistCount($user['id']);
 
+        if (!$user) {
+            echo json_encode(['count' => 0]);
+            return;
+        }
+
+        $count = $this->getWishlistCount($user['id']);
         echo json_encode(['count' => $count]);
     }
 

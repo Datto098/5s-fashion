@@ -26,6 +26,23 @@ class AjaxController extends Controller
     }
 
     /**
+     * Initialize session for AJAX operations
+     */
+    public function initSession()
+    {
+        // Start session if not started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Session initialized',
+            'session_id' => session_id()
+        ]);
+    }
+
+    /**
      * Add product to cart
      */
     public function addToCart()
@@ -42,6 +59,7 @@ class AjaxController extends Controller
             $productId = $input['product_id'] ?? null;
             $quantity = $input['quantity'] ?? 1;
             $variant = $input['variant'] ?? null;
+            $clientPrice = $input['price'] ?? null; // Price sent from client
 
             if (!$productId) {
                 throw new Exception('Product ID is required');
@@ -56,6 +74,20 @@ class AjaxController extends Controller
             // Check if product is published
             if ($product['status'] !== 'published') {
                 throw new Exception('Product is not available');
+            }
+
+            // Determine price to use
+            $priceToUse = $product['sale_price'] ?: $product['price']; // Default price
+
+            // If client sent a valid price and it's reasonable, use it (for variant pricing)
+            if ($clientPrice !== null && is_numeric($clientPrice) && $clientPrice > 0) {
+                // Validate that the client price is within reasonable bounds of product price
+                $basePrice = $product['sale_price'] ?: $product['price'];
+                $maxReasonablePrice = $basePrice * 2; // Allow up to 2x base price for variants
+
+                if ($clientPrice <= $maxReasonablePrice) {
+                    $priceToUse = $clientPrice;
+                }
             }
 
             // Start session if not started
@@ -95,7 +127,7 @@ class AjaxController extends Controller
                     'product_id' => $productId,
                     'product_name' => $product['name'],
                     'product_image' => $imageUrl,
-                    'price' => $product['sale_price'] ?: $product['price'],
+                    'price' => $priceToUse, // Use determined price
                     'quantity' => $quantity,
                     'variant' => $variant,
                     'added_at' => date('Y-m-d H:i:s')
@@ -248,12 +280,27 @@ class AjaxController extends Controller
             }
 
             $cartItems = $_SESSION['cart'] ?? [];
+
+            // Convert associative array to indexed array for JavaScript
+            $formattedItems = [];
+            foreach ($cartItems as $key => $item) {
+                $formattedItems[] = [
+                    'cart_key' => $key,
+                    'product_id' => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'product_image' => $item['product_image'],
+                    'price' => $item['price'],
+                    'quantity' => $item['quantity'],
+                    'variant' => $item['variant'] ?? null
+                ];
+            }
+
             $cartTotal = $this->calculateCartTotal();
             $cartCount = $this->getCartItemCount();
 
             echo json_encode([
                 'success' => true,
-                'items' => $cartItems,
+                'items' => $formattedItems,
                 'cart_count' => $cartCount,
                 'cart_total' => $cartTotal
             ]);
@@ -262,7 +309,8 @@ class AjaxController extends Controller
             http_response_code(400);
             echo json_encode([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'items' => [] // Ensure items is always an array
             ]);
         }
     }
@@ -349,6 +397,57 @@ class AjaxController extends Controller
             } else {
                 throw new Exception('Không thể thực hiện thao tác');
             }
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Get product data for quick view
+     */
+    public function getProductData()
+    {
+        try {
+            $productId = $_GET['id'] ?? $_POST['product_id'] ?? null;
+
+            if (!$productId) {
+                throw new Exception('Product ID is required');
+            }
+
+            // Get product data
+            $product = $this->product->find($productId);
+            if (!$product) {
+                throw new Exception('Sản phẩm không tồn tại');
+            }
+
+            // Get additional product data (images, variants, etc.)
+            $productImages = $this->product->getImages($productId);
+            $productVariants = $this->product->getVariants($productId);
+
+            // Format product data for quick view
+            $formattedProduct = [
+                'id' => $product['id'],
+                'name' => $product['name'],
+                'slug' => $product['slug'],
+                'description' => $product['description'],
+                'price' => $product['price'],
+                'sale_price' => $product['sale_price'],
+                'status' => $product['status'],
+                'featured_image' => $product['featured_image'],
+                'images' => $productImages,
+                'variants' => $productVariants,
+                'category_name' => $product['category_name'] ?? '',
+                'in_stock' => $product['status'] !== 'out_of_stock'
+            ];
+
+            echo json_encode([
+                'success' => true,
+                'product' => $formattedProduct
+            ]);
 
         } catch (Exception $e) {
             echo json_encode([
