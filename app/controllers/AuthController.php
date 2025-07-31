@@ -186,12 +186,8 @@ class AuthController extends Controller
         // Handle both 'name' and 'first_name'/'last_name' formats
         $firstName = trim($_POST['first_name'] ?? '');
         $lastName = trim($_POST['last_name'] ?? '');
-        $name = trim($_POST['name'] ?? '');
-
-        // If using first_name/last_name, combine them
-        if (!empty($firstName) || !empty($lastName)) {
-            $name = trim($firstName . ' ' . $lastName);
-        }
+        $name = trim($firstName . ' ' . $lastName);
+        $username = $lastName; // Lấy tên đăng nhập từ trường "Tên"
 
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
@@ -231,17 +227,23 @@ class AuthController extends Controller
             redirect('register');
         }
 
+        // Check if username exists
+        if ($this->userModel->findByUsername($username)) {
+            setFlash('error', 'Tên đăng nhập đã tồn tại, vui lòng chọn tên khác');
+            redirect('register');
+        }
+
         // Create user
         $userData = [
-            'name' => $name,
+            'username' => $username,
             'email' => $email,
             'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+            'full_name' => $name,
             'phone' => $phone,
             'role' => 'customer',
             'status' => 'active'
         ];
-
-        $userId = $this->userModel->create($userData);
+        $userId = $this->userModel->createUser($userData);
 
         if ($userId) {
             setFlash('success', 'Đăng ký thành công! Vui lòng đăng nhập.');

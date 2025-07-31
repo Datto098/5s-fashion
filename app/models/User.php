@@ -51,17 +51,15 @@ class User extends BaseModel
      */
     public function createUser($data)
     {
-        // Hash password if provided
+        // Hash password nếu có
         if (isset($data['password'])) {
             $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
             unset($data['password']);
         }
-
-        // Generate username if not provided
+        // Tạo username nếu chưa có
         if (!isset($data['username']) && isset($data['email'])) {
             $data['username'] = $this->generateUsername($data['email']);
         }
-
         return $this->create($data);
     }
 
