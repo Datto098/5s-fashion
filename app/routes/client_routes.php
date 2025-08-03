@@ -34,7 +34,7 @@ return [
     'account/profile' => 'AccountController@profile',
     'account/password' => 'AccountController@passwordForm',
     'account/addAddress' => 'AccountController@addAddress',
-    'account/updateAddress/{id}' => 'AccountController@updateAddress',
+    'account/editAddress/{id}' => 'AccountController@updateAddress',
     'account/deleteAddress/{id}' => 'AccountController@deleteAddress',
     'account/setDefaultAddress/{id}' => 'AccountController@setDefaultAddress',
     'orders' => 'AccountController@orders',

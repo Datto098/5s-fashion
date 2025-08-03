@@ -1,4 +1,3 @@
-
 <?php
 
 /**
@@ -326,10 +325,10 @@ class AccountController extends Controller
     public function updateAddress($id)
     {
         $method = $_SERVER['REQUEST_METHOD'];
-        // Chấp nhận PUT hoặc POST(_method=PUT)
-        $isPut = $method === 'PUT' || ($method === 'POST' && isset($_POST['_method']) && strtoupper($_POST['_method']) === 'PUT');
-        if (!$isPut) {
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        // Chấp nhận PUT hoặc POST (không cần _method)
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        if ($method !== 'POST') {
+            if ($isAjax) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Sai phương thức']);
                 exit;

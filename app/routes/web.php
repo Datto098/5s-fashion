@@ -52,15 +52,9 @@ $router->get('/account/password', 'AccountController@passwordForm');
 $router->post('/account/password', 'AccountController@updatePassword');
 $router->get('/orders', 'AccountController@orders');
 $router->get('/orders/{id}', 'AccountController@orderDetail');
-$router->get('/addresses', 'AccountController@addresses');
-$router->post('/addresses', 'AccountController@addAddress');
-$router->post('/account/addAddress', 'AccountController@addAddress');
 
 
-$router->post('/addresses/editAddress/{id}', 'AccountController@updateAddress'); // Route mới cho update address bằng POST
 
-$router->delete('/addresses/{id}', 'AccountController@deleteAddress');
-$router->post('/account/setDefaultAddress/{id}', 'AccountController@setDefaultAddress');
 
 // Wishlist routes
 $router->get('/wishlist', 'WishlistController@index');

@@ -1,67 +1,4 @@
-<!-- Edit Address Modal -->
-<div class="modal fade" id="editAddressModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Sửa địa chỉ</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editAddressForm">
-                <div class="modal-body">
-                    <input type="hidden" id="edit_address_id" name="address_id">
-                    <input type="hidden" id="edit_lat" name="lat">
-                    <input type="hidden" id="edit_lng" name="lng">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="edit_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="edit_name" name="name" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="edit_phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control" id="edit_phone" name="phone" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <label for="edit_address" class="form-label">Địa chỉ giao hàng <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="edit_address" name="address" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="edit_searchAddressBtn" title="Tìm trên bản đồ">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <div id="edit_map" style="height: 300px; border-radius: 8px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_note" class="form-label">Ghi chú địa chỉ (nếu có)</label>
-                        <textarea class="form-control" id="edit_note" name="note" rows="3"></textarea>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="edit_is_default" name="is_default">
-                        <label class="form-check-label" for="edit_is_default">
-                            Đặt làm địa chỉ mặc định
-                        </label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+
 <?php
 // Start output buffering for content
 ob_start();
@@ -261,6 +198,70 @@ ob_start();
         </div>
     </div>
 </div>
+<!-- Edit Address Modal -->
+<div class="modal fade" id="editAddressModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sửa địa chỉ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editAddressForm">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_address_id">
+                    <input type="hidden" id="edit_lat" >
+                    <input type="hidden" id="edit_lng" >
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit_name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="edit_phone" name="phone" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="edit_address" class="form-label">Địa chỉ giao hàng <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="edit_address" name="address" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="edit_searchAddressBtn" title="Tìm trên bản đồ">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <div id="edit_map" style="height: 300px; border-radius: 8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_note" class="form-label">Ghi chú địa chỉ (nếu có)</label>
+                        <textarea class="form-control" id="edit_note" name="note" rows="3"></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="edit_is_default" name="is_default">
+                        <label class="form-check-label" for="edit_is_default">
+                            Đặt làm địa chỉ mặc định
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <style>
 /* Leaflet map custom style */
@@ -410,6 +411,10 @@ ob_start();
 }
 </style>
 
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
 <script>
 // Khởi tạo lại map khi mở modal sửa địa chỉ
 let editMap, editMarker;
@@ -436,12 +441,18 @@ editModal.addEventListener('shown.bs.modal', function () {
     }, 200);
 });
 
-function setEditMarker(lat, lng) {
+function setEditMarker(lat, lng, retry = 0) {
+    if (!editMap) {
+        // Nếu map chưa sẵn sàng, thử lại sau 100ms (tối đa 10 lần)
+        if (retry < 10) setTimeout(() => setEditMarker(lat, lng, retry + 1), 100);
+        return;
+    }
     if (editMarker) editMarker.remove();
     editMarker = L.marker([lat, lng]).addTo(editMap);
     document.getElementById('edit_lat').value = lat;
     document.getElementById('edit_lng').value = lng;
-    editMap.setView([lat, lng], 17);
+    // Đảm bảo map luôn zoom đến marker
+    editMap.setView([lat, lng], 17, { animate: true });
     // Lấy địa chỉ từ lat/lng và điền vào input address
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
         .then(res => res.json())
@@ -503,6 +514,7 @@ document.getElementById('addAddressForm').addEventListener('submit', function(e)
         alert('Có lỗi xảy ra khi thêm địa chỉ!');
     });
 });
+
 function editAddress(addressId) {
     // Lấy dữ liệu địa chỉ từ danh sách (tránh thêm AJAX, dùng sẵn trên trang)
     const address = window.addressesList.find(a => a.id == addressId);
@@ -526,6 +538,15 @@ function editAddress(addressId) {
         const lng = address.lng;
         if (lat && lng && editMap) {
             setEditMarker(lat, lng);
+        } else if (address.address && editMap) {
+            // Nếu chưa có lat/lng, dùng Nominatim để lấy tọa độ từ địa chỉ
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address.address)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        setEditMarker(parseFloat(data[0].lat), parseFloat(data[0].lon));
+                    }
+                });
         }
     }, 350); // Đợi modal và map render xong
 }
@@ -536,9 +557,10 @@ document.getElementById('editAddressForm').addEventListener('submit', function(e
     const form = this;
     const addressId = document.getElementById('edit_address_id').value;
     const formData = new FormData(form);
-   fetch('<?= url('addresses/editAddress') ?>/' + addressId, {
+    fetch('<?= url('account/editAddress/') ?>/' + addressId, {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
     })
     .then(res => res.text())
     .then(text => {
@@ -618,12 +640,12 @@ function setDefaultAddress(addressId) {
         alert('Có lỗi xảy ra!');
     });
 }
-</script>
-<!-- Leaflet CSS & JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+// Sau khi modal đóng (Bootstrap 5)
+document.getElementById('addAddressModal').addEventListener('hidden.bs.modal', function () {
+    // Chuyển focus về nút mở modal (hoặc body)
+    document.body.focus();
+});
 
-<script>
 // Khởi tạo lại map mỗi lần mở modal để tránh lỗi hiển thị
 let map, marker;
 const modal = document.getElementById('addAddressModal');
