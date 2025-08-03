@@ -1,3 +1,4 @@
+  
 <?php
 /**
  * Customer Model (extends User)
@@ -259,6 +260,18 @@ class Customer extends BaseModel
         return $this->create($data);
     }
 
+      /**
+     * Set default address for customer
+     */
+    public function setDefaultAddress($addressId, $customerId)
+    {
+        // Unset all current default addresses
+        $this->db->execute("UPDATE customer_addresses SET is_default = 0 WHERE user_id = ?", [$customerId]);
+        // Set the selected address as default
+        $sql = "UPDATE customer_addresses SET is_default = 1 WHERE id = ? AND user_id = ?";
+        return $this->db->execute($sql, [$addressId, $customerId]);
+    }
+
     /**
      * Update customer
      */
@@ -295,36 +308,54 @@ class Customer extends BaseModel
     /**
      * Add customer address
      */
-    public function addCustomerAddress($customerId, $addressData)
+    public function addCustomerAddress($addressData)
     {
-        // If this is set as default, unset other defaults first
-        if (!empty($addressData['is_default'])) {
-            $sql = "UPDATE customer_addresses SET is_default = 0 WHERE user_id = ?";
-            $this->db->execute($sql, [$customerId]);
+        // Validate required fields
+        if (empty($addressData['name']) || empty($addressData['address']) || empty($addressData['phone'])) {
+            return false;
+        }
+
+        // Get customer ID from address data
+        $customerId = $addressData['user_id'] ?? 0;
+
+        // Check if user has any address
+        $count = $this->db->fetchOne("SELECT COUNT(*) as cnt FROM customer_addresses WHERE user_id = ?", [$customerId]);
+        $isFirst = empty($count) || $count['cnt'] == 0;
+
+        // Nếu là địa chỉ đầu tiên thì luôn set mặc định
+        if ($isFirst) {
+            $addressData['is_default'] = 1;
+        } elseif (!empty($addressData['is_default'])) {
+            // Nếu chọn mặc định thì unset các địa chỉ cũ
+            $this->db->execute("UPDATE customer_addresses SET is_default = 0 WHERE user_id = ?", [$customerId]);
+        }
+
+        // Đảm bảo is_default luôn là 1 hoặc 0 (không phải 'on')
+        if (isset($addressData['is_default'])) {
+            $addressData['is_default'] = ($addressData['is_default'] === 'on' || $addressData['is_default'] == 1) ? 1 : 0;
+        } else {
+            $addressData['is_default'] = 0;
         }
 
         $addressData['user_id'] = $customerId;
         $addressData['created_at'] = date('Y-m-d H:i:s');
         $addressData['updated_at'] = date('Y-m-d H:i:s');
 
-        $sql = "INSERT INTO customer_addresses (user_id, type, full_name, phone, address_line_1, address_line_2, city, district, ward, postal_code, is_default, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        // Chỉ lấy các trường có trong bảng
+        $fields = ['user_id', 'name', 'phone', 'address', 'is_default', 'note', 'created_at', 'updated_at'];
+        $insertFields = [];
+        $placeholders = [];
+        $values = [];
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $addressData)) {
+                $insertFields[] = $field;
+                $placeholders[] = '?';
+                $values[] = $addressData[$field];
+            }
+        }
 
-        return $this->db->execute($sql, [
-            $addressData['user_id'],
-            $addressData['type'] ?? 'shipping',
-            $addressData['full_name'],
-            $addressData['phone'],
-            $addressData['address_line_1'],
-            $addressData['address_line_2'] ?? null,
-            $addressData['city'],
-            $addressData['district'] ?? null,
-            $addressData['ward'] ?? null,
-            $addressData['postal_code'] ?? null,
-            $addressData['is_default'] ?? 0,
-            $addressData['created_at'],
-            $addressData['updated_at']
-        ]);
+        $sql = "INSERT INTO customer_addresses (" . implode(',', $insertFields) . ") VALUES (" . implode(',', $placeholders) . ")";
+        return $this->db->execute($sql, $values);
     }
 
     /**
