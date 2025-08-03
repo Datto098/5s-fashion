@@ -47,6 +47,18 @@
 
                 <div class="row">
                     <?php foreach ($trendingCoupons as $coupon): ?>
+                        <?php
+                        $isSaved = false;
+                        if (!empty($savedCoupons)) {
+                            foreach ($savedCoupons as $saved) {
+                                if ($saved['coupon_id'] == $coupon['id']) {
+                                    $isSaved = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if ($isSaved) continue; // Ẩn voucher đã lưu khỏi phần Hot
+                        ?>
                         <div class="col-md-4 mb-3">
                             <div class="voucher-card trending">
                                 <div class="voucher-header">
@@ -85,7 +97,7 @@
                                     <?php endif; ?>
 
                                     <?php if ($userId): ?>
-                                        <button class="btn btn-primary btn-sm save-voucher" data-coupon-id="<?= $coupon['id'] ?>">
+                                        <button class="btn btn-sm save-voucher btn-primary" data-coupon-id="<?= $coupon['id'] ?>">
                                             <i class="fas fa-plus"></i> Lưu
                                         </button>
                                     <?php else: ?>
@@ -411,6 +423,21 @@
         flex: 1;
     }
 }
+/* Nút đã lưu màu xanh đẹp */
+.btn-saved {
+    background: #6fc49b !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: none;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn-saved:disabled,
+.btn-saved[disabled] {
+    background: #6fc49b !important;
+    color: #fff !important;
+    opacity: 1 !important;
+}
 </style>
 
 <script>
@@ -446,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
 
-            fetch('/5s-fashion/vouchers/save', {
+            fetch('/5s-fashion/api/voucher/save', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -456,17 +483,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    this.innerHTML = '<i class="fas fa-check"></i> Đã lưu';
-                    this.classList.remove('btn-primary');
-                    this.classList.add('btn-success');
-
-                    // Show success message
+                    // Đổi tất cả nút cùng couponId thành Đã lưu (disable, màu xanh)
+                    document.querySelectorAll('.save-voucher[data-coupon-id="' + couponId + '"]').forEach(btn => {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-check"></i> Đã lưu';
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('btn-saved');
+                    });
                     showToast('success', data.message);
-
-                    // Remove from available list after a delay
-                    setTimeout(() => {
-                        this.closest('.voucher-item').remove();
-                    }, 1500);
                 } else {
                     this.disabled = false;
                     this.innerHTML = originalText;
@@ -592,5 +616,3 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 </script>
-
-

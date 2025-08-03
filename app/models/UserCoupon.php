@@ -98,7 +98,7 @@ class UserCoupon extends BaseModel
     public function removeCoupon($userId, $couponId)
     {
         $sql = "SELECT * FROM {$this->table} WHERE user_id = ? AND coupon_id = ? AND status = 'saved'";
-        $userCoupon = $this->db->fetchOne($sql, [$userId, $couponId, 'saved']);
+        $userCoupon = $this->db->fetchOne($sql, [$userId, $couponId]);
 
         if ($userCoupon && $this->delete($userCoupon['id'])) {
             return ['success' => true, 'message' => 'Đã xóa voucher khỏi danh sách'];

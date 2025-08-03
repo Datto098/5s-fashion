@@ -78,16 +78,16 @@ class WishlistController extends Controller
             }
 
             $user = getUser();
-            $productId = $_POST['product_id'] ?? null;
+            $wishlistId = $_POST['wishlist_id'] ?? null;
 
-            if (!$productId) {
-                echo json_encode(['success' => false, 'message' => 'Product ID is required']);
+            if (!$wishlistId) {
+                echo json_encode(['success' => false, 'message' => 'Wishlist ID is required']);
                 return;
             }
 
             // Remove from wishlist using model
             try {
-                $result = $this->wishlistModel->removeFromWishlist($user['id'], $productId);
+                $result = $this->wishlistModel->removeFromWishlistById($user['id'], $wishlistId);
 
                 if ($result) {
                     echo json_encode(['success' => true, 'message' => 'Đã xóa khỏi danh sách yêu thích']);

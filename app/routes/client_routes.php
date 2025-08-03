@@ -37,12 +37,20 @@ return [
     'account/editAddress/{id}' => 'AccountController@updateAddress',
     'account/deleteAddress/{id}' => 'AccountController@deleteAddress',
     'account/setDefaultAddress/{id}' => 'AccountController@setDefaultAddress',
+    'account/orders' => 'AccountController@orders',
+    'account/order/{id}' => 'AccountController@orderDetail',
+    'account/addresses' => 'AccountController@addresses',
+    'account/wishlist' => 'WishlistController@index',
+    'account/wishlist/add' => 'WishlistController@add',
+    'account/wishlist/remove' => 'WishlistController@remove',
+    'account/wishlist/clear' => 'WishlistController@clear',
     'orders' => 'AccountController@orders',
     'orders/{id}' => 'AccountController@orderDetail',
     'addresses' => 'AccountController@addresses',
 
     // Wishlist
     'wishlist' => 'WishlistController@index',
+    'wishlist/remove' => 'WishlistController@remove',
 
     // AJAX Routes
     'ajax/cart/add' => 'AjaxController@addToCart',
@@ -54,6 +62,7 @@ return [
 
     // Wishlist Routes
     'wishlist/count' => 'WishlistController@count',
+
 
     // Static pages
     'about' => 'HomeController@about',
@@ -68,6 +77,10 @@ return [
     // Vouchers
     'vouchers' => 'VoucherController@index',
     'vouchers/my-vouchers' => 'VoucherController@myVouchers',
+    'vouchers/remove' => 'VoucherController@remove',
+    'vouchers/save' => 'VoucherController@save',
+
+    
 
     //Posts
     'blog' => 'PostController@index',

@@ -497,8 +497,8 @@ function removeFromWishlist(productId) {
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         button.disabled = true;
 
-        // Send AJAX request to remove from wishlist
-        fetch('/5s-fashion/api/wishlist.php?action=remove', {
+        // Gọi đúng endpoint remove (không phải toggle)
+        fetch('<?= url('account/wishlist/remove') ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
