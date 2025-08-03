@@ -8,10 +8,10 @@ class User extends BaseModel
 {
     protected $table = 'users';
     protected $primaryKey = 'id';
-    protected $fillable = [
-        'username', 'email', 'password_hash', 'full_name', 'phone',
-        'avatar', 'role', 'status', 'email_verified_at'
-    ];
+protected $fillable = [
+    'username', 'email', 'password_hash', 'full_name', 'phone',
+    'avatar', 'role', 'status', 'email_verified_at', 'birthday', 'address'
+];
     protected $hidden = ['password_hash', 'remember_token', 'reset_token'];
 
     /**

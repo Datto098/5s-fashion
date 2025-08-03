@@ -77,17 +77,21 @@ class WishlistController extends Controller
                 return;
             }
 
+            // Get JSON input
+            $input = json_decode(file_get_contents('php://input'), true);
             $user = getUser();
-            $wishlistId = $_POST['wishlist_id'] ?? null;
+            $productId = $input['product_id'] ?? $_POST['product_id'] ?? null;
 
-            if (!$wishlistId) {
-                echo json_encode(['success' => false, 'message' => 'Wishlist ID is required']);
+            if (!$productId) {
+                echo json_encode(['success' => false, 'message' => 'Product ID is required']);
                 return;
             }
 
             // Remove from wishlist using model
             try {
-                $result = $this->wishlistModel->removeFromWishlistById($user['id'], $wishlistId);
+                error_log("Attempting to remove product $productId for user " . $user['id']);
+                $result = $this->wishlistModel->removeFromWishlist($user['id'], $productId);
+                error_log("Remove result: " . ($result ? 'success' : 'failed'));
 
                 if ($result) {
                     echo json_encode(['success' => true, 'message' => 'Đã xóa khỏi danh sách yêu thích']);
@@ -95,8 +99,8 @@ class WishlistController extends Controller
                     echo json_encode(['success' => false, 'message' => 'Không thể xóa khỏi danh sách yêu thích']);
                 }
             } catch (Exception $e) {
-                echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra']);
                 error_log('Remove from wishlist error: ' . $e->getMessage());
+                echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
             }
         }
     }

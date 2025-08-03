@@ -50,7 +50,7 @@ class AccountController extends Controller
             'title' => 'Thông Tin Cá Nhân - 5S Fashion',
             'user' => $user
         ];
-
+      
         $this->view('client/account/profile', $data);
     }
 
@@ -64,15 +64,14 @@ class AccountController extends Controller
         }
 
         $user = getUser();
-        $name = trim($_POST['name'] ?? '');
+        $full_name = trim($_POST['full_name'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
         $address = trim($_POST['address'] ?? '');
         $birthday = $_POST['birthday'] ?? null;
-        $gender = $_POST['gender'] ?? null;
 
         // Validation
-        if (empty($name) || empty($email)) {
+        if (empty($full_name) || empty($email)) {
             setFlash('error', 'Vui lòng nhập đầy đủ họ tên và email');
             redirect('account/profile');
         }
@@ -91,12 +90,11 @@ class AccountController extends Controller
 
         // Update user data
         $updateData = [
-            'name' => $name,
+            'full_name' => $full_name,
             'email' => $email,
             'phone' => $phone,
             'address' => $address,
             'birthday' => $birthday,
-            'gender' => $gender,
             'updated_at' => date('Y-m-d H:i:s')
         ];
 
@@ -106,6 +104,9 @@ class AccountController extends Controller
             // Update session with new data
             $updatedUser = $this->userModel->find($user['id']);
             $_SESSION['user'] = $updatedUser;
+            print_r($updatedUser); // Debugging line to check updated user data
+            error_log("DEBUG AccountController - Updated User: " . json_encode($updatedUser));
+            
 
             setFlash('success', 'Cập nhật thông tin thành công!');
         } else {

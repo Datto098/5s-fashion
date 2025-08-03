@@ -46,8 +46,8 @@ $router->post('/reset-password', 'AuthController@resetPassword');
 
 // User Account routes
 $router->get('/account', 'AccountController@index');
-$router->get('/account/profile', 'AccountController@profile');
-$router->post('/account/profile', 'AccountController@updateProfile');
+// $router->get('/account/profile', 'AccountController@profile');
+// $router->post('/account/profile', 'AccountController@updateProfile');
 $router->get('/account/password', 'AccountController@passwordForm');
 $router->post('/account/password', 'AccountController@updatePassword');
 $router->get('/orders', 'AccountController@orders');

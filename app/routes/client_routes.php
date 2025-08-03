@@ -32,7 +32,9 @@ return [
     // Account
     'account' => 'AccountController@index',
     'account/profile' => 'AccountController@profile',
+    'account/updateProfile' => 'AccountController@updateProfile',
     'account/password' => 'AccountController@passwordForm',
+    'account/updatePassword' => 'AccountController@updatePassword',
     'account/addAddress' => 'AccountController@addAddress',
     'account/editAddress/{id}' => 'AccountController@updateAddress',
     'account/deleteAddress/{id}' => 'AccountController@deleteAddress',

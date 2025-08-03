@@ -1,3 +1,18 @@
+<script>
+// Ẩn flash message sau 2 giây với hiệu ứng fade out
+document.addEventListener('DOMContentLoaded', function() {
+    var flash = document.querySelector('.alert-success, .alert-danger, .alert-warning, .alert-info');
+    if (flash) {
+        setTimeout(function() {
+            flash.style.transition = 'opacity 0.5s';
+            flash.style.opacity = '0';
+            setTimeout(function() {
+                flash.style.display = 'none';
+            }, 500);
+        }, 2000);
+    }
+});
+</script>
 <?php
 // Start output buffering for content
 ob_start();
@@ -70,7 +85,7 @@ ob_start();
                     <!-- Password Form -->
                     <div class="row">
                         <div class="col-md-8">
-                            <form action="<?= url('account/password') ?>" method="POST" class="password-form">
+                            <form action="<?= url('account/updatePassword') ?>" method="POST" class="password-form">
                                 <div class="mb-3">
                                     <label for="current_password" class="form-label">
                                         Mật khẩu hiện tại <span class="text-danger">*</span>
