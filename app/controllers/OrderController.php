@@ -11,6 +11,30 @@ class OrderController extends Controller
     private $userModel;
     private $customerModel;
 
+    /**
+     * Hiển thị trang checkout
+     */
+    public function checkout()
+    {
+        $user = getUser();
+        $addresses = $this->customerModel->getCustomerAddresses($user['id']);
+
+        // Lấy danh sách voucher đã lưu còn hạn
+        require_once dirname(__DIR__) . '/models/UserCoupon.php';
+        $userCouponModel = new UserCoupon();
+
+        // Tính tổng tiền đơn hàng từ session cart (mảng sản phẩm)
+        $orderAmount = 0;
+        if (!empty($_SESSION['cart']) && is_array($_SESSION['cart'])) {
+            foreach ($_SESSION['cart'] as $item) {
+                $orderAmount += (isset($item['price']) ? $item['price'] : 0) * (isset($item['quantity']) ? $item['quantity'] : 1);
+            }
+        }
+        $savedVouchers = $userCouponModel->getValidCouponsForCheckout($user['id'], $orderAmount);
+
+        require dirname(__DIR__) . '/views/client/checkout/index.php';
+    }
+
     public function __construct()
     {
         $this->userModel = $this->model('User');
@@ -229,6 +253,80 @@ class OrderController extends Controller
     }
 
     /**
+     * Edit address - called from frontend JS
+     */
+    public function editAddress($id) 
+    {
+        header('Content-Type: application/json');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'PUT' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Sai phương thức']);
+            exit;
+        }
+
+        try {
+            // Get JSON input for PUT requests
+            if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+                $input = json_decode(file_get_contents('php://input'), true);
+            } else {
+                $input = $_POST;
+            }
+            
+            if (!$input) {
+                echo json_encode(['success' => false, 'message' => 'Không có dữ liệu']);
+                exit;
+            }
+
+            $user = getUser();
+            
+            $name = trim($input['name'] ?? '');
+            $phone = trim($input['phone'] ?? '');
+            $address = trim($input['address'] ?? '');
+            $note = trim($input['note'] ?? '');
+
+            $is_default = isset($input['is_default']) ? 1 : 0;
+
+            // Validate required fields
+            if (empty($name) || empty($address) || empty($phone)) {
+                echo json_encode(['success' => false, 'message' => 'Vui lòng nhập đầy đủ họ tên, số điện thoại và địa chỉ']);
+                exit;
+            }
+
+            $addressData = [
+                'user_id' => $user['id'],
+                'name' => $name,
+                'phone' => $phone,
+                'address' => $address,
+                'note' => $note,
+                'is_default' => $is_default
+            ];
+
+            $result = $this->customerModel->updateCustomerAddress($id, $user['id'], $addressData);
+
+            if ($result) {
+                // Get updated addresses list
+                $addresses = $this->customerModel->getCustomerAddresses($user['id']);
+                
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Cập nhật địa chỉ thành công!',
+                    'addresses' => $addresses ?: []
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Có lỗi xảy ra khi cập nhật địa chỉ'
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Set default address
      */
     public function setDefaultAddress($id)
@@ -312,6 +410,29 @@ class OrderController extends Controller
                 'message' => 'Lỗi đặt hàng: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Get address by ID
+     */
+    public function getAddress($id)
+    {
+        // Lấy model Address (hoặc UserAddress)
+        $addressModel = $this->model('Customer');
+        $address = $this->customerModel->getCustomerAddressById($id);
+
+        if ($address && $address['user_id'] == $_SESSION['user_id']) {
+            echo json_encode([
+                'success' => true,
+                'address' => $address
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Không tìm thấy địa chỉ'
+            ]);
+        }
+        exit;
     }
 }
 ?>

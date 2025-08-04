@@ -70,6 +70,10 @@
                     
                         <!-- Shipping Information -->
                         <div class="checkout-section-card mb-4">
+                            <script>
+                                // Store addresses for edit function
+                                window.addressesList = [];
+                            </script>
                             <div class="section-header">
                                 <h4>
                                     <i class="fas fa-truck me-2"></i>
@@ -136,12 +140,7 @@
                                                     </div>
                                                 <?php endforeach; ?>
                                                 
-                                                <!-- Add New Address Card -->
-                                                <div class="add-address-card" data-bs-toggle="modal" data-bs-target="#addAddressModal">
-                                                    <i class="fas fa-plus-circle"></i>
-                                                    <div><strong>Thêm địa chỉ mới</strong></div>
-                                                    <div class="text-muted">Nhấn để thêm địa chỉ giao hàng</div>
-                                                </div>
+                                              
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -301,6 +300,24 @@
                                             Áp dụng
                                         </button>
                                     </div>
+                                   <!-- Danh sách voucher đã lưu còn hạn -->
+                                   <?php if (!empty($savedVouchers)): ?>
+                                   <div class="saved-vouchers-list mt-2">
+                                       <div class="fw-bold mb-1" style="font-size: 0.95em;">Voucher đã lưu của bạn:</div>
+                                       <?php foreach ($savedVouchers as $voucher): ?>
+                                           <div class="voucher-item mb-1 p-2 border rounded d-flex align-items-center justify-content-between" style="background: #f8f9fa; cursor:pointer;" onclick="document.getElementById('checkoutPromoCode').value='<?= htmlspecialchars($voucher['code']) ?>'">
+                                               <div>
+                                                   <span class="badge bg-success me-2"><?= htmlspecialchars($voucher['code']) ?></span>
+                                                   <span><?= htmlspecialchars($voucher['name']) ?></span>
+                                                   <span class="text-muted ms-2" style="font-size:0.9em;">HSD: <?= $voucher['valid_until'] ? date('d/m/Y', strtotime($voucher['valid_until'])) : 'Không giới hạn' ?></span>
+                                               </div>
+                                               <span class="text-primary fw-bold">
+                                                   <?= $voucher['type']==='percent' ? $voucher['value'].'%' : number_format($voucher['value'],0,',','.').'đ' ?>
+                                               </span>
+                                           </div>
+                                       <?php endforeach; ?>
+                                   </div>
+                                   <?php endif; ?>
                                 </div>
 
                                 <!-- Place Order Button -->
@@ -659,6 +676,66 @@
         margin-bottom: 15px;
     }
     </style>
+    <!-- Edit Address Modal -->
+    <div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editAddressModalLabel">
+                        <i class="fas fa-edit me-2"></i>Sửa địa chỉ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editAddressForm">
+                        <input type="hidden" id="editAddressId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editCustomerName" class="form-label">Họ và tên *</label>
+                                <input type="text" class="form-control" id="editCustomerName" name="customerName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editCustomerPhone" class="form-label">Số điện thoại *</label>
+                                <input type="tel" class="form-control" id="editCustomerPhone" name="customerPhone" required>
+                            </div>
+                        </div>
+                        <!-- Address Search with Map -->
+                        <div class="mb-3">
+                            <label for="editAddressSearch" class="form-label">Địa chỉ giao hàng *</label>
+                            <div class="edit-address-search-container">
+                                <input type="text" class="form-control" id="editAddressSearch" placeholder="Nhập địa chỉ, ví dụ: 123 Lê Lợi, Quận 1, TP.HCM" autocomplete="off">
+                                <input type="hidden" id="editModalAddress" name="address">
+                                <div class="address-suggestions" id="editAddressSuggestions"></div>
+                            </div>
+                        </div>
+                        <!-- Map Container -->
+                        <div class="mb-3">
+                            <label class="form-label">Chọn vị trí trên bản đồ</label>
+                            <div id="editMapContainer" style="height: 300px; border-radius: 8px;"></div>
+                            <input type="hidden" id="editModalLat" name="lat">
+                            <input type="hidden" id="editModalLng" name="lng">
+                        </div>
+                        <!-- Additional Notes -->
+                        <div class="mb-3">
+                            <label for="editModalNotes" class="form-label">Ghi chú địa chỉ (nếu có)</label>
+                            <textarea class="form-control" id="editModalNotes" name="notes" rows="2" placeholder="Ghi chú thêm về địa chỉ, ví dụ: Gần trường học, tầng 2..."></textarea>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editModalSetDefault" name="setDefault">
+                            <label class="form-check-label" for="editModalSetDefault">Đặt làm địa chỉ mặc định</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditAddressModal()">
+                        <i class="fas fa-save me-2"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Footer -->
     <?php include __DIR__ . '/../layouts/footer.php'; ?>
 
@@ -726,7 +803,13 @@
 
                 // Handle modal events
                 document.getElementById('addAddressModal').addEventListener('shown.bs.modal', () => {
-                    this.initMap();
+                    setTimeout(() => {
+                        if (window.addressManager.map) {
+                            window.addressManager.map.remove();
+                            window.addressManager.map = null;
+                        }
+                        window.addressManager.initMap();
+                    }, 400); // tăng timeout lên 400ms để chắc chắn modal đã render xong
                 });
             }
 
@@ -735,22 +818,18 @@
                     this.map.remove();
                     this.map = null;
                 }
-
+                // Đảm bảo container đã render xong
                 setTimeout(() => {
-                    // Initialize map centered on Vietnam
                     this.map = L.map('mapContainer').setView([21.0285, 105.8542], 13);
-
-                    // Add OpenStreetMap tiles
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
                         attribution: '© OpenStreetMap contributors'
                     }).addTo(this.map);
 
-                    // Add click event to map
                     this.map.on('click', (e) => {
                         this.setMarker(e.latlng.lat, e.latlng.lng);
                     });
-                }, 200);
+                }, 0);
             }
 
             setMarker(lat, lng) {
@@ -785,12 +864,17 @@
             }
 
             parseAddress(data) {
-                const address = data.address || {};
-                
-                if (address.house_number && address.road) {
-                    document.getElementById('modalAddress').value = `${address.house_number} ${address.road}`;
-                } else if (address.road) {
-                    document.getElementById('modalAddress').value = address.road;
+                // Sử dụng địa chỉ đầy đủ thay vì chỉ lấy house_number và road
+                if (data && data.display_name) {
+                    document.getElementById('modalAddress').value = data.display_name;
+                } else {
+                    const address = data.address || {};
+                    
+                    if (address.house_number && address.road) {
+                        document.getElementById('modalAddress').value = `${address.house_number} ${address.road}`;
+                    } else if (address.road) {
+                        document.getElementById('modalAddress').value = address.road;
+                    }
                 }
             }
 
@@ -930,11 +1014,201 @@
         }
 
         // Store addresses for edit function
-        window.addressesList = [];
+        window.addressesList = <?php echo isset($addresses) ? json_encode($addresses) : '[]'; ?>;
 
+        // Sửa địa chỉ: Hiển thị modal, load dữ liệu lên form và cho phép chỉnh sửa
         async function editAddress(id) {
-            alert('Chức năng sửa địa chỉ đang được phát triển');
+            console.log("Editing address with ID:", id);
+            const address = window.addressesList.find(addr => addr.id == id);
+            if (!address) {
+                alert('Không tìm thấy địa chỉ!');
+                return;
+            }
+            
+            // Điền dữ liệu vào form sửa
+            document.getElementById('editAddressId').value = address.id;
+            document.getElementById('editCustomerName').value = address.name;
+            document.getElementById('editCustomerPhone').value = address.phone;
+            document.getElementById('editAddressSearch').value = address.address;
+            document.getElementById('editModalAddress').value = address.address;
+            document.getElementById('editModalNotes').value = address.note || '';
+            document.getElementById('editModalSetDefault').checked = address.is_default == 1;
+            document.getElementById('editModalLat').value = address.lat || '';
+            document.getElementById('editModalLng').value = address.lng || '';
+
+            // Hiển thị modal
+            const modal = new bootstrap.Modal(document.getElementById('editAddressModal'));
+            modal.show();
+
+            // Khởi tạo lại map sau khi modal hiển thị hoàn tất
+            document.getElementById('editAddressModal').addEventListener('shown.bs.modal', function() {
+                setTimeout(() => {
+                    console.log("Initializing map for edit address modal");
+                    if (window.editMap) {
+                        window.editMap.remove();
+                        window.editMap = null;
+                    }
+                    window.editMap = L.map('editMapContainer').setView([
+                        address.lat ? parseFloat(address.lat) : 21.0285,
+                        address.lng ? parseFloat(address.lng) : 105.8542
+                    ], address.lat && address.lng ? 17 : 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(window.editMap);
+                    if (address.lat && address.lng) {
+                        window.editMarker = L.marker([parseFloat(address.lat), parseFloat(address.lng)]).addTo(window.editMap);
+                    } else {
+                        window.editMarker = null;
+                    }
+                    window.editMap.on('click', function(e) {
+                        if (window.editMarker) window.editMarker.remove();
+                        window.editMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(window.editMap);
+                        document.getElementById('editModalLat').value = e.latlng.lat;
+                        document.getElementById('editModalLng').value = e.latlng.lng;
+                        // Reverse geocode
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&addressdetails=1`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data && data.display_name) {
+                                    // Sử dụng địa chỉ đầy đủ
+                                    document.getElementById('editAddressSearch').value = data.display_name;
+                                    document.getElementById('editModalAddress').value = data.display_name;
+                                }
+                            });
+                    });
+                }, 400);
+            }, { once: true }); // Đảm bảo chỉ chạy một lần
         }
+        
+        // Lưu địa chỉ đã sửa
+        async function saveEditAddressModal() {
+            const id = document.getElementById('editAddressId').value;
+            const customerName = document.getElementById('editCustomerName').value.trim();
+            const customerPhone = document.getElementById('editCustomerPhone').value.trim();
+            const address = document.getElementById('editModalAddress').value.trim();
+            const notes = document.getElementById('editModalNotes').value.trim();
+            const setDefault = document.getElementById('editModalSetDefault').checked;
+            const lat = document.getElementById('editModalLat').value;
+            const lng = document.getElementById('editModalLng').value;
+            
+            if (!customerName || !customerPhone || !address) {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+                return;
+            }
+            
+            const addressData = {
+                name: customerName,
+                phone: customerPhone,
+                address: address,
+                note: notes,
+                lat: lat,
+                lng: lng,
+                is_default: setDefault ? 1 : 0
+            };
+            
+            try {
+                const response = await fetch(`/5s-fashion/public/order/editAddress/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(addressData)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Đã cập nhật địa chỉ thành công!');
+                        window.location.reload();
+                    } else {
+                        alert(result.message || 'Không thể cập nhật địa chỉ');
+                    }
+                } else {
+                    alert('Có lỗi xảy ra khi cập nhật địa chỉ');
+                }
+            } catch (error) {
+                console.error('Error updating address:', error);
+                alert('Có lỗi xảy ra khi cập nhật địa chỉ');
+            }
+        }
+        
+        // Chọn gợi ý địa chỉ trong modal sửa
+        function editSelectSuggestion(lat, lon, address) {
+            document.getElementById('editAddressSearch').value = address;
+            document.getElementById('editModalAddress').value = address;
+            document.getElementById('editAddressSuggestions').style.display = 'none';
+            if (window.editMap) {
+                if (window.editMarker) window.editMarker.remove();
+                window.editMarker = L.marker([parseFloat(lat), parseFloat(lon)]).addTo(window.editMap);
+                window.editMap.setView([parseFloat(lat), parseFloat(lon)], 17);
+                document.getElementById('editModalLat').value = lat;
+                document.getElementById('editModalLng').value = lon;
+            }
+        }
+
+        // Bổ sung autocomplete cho modal sửa địa chỉ
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('editAddressSearch');
+            const hiddenInput = document.getElementById('editModalAddress');
+            const suggestions = document.getElementById('editAddressSuggestions');
+            let debounceTimer;
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    if (hiddenInput) hiddenInput.value = e.target.value;
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const query = e.target.value;
+                        if (query.length < 3) {
+                            suggestions.style.display = 'none';
+                            return;
+                        }
+                        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Vietnam')}&limit=5&addressdetails=1`)
+                            .then(res => res.json())
+                            .then(results => {
+                                if (results.length === 0) {
+                                    suggestions.style.display = 'none';
+                                    return;
+                                }
+                                suggestions.innerHTML = results.map(result => `
+                                    <div class="suggestion-item" onclick="editSelectSuggestion('${result.lat}', '${result.lon}', '${result.display_name.replace(/'/g, "\\'") }')">
+                                        <div><strong>${result.display_name}</strong></div>
+                                    </div>
+                                `).join('');
+                                suggestions.style.display = 'block';
+                            });
+                    }, 500);
+                });
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // Tìm kiếm vị trí trên bản đồ
+                        const query = searchInput.value;
+                        if (!query) return;
+                        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Vietnam')}&limit=1`)
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data && data.length > 0) {
+                                    const lat = parseFloat(data[0].lat);
+                                    const lng = parseFloat(data[0].lon);
+                                    if (window.editMap) {
+                                        if (window.editMarker) window.editMarker.remove();
+                                        window.editMarker = L.marker([lat, lng]).addTo(window.editMap);
+                                        window.editMap.setView([lat, lng], 17);
+                                        document.getElementById('editModalLat').value = lat;
+                                        document.getElementById('editModalLng').value = lng;
+                                    }
+                                } else {
+                                    alert('Không tìm thấy địa chỉ phù hợp!');
+                                }
+                            });
+                    }
+                });
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.edit-address-search-container')) {
+                        if (suggestions) suggestions.style.display = 'none';
+                    }
+                });
+            }
+        });
 
         async function saveNewAddressModal() {
             const form = document.getElementById('addAddressForm');
@@ -982,10 +1256,7 @@
             }
         }
 
-        async function editAddress(id) {
-            alert('Chức năng sửa địa chỉ đang được phát triển');
-        }
-
+    
         async function deleteAddress(id) {
             if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
 

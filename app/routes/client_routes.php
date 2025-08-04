@@ -86,6 +86,8 @@ return [
     // Order API routes for checkout
     'order/addresses' => 'OrderController@getAddresses',
     'order/addAddress' => 'OrderController@addAddress', 
+    'order/editAddress/{id}' => 'OrderController@editAddress',
+    'order/getAddress/{id}' => 'OrderController@getAddress',
     'order/updateAddress/{id}' => 'OrderController@updateAddress',
     'order/deleteAddress/{id}' => 'OrderController@deleteAddress',
     'order/setDefaultAddress/{id}' => 'OrderController@setDefaultAddress',

@@ -235,4 +235,49 @@ class UserCoupon extends BaseModel
 
         return $savedCount;
     }
+
+    /**
+     * Validate and apply coupon code for checkout
+     */
+    public function applyCouponCode($userId, $orderAmount, $couponCode)
+    {
+        // Tìm coupon theo code
+        $couponModel = new Coupon();
+        $coupon = $couponModel->findByCode($couponCode);
+
+        if (!$coupon || $coupon['status'] !== 'active') {
+            return ['success' => false, 'message' => 'Mã giảm giá không hợp lệ hoặc đã hết hạn'];
+        }
+
+        // Kiểm tra thời gian hiệu lực
+        $now = date('Y-m-d H:i:s');
+        if (($coupon['valid_from'] && $coupon['valid_from'] > $now) ||
+            ($coupon['valid_until'] && $coupon['valid_until'] < $now)) {
+            return ['success' => false, 'message' => 'Mã giảm giá chưa đến hạn hoặc đã hết hạn'];
+        }
+
+        // Kiểm tra điều kiện đơn hàng tối thiểu
+        if ($coupon['minimum_amount'] && $orderAmount < $coupon['minimum_amount']) {
+            return ['success' => false, 'message' => 'Đơn hàng chưa đủ điều kiện áp dụng mã giảm giá'];
+        }
+
+        // Tính số tiền giảm
+        $discount = 0;
+        if ($coupon['type'] === 'percent') {
+            $discount = $orderAmount * ($coupon['value'] / 100);
+            if ($coupon['maximum_discount'] && $discount > $coupon['maximum_discount']) {
+                $discount = $coupon['maximum_discount'];
+            }
+        } else {
+            $discount = $coupon['value'];
+        }
+        if ($discount > $orderAmount) $discount = $orderAmount;
+
+        return [
+            'success' => true,
+            'discount' => $discount,
+            'coupon' => $coupon,
+            'message' => 'Áp dụng mã giảm giá thành công'
+        ];
+    }
 }

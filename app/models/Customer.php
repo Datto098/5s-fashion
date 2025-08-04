@@ -1,4 +1,3 @@
-  
 <?php
 /**
  * Customer Model (extends User)
@@ -549,5 +548,12 @@ class Customer extends BaseModel
         }
 
         return $export;
+    }
+
+ 
+    public function getCustomerAddressById($addressId)
+    {
+        $sql = "SELECT * FROM customer_addresses WHERE id = ? LIMIT 1";
+        return $this->db->fetchOne($sql, [$addressId]);
     }
 }
