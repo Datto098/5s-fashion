@@ -9,24 +9,32 @@ class UnifiedCartManager {
 	}
 
 	init() {
-		// Load cart from server on initialization
-		this.syncCartFromServer();
+		// Chỉ load cart nếu đã đăng nhập
+		if (window.isLoggedIn === true || window.isLoggedIn === 'true') {
+			this.syncCartFromServer();
+		}
 
 		// Setup event listeners
 		this.setupEventListeners();
 	}
 
 	setupEventListeners() {
-		// Listen for storage changes (for cross-tab sync)
 		window.addEventListener('storage', (e) => {
-			if (e.key === 'cart_sync') {
-				this.syncCartFromServer();
+			if (
+				e.key === 'cart_sync' &&
+				(window.isLoggedIn === true || window.isLoggedIn === 'true')
+			) {
+				// Chỉ xử lý nếu giá trị mới khác giá trị cũ (tránh lặp vô hạn)
+				if (e.newValue !== e.oldValue) {
+					this.syncCartFromServer();
+				}
 			}
 		});
 
-		// Listen for custom cart events
 		document.addEventListener('cartUpdated', () => {
-			this.syncCartFromServer();
+			if (window.isLoggedIn === true || window.isLoggedIn === 'true') {
+				this.syncCartFromServer();
+			}
 		});
 	}
 

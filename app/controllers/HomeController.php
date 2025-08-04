@@ -192,8 +192,17 @@ class HomeController extends Controller
 
     public function checkout()
     {
+        $addresses = [];
+        
+        // Load user addresses if logged in
+        if (isset($_SESSION['user'])) {
+            $customerModel = $this->model('Customer');
+            $addresses = $customerModel->getAddressesByUserId($_SESSION['user']['id']);
+        }
+        
         $data = [
-            'title' => 'Thanh Toán - 5S Fashion'
+            'title' => 'Thanh Toán - 5S Fashion',
+            'addresses' => $addresses
         ];
 
         $this->view('client/checkout/index', $data);

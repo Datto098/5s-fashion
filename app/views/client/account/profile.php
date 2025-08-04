@@ -1,3 +1,18 @@
+<script>
+// Ẩn flash message sau 2 giây với hiệu ứng fade out
+document.addEventListener('DOMContentLoaded', function() {
+    var flash = document.querySelector('.alert-success, .alert-danger, .alert-warning, .alert-info');
+    if (flash) {
+        setTimeout(function() {
+            flash.style.transition = 'opacity 0.5s';
+            flash.style.opacity = '0';
+            setTimeout(function() {
+                flash.style.display = 'none';
+            }, 500);
+        }, 2000);
+    }
+});
+</script>
 <?php
 // Start output buffering for content
 ob_start();
@@ -13,8 +28,8 @@ ob_start();
                         <div class="user-avatar">
                             <i class="fas fa-user-circle fa-4x text-danger"></i>
                         </div>
-                        <h5 class="mt-2"><?= htmlspecialchars($user['name'] ?? 'User') ?></h5>
-                        <p class="text-muted"><?= htmlspecialchars($user['email'] ?? '') ?></p>
+                        <h5 class="mt-2"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></h5>
+                        <p class="text-muted"><?= htmlspecialchars(getUser()['email'] ?? '') ?></p>
                     </div>
 
                     <nav class="account-nav">
@@ -68,13 +83,13 @@ ob_start();
                     </div>
 
                     <!-- Profile Form -->
-                    <form action="<?= url('account/profile') ?>" method="POST" class="profile-form">
+                    <form action="<?= url('account/updateProfile') ?>" method="POST" class="profile-form">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name"
-                                           value="<?= htmlspecialchars($user['name'] ?? '') ?>" required>
+                                    <label for="full_name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name"
+                                           value="<?= htmlspecialchars($user['full_name'] ?? '') ?>" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -98,12 +113,12 @@ ob_start();
                                 <div class="mb-3">
                                     <label for="birthday" class="form-label">Ngày sinh</label>
                                     <input type="date" class="form-control" id="birthday" name="birthday"
-                                           value="<?= $user['birthday'] ?? '' ?>">
+                                           value="<?= isset($user['birthday']) ? date('Y-m-d', strtotime($user['birthday'])) : '' ?>">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row">
+                        <!-- <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="gender" class="form-label">Giới tính</label>
@@ -115,7 +130,7 @@ ob_start();
                                     </select>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="mb-3">
                             <label for="address" class="form-label">Địa chỉ</label>

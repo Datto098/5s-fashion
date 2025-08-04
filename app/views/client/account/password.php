@@ -1,3 +1,18 @@
+<script>
+// Ẩn flash message sau 2 giây với hiệu ứng fade out
+document.addEventListener('DOMContentLoaded', function() {
+    var flash = document.querySelector('.alert-success, .alert-danger, .alert-warning, .alert-info');
+    if (flash) {
+        setTimeout(function() {
+            flash.style.transition = 'opacity 0.5s';
+            flash.style.opacity = '0';
+            setTimeout(function() {
+                flash.style.display = 'none';
+            }, 500);
+        }, 2000);
+    }
+});
+</script>
 <?php
 // Start output buffering for content
 ob_start();
@@ -13,7 +28,7 @@ ob_start();
                         <div class="user-avatar">
                             <i class="fas fa-user-circle fa-4x text-danger"></i>
                         </div>
-                        <h5 class="mt-2"><?= htmlspecialchars(getUser()['name'] ?? 'User') ?></h5>
+                         <h5 class="mt-2"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></h5>
                         <p class="text-muted"><?= htmlspecialchars(getUser()['email'] ?? '') ?></p>
                     </div>
 
@@ -70,7 +85,7 @@ ob_start();
                     <!-- Password Form -->
                     <div class="row">
                         <div class="col-md-8">
-                            <form action="<?= url('account/password') ?>" method="POST" class="password-form">
+                            <form action="<?= url('account/updatePassword') ?>" method="POST" class="password-form">
                                 <div class="mb-3">
                                     <label for="current_password" class="form-label">
                                         Mật khẩu hiện tại <span class="text-danger">*</span>
@@ -166,7 +181,9 @@ ob_start();
                                             <div class="login-info">
                                                 <strong>Lần cuối đăng nhập:</strong><br>
                                                 <small class="text-muted">
-                                                    <?= isset(getUser()['last_login']) ? date('d/m/Y H:i', strtotime(getUser()['last_login'])) : 'Chưa có thông tin' ?>
+    <?= !empty(getUser()['last_login_at']) 
+        ? date('d/m/Y H:i', strtotime(getUser()['last_login_at'])) 
+        : 'Chưa có thông tin' ?>
                                                 </small>
                                             </div>
                                         </div>
