@@ -11,44 +11,6 @@ class CheckoutManager {
 		this.discountAmount = 0;
 		this.shippingFee = 30000; // Default shipping fee
 
-		// Vietnam provinces data (simplified)
-		this.provinces = {
-			'ho-chi-minh': {
-				name: 'TP. Hồ Chí Minh',
-				districts: {
-					'quan-1': {
-						name: 'Quận 1',
-						wards: ['ben-nghe', 'ben-thanh', 'co-giang'],
-					},
-					'quan-3': {
-						name: 'Quận 3',
-						wards: ['vo-thi-sau', 'da-kao', 'nguyen-thai-binh'],
-					},
-					'quan-7': {
-						name: 'Quận 7',
-						wards: ['tan-thuan-dong', 'tan-thuan-tay', 'tan-kieng'],
-					},
-				},
-			},
-			'ha-noi': {
-				name: 'Hà Nội',
-				districts: {
-					'hoan-kiem': {
-						name: 'Hoàn Kiếm',
-						wards: ['phan-chu-trinh', 'hang-bong', 'hang-buom'],
-					},
-					'ba-dinh': {
-						name: 'Ba Đình',
-						wards: ['cong-vi', 'dien-bien', 'doi-can'],
-					},
-					'cau-giay': {
-						name: 'Cầu Giấy',
-						wards: ['dich-vong', 'mai-dich', 'nghia-do'],
-					},
-				},
-			},
-		};
-
 		this.initializeEventListeners();
 	}
 
@@ -56,16 +18,6 @@ class CheckoutManager {
 	 * Initialize event listeners
 	 */
 	initializeEventListeners() {
-		// Province change event
-		document.getElementById('province').addEventListener('change', (e) => {
-			this.loadDistricts(e.target.value);
-		});
-
-		// District change event
-		document.getElementById('district').addEventListener('change', (e) => {
-			this.loadWards(e.target.value);
-		});
-
 		// Shipping method change
 		document
 			.querySelectorAll('input[name="shippingMethod"]')
@@ -203,65 +155,6 @@ class CheckoutManager {
 				}
 			});
 		}
-	}
-
-	/**
-	 * Load districts based on selected province
-	 */
-	loadDistricts(provinceCode) {
-		const districtSelect = document.getElementById('district');
-		const wardSelect = document.getElementById('ward');
-
-		// Clear existing options
-		districtSelect.innerHTML = '<option value="">Chọn quận/huyện</option>';
-		wardSelect.innerHTML = '<option value="">Chọn phường/xã</option>';
-
-		if (!provinceCode || !this.provinces[provinceCode]) {
-			return;
-		}
-
-		const districts = this.provinces[provinceCode].districts;
-		Object.keys(districts).forEach((code) => {
-			const option = document.createElement('option');
-			option.value = code;
-			option.textContent = districts[code].name;
-			districtSelect.appendChild(option);
-		});
-	}
-
-	/**
-	 * Load wards based on selected district
-	 */
-	loadWards(districtCode) {
-		const provinceCode = document.getElementById('province').value;
-		const wardSelect = document.getElementById('ward');
-
-		// Clear existing options
-		wardSelect.innerHTML = '<option value="">Chọn phường/xã</option>';
-
-		if (!provinceCode || !districtCode || !this.provinces[provinceCode]) {
-			return;
-		}
-
-		const district = this.provinces[provinceCode].districts[districtCode];
-		if (!district) return;
-
-		district.wards.forEach((wardCode) => {
-			const option = document.createElement('option');
-			option.value = wardCode;
-			option.textContent = this.formatWardName(wardCode);
-			wardSelect.appendChild(option);
-		});
-	}
-
-	/**
-	 * Format ward name from code
-	 */
-	formatWardName(wardCode) {
-		return wardCode
-			.split('-')
-			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-			.join(' ');
 	}
 
 	/**
@@ -468,20 +361,34 @@ class CheckoutManager {
 			return;
 		}
 
+		// Validate address selection
+		if (window.addressManager) {
+			const selectedAddress = window.addressManager.getSelectedAddress();
+			if (!selectedAddress) {
+				this.showMessage('Vui lòng chọn địa chỉ giao hàng', 'error');
+				return;
+			}
+		}
+
 		try {
 			// Show loading
 			this.showLoadingOverlay('Đang xử lý đơn hàng...');
 
 			// Collect order data
 			this.orderData = this.collectOrderData();
+			
+			if (!this.orderData) {
+				this.hideLoadingOverlay();
+				return;
+			}
 
 			// Save customer info for future use
 			localStorage.setItem(
 				'customerInfo',
 				JSON.stringify({
-					fullName: this.orderData.fullName,
-					phone: this.orderData.phone,
-					email: this.orderData.email,
+					fullName: this.orderData.customer.name,
+					phone: this.orderData.customer.phone,
+					email: this.orderData.customer.email,
 				})
 			);
 
@@ -513,25 +420,45 @@ class CheckoutManager {
 	 * Collect order data from form
 	 */
 	collectOrderData() {
-		const form = document.getElementById('checkoutForm');
-		const formData = new FormData(form);
-		const data = {};
+		// Get shipping method
+		const shippingMethod = document.querySelector('input[name="shippingMethod"]:checked')?.value || 'standard';
+		
+		// Get payment method
+		const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'cod';
+		
+		// Get order notes
+		const orderNotes = document.getElementById('orderNotes')?.value.trim() || '';
 
-		// Convert FormData to object
-		for (let [key, value] of formData.entries()) {
-			data[key] = value;
+		// Get address from address manager
+		const selectedAddress = window.addressManager?.getSelectedAddress();
+		if (!selectedAddress) {
+			this.showMessage('Vui lòng chọn địa chỉ giao hàng', 'error');
+			return null;
 		}
 
-		// Add order details
-		data.items = this.cart;
-		data.subtotal = this.getSubtotal();
-		data.shippingFee = this.getShippingFee();
-		data.discountAmount = this.discountAmount;
-		data.total = this.getTotal();
-		data.promoCode = this.promoCode;
-		data.orderDate = new Date().toISOString();
-
-		return data;
+		return {
+			items: this.cart,
+			customer: {
+				name: selectedAddress.name,
+				phone: selectedAddress.phone,
+				email: '', // Can be added later if needed
+				address: selectedAddress.address,
+				note: selectedAddress.note || ''
+			},
+			shipping: {
+				method: shippingMethod,
+				fee: this.getShippingFee()
+			},
+			payment: {
+				method: paymentMethod
+			},
+			orderNotes: orderNotes,
+			subtotal: this.getSubtotal(),
+			total: this.getTotal(),
+			discount: this.discountAmount,
+			promoCode: this.promoCode,
+			orderDate: new Date().toISOString()
+		};
 	}
 
 	/**

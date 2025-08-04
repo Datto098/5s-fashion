@@ -2,7 +2,7 @@ RewriteEngine On
 
 # Handle API requests first
 RewriteCond %{REQUEST_URI} ^/5s-fashion/public/api/(.*)$
-RewriteRule ^api/(.*)$ api.php [QSA,L]
+RewriteRule ^api/(.*)$ api.php?url=$1 [QSA,L]
 
 # Remove www from URL
 RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]

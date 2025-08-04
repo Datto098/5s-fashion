@@ -254,30 +254,24 @@ class UserApiController extends ApiController
             $currentUser = JWT::getCurrentUser();
 
             if (!$currentUser) {
+                error_log("No current user found");
                 ApiResponse::error('Unauthorized', 401);
                 return;
             }
 
-            // For now, we'll store addresses in user profile
-            // In a full system, you'd have a separate addresses table
-            $stmt = $this->pdo->prepare("
-                SELECT address_data FROM users
-                WHERE id = :id
-            ");
-            $stmt->execute([':id' => $currentUser['sub']]);
-            $user = $stmt->fetch();
+            error_log("Current user ID: " . $currentUser['sub']);
 
-            $addresses = [];
-            if ($user && $user['address_data']) {
-                $addresses = json_decode($user['address_data'], true) ?? [];
-            }
+            // Use Customer model like AccountController does
+            require_once __DIR__ . '/../../models/Customer.php';
+            $customerModel = new Customer();
+            $addresses = $customerModel->getCustomerAddresses($currentUser['sub']);
 
-            ApiResponse::success([
-                'addresses' => $addresses,
-                'total_addresses' => count($addresses)
-            ]);
+            error_log("Found " . count($addresses) . " addresses for user " . $currentUser['sub']);
+
+            ApiResponse::success($addresses);
 
         } catch (Exception $e) {
+            error_log("Error in addresses(): " . $e->getMessage());
             ApiResponse::error('Failed to fetch addresses: ' . $e->getMessage());
         }
     }
@@ -298,7 +292,7 @@ class UserApiController extends ApiController
             $input = $this->parseRequestBody();
 
             // Validate required fields
-            $required = ['name', 'phone', 'address', 'city'];
+            $required = ['name', 'phone', 'address'];
             $errors = [];
 
             foreach ($required as $field) {
@@ -312,61 +306,46 @@ class UserApiController extends ApiController
                 return;
             }
 
-            // Get current addresses
-            $stmt = $this->pdo->prepare("SELECT address_data FROM users WHERE id = :id");
-            $stmt->execute([':id' => $currentUser['sub']]);
-            $user = $stmt->fetch();
+            // Use Customer model like AccountController does
+            require_once __DIR__ . '/../../models/Customer.php';
+            $customerModel = new Customer();
 
-            $addresses = [];
-            if ($user && $user['address_data']) {
-                $addresses = json_decode($user['address_data'], true) ?? [];
-            }
-
-            // Create new address
-            $newAddress = [
-                'id' => uniqid(),
+            $addressData = [
+                'user_id' => $currentUser['sub'],
                 'name' => trim($input['name']),
                 'phone' => trim($input['phone']),
+                'province' => trim($input['province'] ?? 'ho-chi-minh'),
+                'district' => trim($input['district'] ?? 'quan-1'),
+                'ward' => trim($input['ward'] ?? 'phuong-ben-nghe'),
                 'address' => trim($input['address']),
-                'city' => trim($input['city']),
-                'district' => trim($input['district'] ?? ''),
-                'ward' => trim($input['ward'] ?? ''),
-                'postal_code' => trim($input['postal_code'] ?? ''),
-                'is_default' => isset($input['is_default']) && $input['is_default'],
-                'created_at' => date('Y-m-d H:i:s')
+                'note' => trim($input['note'] ?? ''),
+                'lat' => trim($input['lat'] ?? ''),
+                'lng' => trim($input['lng'] ?? ''),
+                'is_default' => isset($input['is_default']) && $input['is_default'] ? 1 : 0
             ];
 
-            // If this is set as default, remove default from others
-            if ($newAddress['is_default']) {
-                foreach ($addresses as &$addr) {
-                    $addr['is_default'] = false;
-                }
+            $result = $customerModel->addCustomerAddress($addressData);
+
+            if ($result) {
+                // Get updated addresses list
+                $addresses = $customerModel->getCustomerAddresses($currentUser['sub']);
+                
+                ApiResponse::success([
+                    'message' => 'Address added successfully',
+                    'data' => $addresses
+                ]);
+            } else {
+                ApiResponse::error('Failed to add address');
             }
-
-            // Add new address
-            $addresses[] = $newAddress;
-
-            // Update user
-            $stmt = $this->pdo->prepare("
-                UPDATE users
-                SET address_data = :address_data, updated_at = NOW()
-                WHERE id = :id
-            ");
-            $stmt->execute([
-                ':address_data' => json_encode($addresses),
-                ':id' => $currentUser['sub']
-            ]);
-
-            ApiResponse::success([
-                'message' => 'Address added successfully',
-                'address' => $newAddress
-            ]);
 
         } catch (Exception $e) {
             ApiResponse::error('Failed to add address: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Update address
+     */
     /**
      * Update address
      */
@@ -382,132 +361,47 @@ class UserApiController extends ApiController
 
             $input = $this->parseRequestBody();
 
-            // Get current addresses
-            $stmt = $this->pdo->prepare("SELECT address_data FROM users WHERE id = :id");
-            $stmt->execute([':id' => $currentUser['sub']]);
-            $user = $stmt->fetch();
+            // Use Customer model like AccountController does
+            require_once __DIR__ . '/../../models/Customer.php';
+            $customerModel = new Customer();
 
-            $addresses = [];
-            if ($user && $user['address_data']) {
-                $addresses = json_decode($user['address_data'], true) ?? [];
-            }
-
-            // Find address to update
-            $addressIndex = -1;
-            foreach ($addresses as $index => $addr) {
-                if ($addr['id'] === $addressId) {
-                    $addressIndex = $index;
-                    break;
-                }
-            }
-
-            if ($addressIndex === -1) {
-                ApiResponse::error('Address not found', 404);
-                return;
-            }
-
-            // Update address fields
-            $allowedFields = ['name', 'phone', 'address', 'city', 'district', 'ward', 'postal_code', 'is_default'];
-
+            // Prepare address data for update
+            $addressData = [];
+            $allowedFields = ['name', 'phone', 'province', 'district', 'ward', 'address', 'note', 'lat', 'lng', 'is_default'];
+            
             foreach ($allowedFields as $field) {
                 if (isset($input[$field])) {
                     if ($field === 'is_default') {
-                        $addresses[$addressIndex][$field] = (bool)$input[$field];
-
-                        // If setting as default, remove default from others
-                        if ($addresses[$addressIndex][$field]) {
-                            foreach ($addresses as $idx => &$addr) {
-                                if ($idx !== $addressIndex) {
-                                    $addr['is_default'] = false;
-                                }
-                            }
-                        }
+                        $addressData[$field] = $input[$field] ? 1 : 0;
                     } else {
-                        $addresses[$addressIndex][$field] = trim($input[$field]);
+                        $addressData[$field] = trim($input[$field]);
                     }
                 }
             }
 
-            $addresses[$addressIndex]['updated_at'] = date('Y-m-d H:i:s');
+            if (empty($addressData)) {
+                ApiResponse::error('No fields to update', 400);
+                return;
+            }
 
-            // Update user
-            $stmt = $this->pdo->prepare("
-                UPDATE users
-                SET address_data = :address_data, updated_at = NOW()
-                WHERE id = :id
-            ");
-            $stmt->execute([
-                ':address_data' => json_encode($addresses),
-                ':id' => $currentUser['sub']
-            ]);
+            $addressData['user_id'] = $currentUser['sub'];
 
-            ApiResponse::success([
-                'message' => 'Address updated successfully',
-                'address' => $addresses[$addressIndex]
-            ]);
+            $result = $customerModel->updateCustomerAddress($addressId, $currentUser['sub'], $addressData);
+
+            if ($result) {
+                // Get updated addresses list
+                $addresses = $customerModel->getCustomerAddresses($currentUser['sub']);
+                
+                ApiResponse::success([
+                    'message' => 'Address updated successfully',
+                    'data' => $addresses
+                ]);
+            } else {
+                ApiResponse::error('Failed to update address or address not found', 404);
+            }
 
         } catch (Exception $e) {
             ApiResponse::error('Failed to update address: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Delete address
-     */
-    public function deleteAddress($addressId)
-    {
-        try {
-            $currentUser = JWT::getCurrentUser();
-
-            if (!$currentUser) {
-                ApiResponse::error('Unauthorized', 401);
-                return;
-            }
-
-            // Get current addresses
-            $stmt = $this->pdo->prepare("SELECT address_data FROM users WHERE id = :id");
-            $stmt->execute([':id' => $currentUser['sub']]);
-            $user = $stmt->fetch();
-
-            $addresses = [];
-            if ($user && $user['address_data']) {
-                $addresses = json_decode($user['address_data'], true) ?? [];
-            }
-
-            // Find and remove address
-            $addressIndex = -1;
-            foreach ($addresses as $index => $addr) {
-                if ($addr['id'] === $addressId) {
-                    $addressIndex = $index;
-                    break;
-                }
-            }
-
-            if ($addressIndex === -1) {
-                ApiResponse::error('Address not found', 404);
-                return;
-            }
-
-            // Remove address
-            array_splice($addresses, $addressIndex, 1);
-
-            // Update user
-            $stmt = $this->pdo->prepare("
-                UPDATE users
-                SET address_data = :address_data, updated_at = NOW()
-                WHERE id = :id
-            ");
-            $stmt->execute([
-                ':address_data' => json_encode($addresses),
-                ':id' => $currentUser['sub']
-            ]);
-
-            ApiResponse::success([
-                'message' => 'Address deleted successfully'
-            ]);
-
-        } catch (Exception $e) {
-            ApiResponse::error('Failed to delete address: ' . $e->getMessage());
         }
     }
 
@@ -558,6 +452,45 @@ class UserApiController extends ApiController
             'items_count' => isset($order['items_count']) ? (int)$order['items_count'] : 0,
             'items_summary' => $order['items_summary'] ?? null
         ];
+    }
+
+    /**
+     * Update address
+     */
+    /**
+     * Delete address
+     */
+    public function deleteAddress($id)
+    {
+        try {
+            $currentUser = JWT::getCurrentUser();
+
+            if (!$currentUser) {
+                ApiResponse::error('Unauthorized', 401);
+                return;
+            }
+
+            // Use Customer model like AccountController does
+            require_once __DIR__ . '/../../models/Customer.php';
+            $customerModel = new Customer();
+
+            $result = $customerModel->deleteCustomerAddress($id, $currentUser['sub']);
+
+            if ($result) {
+                // Get updated addresses list
+                $addresses = $customerModel->getCustomerAddresses($currentUser['sub']);
+                
+                ApiResponse::success([
+                    'message' => 'Address deleted successfully',
+                    'data' => $addresses
+                ]);
+            } else {
+                ApiResponse::error('Failed to delete address or address not found', 404);
+            }
+
+        } catch (Exception $e) {
+            ApiResponse::error('Failed to delete address: ' . $e->getMessage());
+        }
     }
 }
 

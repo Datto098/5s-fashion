@@ -58,6 +58,14 @@ class Customer extends BaseModel
 
         return $this->db->fetchAll($sql, [$customerId]);
     }
+    
+    /**
+     * Alias for getCustomerAddresses - Get addresses by user ID
+     */
+    public function getAddressesByUserId($userId)
+    {
+        return $this->getCustomerAddresses($userId);
+    }
 
     /**
      * Get customer orders

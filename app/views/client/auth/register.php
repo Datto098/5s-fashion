@@ -20,7 +20,7 @@ ob_start();
                         <div class="alert alert-success"><?= getFlash('success') ?></div>
                     <?php endif; ?>
 
-                    <form action="<?= url('register') ?>" method="POST" class="auth-form">
+                    <form action="<?= url('registerUser') ?>" method="POST" class="auth-form">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">

@@ -25,6 +25,7 @@ return [
     // Auth
     'login' => 'AuthController@loginForm',
     'register' => 'AuthController@registerForm',
+    'registerUser' => 'AuthController@register',
     'logout' => 'AuthController@logout',
     'forgot-password' => 'AuthController@forgotPasswordForm',
     'reset-password/{token}' => 'AuthController@resetPasswordForm',
@@ -81,6 +82,14 @@ return [
     'vouchers/my-vouchers' => 'VoucherController@myVouchers',
     'vouchers/remove' => 'VoucherController@remove',
     'vouchers/save' => 'VoucherController@save',
+
+    // Order API routes for checkout
+    'order/addresses' => 'OrderController@getAddresses',
+    'order/addAddress' => 'OrderController@addAddress', 
+    'order/updateAddress/{id}' => 'OrderController@updateAddress',
+    'order/deleteAddress/{id}' => 'OrderController@deleteAddress',
+    'order/setDefaultAddress/{id}' => 'OrderController@setDefaultAddress',
+    'order/place' => 'OrderController@placeOrder',
 
     
 
