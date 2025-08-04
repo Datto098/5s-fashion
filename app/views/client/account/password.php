@@ -181,7 +181,9 @@ ob_start();
                                             <div class="login-info">
                                                 <strong>Lần cuối đăng nhập:</strong><br>
                                                 <small class="text-muted">
-                                                    <?= isset(getUser()['last_login']) ? date('d/m/Y H:i', strtotime(getUser()['last_login'])) : 'Chưa có thông tin' ?>
+    <?= !empty(getUser()['last_login_at']) 
+        ? date('d/m/Y H:i', strtotime(getUser()['last_login_at'])) 
+        : 'Chưa có thông tin' ?>
                                                 </small>
                                             </div>
                                         </div>

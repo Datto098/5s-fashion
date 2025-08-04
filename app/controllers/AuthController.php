@@ -132,7 +132,9 @@ class AuthController extends Controller
             }
 
             // Update last login
-            // $this->userModel->updateLastLogin($user['id']);
+            $this->userModel->updateLastLogin($user['id']);
+            $user['last_login_at'] = date('Y-m-d H:i:s'); 
+            $_SESSION['user'] = $user;
 
             // Force save session
             session_write_close();
@@ -259,7 +261,7 @@ class AuthController extends Controller
             // Gửi email xác thực
             require_once APP_PATH . '/helpers/PHPMailerHelper.php';
             require_once APP_PATH . '/helpers/functions.php';
-            $verifyUrl = url('verify-email/' . $verifyToken);
+            $verifyUrl = url('public/verify-email/' . $verifyToken);
             $sendResult = PHPMailerHelper::sendVerificationEmail($email, $name, $verifyUrl);
             if ($sendResult) {
                 setFlash('success', 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');

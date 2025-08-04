@@ -73,9 +73,11 @@ function getImageUrl(imagePath) {
 // DOM Ready
 document.addEventListener('DOMContentLoaded', function () {
 	initializeComponents();
-	loadCartItemsFromServer(); // Load cart from server
-	updateWishlistCounterFromAPI(); // Load wishlist count from API
-	updateWishlistButtonsFromAPI(); // Update wishlist button states
+	if (window.isLoggedIn === true || window.isLoggedIn === 'true') {
+		loadCartItemsFromServer(); 
+	}
+	updateWishlistCounterFromAPI();
+	updateWishlistButtonsFromAPI();
 	initializeBackToTop();
 });
 
