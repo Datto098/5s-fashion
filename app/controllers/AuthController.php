@@ -97,6 +97,14 @@ class AuthController extends Controller
                 return;
             }
 
+
+            // Chặn đăng nhập nếu chưa xác thực email 
+            if ($user['role'] === 'customer' && empty($user['email_verified_at'])) {
+                setFlash('error', 'Bạn cần xác thực email trước khi đăng nhập. Vui lòng kiểm tra email.');
+                redirect('login');
+                return;
+            }
+
             if ($user['status'] !== 'active') {
                 setFlash('error', 'Tài khoản của bạn đã bị khóa');
                 redirect('login');
@@ -233,7 +241,8 @@ class AuthController extends Controller
             redirect('register');
         }
 
-        // Create user
+        // Tạo token xác thực email
+        $verifyToken = bin2hex(random_bytes(32));
         $userData = [
             'username' => $username,
             'email' => $email,
@@ -241,12 +250,22 @@ class AuthController extends Controller
             'full_name' => $name,
             'phone' => $phone,
             'role' => 'customer',
-            'status' => 'active'
+            'status' => 'active',
+            'email_verify_token' => $verifyToken
         ];
         $userId = $this->userModel->createUser($userData);
 
         if ($userId) {
-            setFlash('success', 'Đăng ký thành công! Vui lòng đăng nhập.');
+            // Gửi email xác thực
+            require_once APP_PATH . '/helpers/PHPMailerHelper.php';
+            require_once APP_PATH . '/helpers/functions.php';
+            $verifyUrl = url('verify-email/' . $verifyToken);
+            $sendResult = PHPMailerHelper::sendVerificationEmail($email, $name, $verifyUrl);
+            if ($sendResult) {
+                setFlash('success', 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
+            } else {
+                setFlash('error', 'Đăng ký thành công nhưng gửi email xác thực thất bại.');
+            }
             redirect('login');
         } else {
             setFlash('error', 'Có lỗi xảy ra khi đăng ký');

@@ -97,4 +97,7 @@ return [
     'blog' => 'PostController@index',
     'blog/{id}' => 'PostController@show',
 
+    // Email Verification
+    'verify-email/{token}' => 'VerifyController@email',
+
 ];
