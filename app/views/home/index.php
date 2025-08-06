@@ -194,7 +194,7 @@
         </div>
 
         <div class="footer">
-            <p>&copy; 2025 5S Fashion. Phát triển bởi AI Assistant</p>
+            <p>&copy; 2025 5S Fashion. </p>
             <p>Framework: PHP MVC | Database: MySQL | Theme: Red-White-Gray</p>
         </div>
     </div>

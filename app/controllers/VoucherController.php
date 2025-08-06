@@ -45,7 +45,7 @@ class VoucherController extends BaseController
             'savedCoupons' => $savedCoupons,
             'trendingCoupons' => $trendingCoupons,
             'userId' => $userId
-        ]);
+        ], 'client/layouts/app');
     }
 
     /**
@@ -73,7 +73,7 @@ class VoucherController extends BaseController
             'usedCoupons' => $usedCoupons,
             'expiredCoupons' => $expiredCoupons,
             'stats' => $stats
-        ]);
+        ], 'client/layouts/app');
     }
 
     /**

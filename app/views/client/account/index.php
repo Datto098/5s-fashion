@@ -13,8 +13,8 @@ ob_start();
                         <div class="user-avatar">
                             <i class="fas fa-user-circle fa-4x text-danger"></i>
                         </div>
-                        <h5 class="mt-2"><?= htmlspecialchars($user['name'] ?? 'User') ?></h5>
-                        <p class="text-muted"><?= htmlspecialchars($user['email'] ?? '') ?></p>
+                         <h5 class="mt-2"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></h5>
+                        <p class="text-muted"><?= htmlspecialchars(getUser()['email'] ?? '') ?></p>
                     </div>
 
                     <nav class="account-nav">

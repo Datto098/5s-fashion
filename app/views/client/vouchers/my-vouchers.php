@@ -1,7 +1,3 @@
-<?php
-$pageTitle = 'Voucher Của Tôi';
-require_once 'app/views/client/layouts/header.php';
-?>
 
 <div class="container my-5">
     <!-- Page Header -->
@@ -602,4 +598,4 @@ if (!document.querySelector('#toast-animations')) {
 }
 </script>
 
-<?php require_once 'app/views/client/layouts/footer.php'; ?>
+
