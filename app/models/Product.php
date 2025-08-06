@@ -504,7 +504,34 @@ class Product extends BaseModel
                 WHERE product_id = ?
                 ORDER BY id ASC";
 
-        return $this->db->fetchAll($sql, [$productId]);
+        $variants = $this->db->fetchAll($sql, [$productId]);
+
+        // Parse variant_name to extract color and size
+        foreach ($variants as &$variant) {
+            if (!empty($variant['variant_name'])) {
+                // Variant name format: "Product Name - Color - Size"
+                $parts = explode(' - ', $variant['variant_name']);
+                if (count($parts) >= 3) {
+                    $variant['color'] = $parts[count($parts) - 2]; // Second to last part is color
+                    $variant['size'] = $parts[count($parts) - 1];  // Last part is size
+                } else {
+                    $variant['color'] = 'Default';
+                    $variant['size'] = 'One Size';
+                }
+            }
+
+            // Use product price if variant price is null or 0
+            if (is_null($variant['price']) || floatval($variant['price']) == 0) {
+                // Get product price
+                $productSql = "SELECT price, sale_price FROM products WHERE id = ?";
+                $product = $this->db->fetchOne($productSql, [$productId]);
+                if ($product) {
+                    $variant['price'] = floatval($product['sale_price']) > 0 ? $product['sale_price'] : $product['price'];
+                }
+            }
+        }
+
+        return $variants;
     }
 
     /**

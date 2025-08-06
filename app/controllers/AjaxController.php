@@ -21,6 +21,11 @@ class AjaxController extends Controller
         parent::__construct();
         $this->product = new Product();
 
+        // Start session first
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         // Set content type to JSON for all AJAX responses
         header('Content-Type: application/json');
     }
@@ -30,11 +35,6 @@ class AjaxController extends Controller
      */
     public function initSession()
     {
-        // Start session if not started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
         echo json_encode([
             'success' => true,
             'message' => 'Session initialized',
@@ -51,6 +51,9 @@ class AjaxController extends Controller
             // Get JSON input
             $input = json_decode(file_get_contents('php://input'), true);
 
+            // Debug: Log input data
+            error_log("AjaxController::addToCart - Input data: " . print_r($input, true));
+
             if (!$input) {
                 throw new Exception('Invalid JSON data');
             }
@@ -58,8 +61,61 @@ class AjaxController extends Controller
             // Validate required fields
             $productId = $input['product_id'] ?? null;
             $quantity = $input['quantity'] ?? 1;
-            $variant = $input['variant'] ?? null;
             $clientPrice = $input['price'] ?? null; // Price sent from client
+
+            // Extract variant information - handle both formats
+            $variantId = $input['variant_id'] ?? null;
+            $variantData = $input['variant'] ?? null;
+
+            // Initialize variant fields
+            $variantColor = '';
+            $variantSize = '';
+            $variantName = '';
+            $variantPrice = null;
+
+            // Extract from direct fields (legacy format)
+            if (!$variantData) {
+                $variantColor = $input['variant_color'] ?? '';
+                $variantSize = $input['variant_size'] ?? '';
+                $variantName = $input['variant_name'] ?? '';
+                $variantPrice = $input['variant_price'] ?? null;
+            } else {
+                // Extract from variant object (new QuickView format)
+                if (is_array($variantData)) {
+                    $variantColor = $variantData['color'] ?? '';
+                    $variantSize = $variantData['size'] ?? '';
+                    $variantName = $variantData['name'] ?? '';
+                    $variantPrice = $variantData['price'] ?? null;
+                    // Also get variant ID from variant object if not provided separately
+                    if (!$variantId && isset($variantData['id'])) {
+                        $variantId = $variantData['id'];
+                    }
+                } else {
+                    // Handle string format (like "Xanh dương - S")
+                    $variantName = $variantData;
+                    $parts = explode(' - ', $variantData);
+                    if (count($parts) == 2) {
+                        $variantColor = trim($parts[0]);
+                        $variantSize = trim($parts[1]);
+                    }
+                }
+            }
+
+            // Debug: Log variant data
+            error_log("Variant data - ID: $variantId, Color: $variantColor, Size: $variantSize, Price: $variantPrice");
+
+            // Create variant object for storage
+            $variant = null;
+            if ($variantId || $variantColor || $variantSize) {
+                $variant = [
+                    'id' => $variantId,
+                    'color' => $variantColor,
+                    'size' => $variantSize,
+                    'name' => $variantName ?: ($variantColor && $variantSize ? "$variantColor - $variantSize" : ''),
+                    'price' => $variantPrice
+                ];
+                error_log("Created variant object: " . print_r($variant, true));
+            }
 
             if (!$productId) {
                 throw new Exception('Product ID is required');
@@ -79,8 +135,12 @@ class AjaxController extends Controller
             // Determine price to use
             $priceToUse = $product['sale_price'] ?: $product['price']; // Default price
 
-            // If client sent a valid price and it's reasonable, use it (for variant pricing)
-            if ($clientPrice !== null && is_numeric($clientPrice) && $clientPrice > 0) {
+            // If variant has price, use it
+            if ($variantPrice && is_numeric($variantPrice) && $variantPrice > 0) {
+                $priceToUse = $variantPrice;
+            }
+            // Otherwise, if client sent a valid price and it's reasonable, use it
+            elseif ($clientPrice !== null && is_numeric($clientPrice) && $clientPrice > 0) {
                 // Validate that the client price is within reasonable bounds of product price
                 $basePrice = $product['sale_price'] ?: $product['price'];
                 $maxReasonablePrice = $basePrice * 2; // Allow up to 2x base price for variants
@@ -90,18 +150,23 @@ class AjaxController extends Controller
                 }
             }
 
-            // Start session if not started
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
-
             // Initialize cart if not exists
             if (!isset($_SESSION['cart'])) {
                 $_SESSION['cart'] = [];
             }
 
             // Create cart item key
-            $cartKey = $productId . '_' . ($variant ? md5($variant) : 'default');
+            $variantKey = 'default';
+            if ($variant) {
+                $variantKey = $variantId . '_' . $variantColor . '_' . $variantSize;
+                $variantKey = md5($variantKey); // Hash to avoid long keys
+            }
+            $cartKey = $productId . '_' . $variantKey;
+
+            // Debug logging for add to cart
+            error_log("AddToCart - Session ID: " . session_id());
+            error_log("AddToCart - Variant data: " . json_encode($variant));
+            error_log("AddToCart - Cart key: " . $cartKey);
 
             // Check if item already exists in cart
             if (isset($_SESSION['cart'][$cartKey])) {
@@ -183,10 +248,6 @@ class AjaxController extends Controller
             }
 
             // Start session if not started
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
-
             if (!isset($_SESSION['cart'][$cartKey])) {
                 throw new Exception('Item not found in cart');
             }
@@ -241,10 +302,6 @@ class AjaxController extends Controller
             }
 
             // Start session if not started
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
-
             if (isset($_SESSION['cart'][$cartKey])) {
                 unset($_SESSION['cart'][$cartKey]);
             }
@@ -274,12 +331,12 @@ class AjaxController extends Controller
     public function getCartItems()
     {
         try {
-            // Start session if not started
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
-
             $cartItems = $_SESSION['cart'] ?? [];
+
+            // Debug logging
+            error_log("GetCartItems - Session ID: " . session_id());
+            error_log("GetCartItems - Cart items: " . json_encode($cartItems));
+            error_log("GetCartItems - Found " . count($cartItems) . " cart items");
 
             // Convert associative array to indexed array for JavaScript
             $formattedItems = [];
@@ -447,6 +504,59 @@ class AjaxController extends Controller
             echo json_encode([
                 'success' => true,
                 'product' => $formattedProduct
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Get product details for quick view modal
+     */
+    public function getProductForQuickView()
+    {
+        try {
+            $productId = $_GET['id'] ?? null;
+
+            if (!$productId) {
+                throw new Exception('Product ID is required');
+            }
+
+            // Get product details
+            $product = $this->product->find($productId);
+            if (!$product) {
+                throw new Exception('Product not found');
+            }
+
+            // Get product variants
+            $variants = $this->product->getVariants($productId);
+
+            // Get product images (if available)
+            $images = $this->product->getImages($productId) ?? [];
+
+            // Format response
+            $response = [
+                'id' => $product['id'],
+                'name' => $product['name'],
+                'description' => $product['description'],
+                'price' => $product['price'],
+                'sale_price' => $product['sale_price'] ?? null,
+                'featured_image' => $product['featured_image'],
+                'images' => $images,
+                'variants' => $variants,
+                'in_stock' => $product['status'] !== 'out_of_stock',
+                'category_name' => $product['category_name'] ?? null,
+                'rating' => $product['rating'] ?? 0,
+                'review_count' => $product['review_count'] ?? 0
+            ];
+
+            echo json_encode([
+                'success' => true,
+                'product' => $response
             ]);
 
         } catch (Exception $e) {

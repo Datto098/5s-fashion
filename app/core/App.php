@@ -154,16 +154,7 @@ class App
         $fullPath = implode('/', $url);
         $method = $_SERVER['REQUEST_METHOD'];
 
-        // For AJAX routes, check HTTP method
-        if (strpos($fullPath, 'ajax/') === 0) {
-            // AJAX routes should handle POST requests properly
-            if (isset($routes[$fullPath])) {
-                $this->handleRoute($routes[$fullPath]);
-                return;
-            }
-        }
-
-        // Check for exact route matches first
+        // Check for exact route matches first (handles both GET and POST)
         foreach ($routes as $route => $handler) {
             if ($route === $fullPath || ($route === '' && empty($fullPath))) {
                 $this->handleRoute($handler);

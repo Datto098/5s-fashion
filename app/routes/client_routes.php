@@ -18,6 +18,11 @@ return [
 
     // Cart
     'cart' => 'HomeController@cart',
+    'simple-cart' => 'SimpleCartController@index',
+    'cart/add' => 'SimpleCartController@add',
+    'cart/update' => 'SimpleCartController@update',
+    'cart/remove' => 'SimpleCartController@remove',
+    'cart/data' => 'SimpleCartController@getCartData',
 
     // Checkout
     'checkout' => 'HomeController@checkout',
@@ -62,6 +67,7 @@ return [
     'ajax/cart/items' => 'AjaxController@getCartItems',
     'ajax/wishlist/toggle' => 'AjaxController@toggleWishlist',
     'ajax/product/data' => 'AjaxController@getProductData',
+    'ajax/product/quickview' => 'AjaxController@getProductForQuickView',
 
     // Wishlist Routes
     'wishlist/count' => 'WishlistController@count',
