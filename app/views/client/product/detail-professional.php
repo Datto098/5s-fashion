@@ -156,7 +156,6 @@ $inline_css = '
     font-weight: 700;
     display: block;
     margin-bottom: 0.5rem;
-    color: white;
 }
 
 .original-price {
@@ -361,263 +360,36 @@ $inline_css = '
 }
 
 .variants-section {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 1px solid #e3f2fd;
-    border-radius: 12px;
-    padding: 1.5rem;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 15px;
+    padding: 2rem;
     margin: 2rem 0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    position: relative;
-    overflow: hidden;
-}
-
-.variants-section::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #2196f3, #21cbf3, #2196f3);
-    border-radius: 12px 12px 0 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
 }
 
 .variants-section h4 {
-    color: #1976d2;
+    color: #dc3545;
     margin-bottom: 1.5rem;
     font-weight: 700;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-.variants-section h4 i {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, #2196f3, #21cbf3);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-}
-
-.variant-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 1rem;
-}
-
-.variant-option {
-    background: #fff;
-    border: 2px solid #e9ecef;
+.variant-item {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem;
+    margin: 1rem 0;
     border-radius: 10px;
-    padding: 1rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    min-height: 100px;
+    border: 1px solid #e9ecef;
     display: flex;
-    flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.variant-option:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
-    border-color: #2196f3;
-}
-
-.variant-option.selected {
-    border-color: #2196f3;
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.25);
-    transform: translateY(-2px);
-}
-
-.variant-option.out-of-stock {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background: #f8f9fa;
-    border-color: #e0e0e0;
-}
-
-.variant-option.out-of-stock:hover {
-    transform: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    border-color: #e0e0e0;
-}
-
-.variant-content {
-    flex: 1;
-}
-
-.variant-name-display {
-    margin-bottom: 8px;
-}
-
-.variant-name {
-    font-size: 0.9rem;
-    color: #495057;
-    font-weight: 600;
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    padding: 4px 8px;
-    border-radius: 12px;
-    border: 1px solid #dee2e6;
-    display: inline-block;
-}
-
-.color-display {
-    display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
-.color-swatch {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid #dee2e6;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.color-name {
-    font-size: 0.85rem;
-    color: #495057;
-    font-weight: 500;
-    text-transform: capitalize;
-}
-
-.size-display {
-    margin-bottom: 8px;
-}
-
-.size-badge {
-    background: linear-gradient(135deg, #6c757d, #5a6268);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.price-display {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #28a745;
-    margin-bottom: 8px;
-}
-
-.stock-status {
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.stock-status.in-stock {
-    background: rgba(40, 167, 69, 0.1);
-    color: #28a745;
-}
-
-.stock-status.out-of-stock {
-    background: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
-}
-
-.variant-selector {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 2px solid #e0e0e0;
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
     transition: all 0.3s ease;
-    font-size: 12px;
 }
 
-.variant-option:hover .variant-selector {
-    opacity: 1;
-}
-
-.variant-option.selected .variant-selector {
-    opacity: 1;
-    background: #2196f3;
-    border-color: #2196f3;
-    color: white;
-    transform: scale(1.1);
-}
-
-.selected-variant-display {
-    background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
-    border: 1px solid #28a745;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
-    animation: slideDown 0.3s ease-out;
-}
-
-.selected-info {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.9rem;
-}
-
-.selected-info .label {
-    color: #155724;
-    font-weight: 600;
-}
-
-.selected-info .selected-details {
-    color: #495057;
-    font-weight: 500;
-}
-
-.selected-info .selected-price {
-    color: #28a745;
-    font-weight: 700;
-    font-size: 1rem;
-}
-
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Mobile responsive */
-@media (max-width: 767px) {
-    .variant-grid {
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 8px;
-    }
-
-    .variant-option {
-        padding: 0.8rem;
-        min-height: 80px;
-    }
-
-    .selected-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
+.variant-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border-color: #dc3545;
 }
 
 .social-share {
@@ -748,9 +520,9 @@ ob_start();
                         </div>
 
                         <img src="<?= htmlspecialchars($imageUrl) ?>"
-                            alt="<?= htmlspecialchars($product['name']) ?>"
-                            class="main-product-image"
-                            id="mainProductImage">
+                             alt="<?= htmlspecialchars($product['name']) ?>"
+                             class="main-product-image"
+                             id="mainProductImage">
                     </div>
                 </div>
             </div>
@@ -808,136 +580,10 @@ ob_start();
 
                     <!-- Product Description -->
                     <?php if (!empty($product['description'])): ?>
-                        <div class="product-description">
-                            <h5><i class="fas fa-info-circle me-2"></i>Mô tả sản phẩm</h5>
-                            <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Product Variants (Simple) -->
-                    <?php if (!empty($variants) && is_array($variants)): ?>
-
-                        <!-- Debug: Show variant data structure -->
-                        <?php if (isset($_GET['debug'])): ?>
-                            <div class="alert alert-info">
-                                <h5>Debug: RAW Variant Data</h5>
-                                <?php foreach ($variants as $i => $variant): ?>
-                                    <h6>Variant <?= $i + 1 ?>:</h6>
-                                    <pre style="font-size: 12px; max-height: 200px; overflow-y: auto;"><?= htmlspecialchars(print_r($variant, true)) ?></pre>
-                                    <hr>
-                                <?php endforeach; ?>
-
-                                <?php if (isset($product['attributes'])): ?>
-                                    <h6>Product Attributes:</h6>
-                                    <pre style="font-size: 12px;"><?= htmlspecialchars(print_r($product['attributes'], true)) ?></pre>
-                                <?php endif; ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="variants-section">
-                            <h4><i class="fas fa-palette me-2"></i>Chọn phiên bản</h4>
-
-                            <div class="variant-grid">
-                                <?php foreach ($variants as $index => $variant): ?>
-                                    <?php
-                                    $isOutOfStock = ($variant['stock_quantity'] ?? 0) <= 0;
-                                    $variantName = $variant['variant_name'] ?? $variant['name'] ?? '';
-                                    $price = $variant['price'] ?? $product['price'];
-
-                                    // Simple approach - just log and check what we have
-                                    $color = '';
-                                    $size = '';
-
-                                    // Debug: Log what fields this variant has
-                                    if (isset($_GET['debug'])) {
-                                        echo "<div style='border:1px solid #ccc; padding:5px; margin:2px; font-size:11px;'>";
-                                        echo "<strong>Variant " . ($index + 1) . " fields:</strong><br>";
-                                        foreach ($variant as $key => $value) {
-                                            if (is_string($value) || is_numeric($value)) {
-                                                echo "$key: " . htmlspecialchars($value) . "<br>";
-                                            } else {
-                                                echo "$key: " . gettype($value) . " (" . (is_array($value) ? count($value) . " items" : "complex") . ")<br>";
-                                            }
-                                        }
-                                        echo "</div>";
-                                    }
-
-                                    // Try to get color/size from common field names
-                                    $color = $variant['color'] ?? $variant['colour'] ?? $variant['variant_color'] ?? '';
-                                    $size = $variant['size'] ?? $variant['variant_size'] ?? '';
-
-                                    // If still empty, try from variant_name
-                                    if (empty($color) && empty($size) && !empty($variantName)) {
-                                        // Simple parsing: if variant name contains "-", split it
-                                        if (strpos($variantName, '-') !== false) {
-                                            $parts = explode('-', $variantName);
-                                            if (count($parts) >= 2) {
-                                                $color = trim($parts[0]);
-                                                $size = trim($parts[1]);
-                                            }
-                                        }
-                                    }
-                                    ?>
-                                    <div class="variant-option <?= $isOutOfStock ? 'out-of-stock' : '' ?>"
-                                        data-variant-id="<?= $variant['id'] ?? $index ?>"
-                                        data-variant-price="<?= $price ?>"
-                                        data-variant-stock="<?= $variant['stock_quantity'] ?? 0 ?>"
-                                        data-variant-color="<?= htmlspecialchars($color) ?>"
-                                        data-variant-size="<?= htmlspecialchars($size) ?>"
-                                        onclick="selectVariant(this)">
-
-                                        <div class="variant-content">
-                                            <!-- Display variant name if no color/size -->
-                                            <?php if (!empty($variantName) && empty($color) && empty($size)): ?>
-                                                <div class="variant-name-display">
-                                                    <span class="variant-name"><?= htmlspecialchars($variantName) ?></span>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <?php if (!empty($color)): ?>
-                                                <div class="color-display">
-                                                    <div class="color-swatch" style="background-color: <?= htmlspecialchars($color) ?>"></div>
-                                                    <span class="color-name"><?= htmlspecialchars($color) ?></span>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <?php if (!empty($size)): ?>
-                                                <div class="size-display">
-                                                    <span class="size-badge"><?= htmlspecialchars($size) ?></span>
-                                                </div>
-                                            <?php endif; ?>
-
-                                            <div class="price-display">
-                                                <?= number_format($price, 0, ',', '.') ?>₫
-                                            </div>
-
-                                            <?php if ($isOutOfStock): ?>
-                                                <div class="stock-status out-of-stock">
-                                                    <i class="fas fa-times"></i> Hết hàng
-                                                </div>
-                                            <?php else: ?>
-                                                <div class="stock-status in-stock">
-                                                    <i class="fas fa-check"></i> Còn <?= $variant['stock_quantity'] ?? 0 ?>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-
-                                        <div class="variant-selector">
-                                            <i class="fas fa-check"></i>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-
-                            <!-- Selected Variant Display -->
-                            <div class="selected-variant-display" id="selectedVariantDisplay" style="display: none;">
-                                <div class="selected-info">
-                                    <span class="label">Đã chọn:</span>
-                                    <span class="selected-details" id="selectedDetails">-</span>
-                                    <span class="selected-price" id="selectedPrice">0₫</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="product-description">
+                        <h5><i class="fas fa-info-circle me-2"></i>Mô tả sản phẩm</h5>
+                        <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
+                    </div>
                     <?php endif; ?>
 
                     <!-- Purchase Actions -->
@@ -945,18 +591,18 @@ ob_start();
                         <div class="quantity-selector">
                             <label class="fw-bold text-dark">Số lượng:</label>
                             <div class="quantity-controls">
-                                <button class="quantity-btn" type="button" onclick="changeQuantity(-1)">
+                                <button class="quantity-btn" onclick="changeQuantity(-1)">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <input type="number" class="quantity-input" id="quantity" value="1" min="1" max="<?= $product['stock_quantity'] ?? 99 ?>">
-                                <button class="quantity-btn" type="button" onclick="changeQuantity(1)">
+                                <input type="number" class="quantity-input" id="productQuantity" value="1" min="1" max="<?= $product['stock_quantity'] ?? 99 ?>">
+                                <button class="quantity-btn" onclick="changeQuantity(1)">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
                         </div>
 
                         <div class="action-buttons">
-                            <button class="btn btn-add-cart" onclick="handleAddToCart(<?= $product['id'] ?>)">
+                            <button class="btn btn-add-cart" onclick="addToCart(<?= $product['id'] ?>)">
                                 <i class="fas fa-shopping-cart me-2"></i>
                                 <span class="btn-text">Thêm vào giỏ</span>
                             </button>
@@ -1027,123 +673,85 @@ ob_start();
 </section>
 
 <!-- Product Variants -->
+<?php if (!empty($variants) && is_array($variants)): ?>
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="variants-section">
+            <h4><i class="fas fa-palette me-2"></i>Các phiên bản sản phẩm (<?= count($variants) ?>)</h4>
+            <p class="text-muted mb-4">Chọn phiên bản phù hợp với sở thích của bạn</p>
+
+            <?php foreach ($variants as $variant): ?>
+            <div class="variant-item">
+                <div>
+                    <strong><?= htmlspecialchars($variant['variant_name'] ?? 'Phiên bản') ?></strong>
+                    <div class="mt-2">
+                        <?php if (!empty($variant['color'])): ?>
+                            <span class="badge bg-secondary me-2">
+                                <i class="fas fa-palette me-1"></i><?= htmlspecialchars($variant['color']) ?>
+                            </span>
+                        <?php endif; ?>
+                        <?php if (!empty($variant['size'])): ?>
+                            <span class="badge bg-info">
+                                <i class="fas fa-ruler me-1"></i><?= htmlspecialchars($variant['size']) ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="h5 text-success mb-1">
+                        <?= number_format($variant['price'] ?? $product['price'], 0, ',', '.') ?>₫
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-box me-1"></i>Còn: <?= $variant['stock_quantity'] ?? 0 ?>
+                    </small>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 <?php
 // Capture content and set it for layout
 $content = ob_get_clean();
 
 // Custom JavaScript for product detail page
-$inline_js = <<<'JS'
+$inline_js = '
 // Product functionality
 function changeQuantity(change) {
-    const input = document.getElementById("quantity");
-    if (!input) return;
-
+    const input = document.getElementById("productQuantity");
     const currentValue = parseInt(input.value) || 1;
     const maxValue = parseInt(input.max) || 99;
     const newValue = Math.max(1, Math.min(maxValue, currentValue + change));
     input.value = newValue;
-
-    // Update add to cart button state if variant system is active
-    try {
-        updateAddToCartButton();
-    } catch(e) {
-        // Function not available, skip
-    }
-}
-
-// Handle add to cart click
-function handleAddToCart(productId) {
-    console.log('handleAddToCart called with productId:', productId);
-    console.log('selectedVariant:', selectedVariant);
-
-    const quantity = parseInt(document.getElementById("quantity").value) || 1;
-
-    // Prepare variant object if selected
-    let variant = null;
-    if (selectedVariant) {
-        variant = {
-            id: selectedVariant.id,
-            color: selectedVariant.color,
-            size: selectedVariant.size,
-            name: (selectedVariant.color || "") + (selectedVariant.color && selectedVariant.size ? "-" : "") + (selectedVariant.size || ""),
-            price: selectedVariant.price
-        };
-        console.log('Prepared variant object:', variant);
-    }
-
-    // Use unified cart manager directly
-    if (typeof unifiedCartManager !== 'undefined' && unifiedCartManager.addToCart) {
-        console.log('Using unifiedCartManager.addToCart');
-        return unifiedCartManager.addToCart(productId, quantity, variant);
-    } else {
-        console.log('unifiedCartManager not available, calling global addToCart');
-        return window.addToCart(productId, quantity, variant);
-    }
 }
 
 function addToCart(productId) {
-    console.log('addToCart called with productId:', productId);
-    console.log('selectedVariant:', selectedVariant);
+    const quantity = parseInt(document.getElementById("productQuantity").value) || 1;
 
-    const quantity = parseInt(document.getElementById("quantity").value) || 1;
+    // Add loading state
+    const btn = document.querySelector(".btn-add-cart");
+    const btnText = btn.querySelector(".btn-text");
+    const originalText = btnText.textContent;
 
-    // Prepare variant object if selected
-    let variant = null;
-    if (selectedVariant) {
-        variant = {
-            id: selectedVariant.id,
-            color: selectedVariant.color,
-            size: selectedVariant.size,
-            name: (selectedVariant.color || "") + (selectedVariant.color && selectedVariant.size ? "-" : "") + (selectedVariant.size || ""),
-            price: selectedVariant.price
-        };
-        console.log('Prepared variant object:', variant);
-    }
+    btn.disabled = true;
+    btnText.textContent = "Đang thêm...";
+    btn.classList.add("loading");
 
-    // Use unified cart manager directly if available
-    if (typeof unifiedCartManager !== 'undefined' && unifiedCartManager.addToCart) {
-        console.log('Using unifiedCartManager.addToCart');
-        unifiedCartManager.addToCart(productId, quantity, variant);
-    } else {
-        console.log('Using fallback direct API call');
-        // Fallback to direct API call
-        const cartData = {
-            product_id: productId,
-            quantity: quantity,
-            variant_id: variant?.id || null,
-            variant_color: variant?.color || '',
-            variant_size: variant?.size || '',
-            variant_name: variant?.name || '',
-            variant_price: variant?.price || null
-        };
+    // Simulate API call
+    setTimeout(() => {
+        btn.disabled = false;
+        btnText.textContent = originalText;
+        btn.classList.remove("loading");
 
-        fetch('/5s-fashion/ajax/cart/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(cartData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification("Đã thêm " + quantity + " sản phẩm vào giỏ hàng!", "success");
-                if (data.cart_count !== undefined) {
-                    updateCartCounter(data.cart_count);
-                }
-            } else {
-                showNotification(data.message || "Có lỗi xảy ra khi thêm vào giỏ hàng", "error");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            showNotification("Có lỗi xảy ra khi thêm vào giỏ hàng", "error");
-        });
-    }
+        // Show success notification
+        showNotification("Đã thêm " + quantity + " sản phẩm vào giỏ hàng!", "success");
+    }, 1000);
 }
 
 function buyNow(productId) {
-    const quantity = parseInt(document.getElementById("quantity").value) || 1;
+    const quantity = parseInt(document.getElementById("productQuantity").value) || 1;
 
     // Add loading state
     const btn = document.querySelector(".btn-buy-now");
@@ -1272,137 +880,14 @@ function showNotification(message, type = "info") {
     }, 4000);
 }
 
-// Variant management variables
-let selectedVariant = null;
-
-// Select variant function for new design
-function selectVariant(element) {
-    if (element.classList.contains("out-of-stock")) {
-        showNotification("Phiên bản này đã hết hàng!", "error");
-        return;
-    }
-
-    // Remove previous selection
-    document.querySelectorAll(".variant-option").forEach(item => {
-        item.classList.remove("selected");
-    });
-
-    // Add selection to current item
-    element.classList.add("selected");
-
-    // Store selected variant data
-    selectedVariant = {
-        id: element.dataset.variantId,
-        price: parseFloat(element.dataset.variantPrice),
-        stock: parseInt(element.dataset.variantStock),
-        color: element.dataset.variantColor,
-        size: element.dataset.variantSize
-    };
-
-    // Update selected variant display
-    updateSelectedVariantDisplay();
-    updateAddToCartButton();
-
-    console.log("Selected variant:", selectedVariant);
-}
-
-// Update selected variant display
-function updateSelectedVariantDisplay() {
-    const selectedDisplay = document.getElementById("selectedVariantDisplay");
-    const selectedDetails = document.getElementById("selectedDetails");
-    const selectedPrice = document.getElementById("selectedPrice");
-
-    if (selectedDisplay && selectedDetails && selectedPrice && selectedVariant) {
-        let detailText = "";
-        if (selectedVariant.color) detailText += selectedVariant.color;
-        if (selectedVariant.size) detailText += (detailText ? " - " : "") + selectedVariant.size;
-        if (!detailText) detailText = "Phiên bản đã chọn";
-
-        selectedDetails.textContent = detailText;
-        selectedPrice.textContent = new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND"
-        }).format(selectedVariant.price).replace("₫", "₫");
-
-        selectedDisplay.style.display = "block";
-    }
-}
-
-// Update add to cart button state
-function updateAddToCartButton() {
-    const addToCartBtn = document.querySelector(".btn-add-cart");
-    const buyNowBtn = document.querySelector(".btn-buy-now");
-
-    if (addToCartBtn && buyNowBtn) {
-        const isDisabled = !selectedVariant || selectedVariant.stock <= 0;
-
-        addToCartBtn.disabled = isDisabled;
-        buyNowBtn.disabled = isDisabled;
-
-        if (isDisabled) {
-            const addToCartText = addToCartBtn.querySelector(".btn-text");
-            const buyNowText = buyNowBtn.querySelector(".btn-text");
-            if (addToCartText) addToCartText.textContent = "Chọn phiên bản";
-            if (buyNowText) buyNowText.textContent = "Chọn phiên bản";
-        } else {
-            const addToCartText = addToCartBtn.querySelector(".btn-text");
-            const buyNowText = buyNowBtn.querySelector(".btn-text");
-            if (addToCartText) addToCartText.textContent = "Thêm vào giỏ";
-            if (buyNowText) buyNowText.textContent = "Mua ngay";
-        }
-    }
-}
-
-// Update cart counter function
-function updateCartCounter(count) {
-    // Update header cart counter if exists
-    const headerCartCounter = document.querySelector(".cart-counter");
-    if (headerCartCounter) {
-        headerCartCounter.textContent = count;
-        headerCartCounter.style.display = count > 0 ? "inline" : "none";
-    }
-
-    // Update other cart displays
-    const cartCounters = document.querySelectorAll(".cart-count-display");
-    cartCounters.forEach(counter => {
-        counter.textContent = count;
-    });
-}
-
-// Initialize variant system on page load
-document.addEventListener("DOMContentLoaded", function() {
-    // Auto-select first available variant if exists
-    const firstAvailableVariant = document.querySelector(".variant-option:not(.out-of-stock)");
-    if (firstAvailableVariant) {
-        selectVariant(firstAvailableVariant);
-    }
-
-    // Update main quantity input handler
-    const quantityInput = document.getElementById("quantity");
-    if (quantityInput) {
-        quantityInput.addEventListener("input", function() {
-            const maxStock = selectedVariant ? selectedVariant.stock : 999;
-            let value = parseInt(this.value) || 1;
-
-            if (value < 1) value = 1;
-            if (value > maxStock) value = maxStock;
-
-            this.value = value;
-            updateAddToCartButton();
-        });
-    }
-});
-
 // Image zoom on click
-const mainProductImage = document.getElementById("mainProductImage");
-if (mainProductImage) {
-    mainProductImage.addEventListener("click", function() {
-        this.style.transform = this.style.transform === "scale(1.2)" ? "scale(1)" : "scale(1.2)";
-        this.style.transition = "transform 0.3s ease";
-        this.style.cursor = this.style.transform === "scale(1.2)" ? "zoom-out" : "zoom-in";
-    });
-}
-JS;
+document.getElementById("mainProductImage").addEventListener("click", function() {
+    this.style.transform = this.style.transform === "scale(1.2)" ? "scale(1)" : "scale(1.2)";
+    this.style.transition = "transform 0.3s ease";
+    this.style.cursor = this.style.transform === "scale(1.2)" ? "zoom-out" : "zoom-in";
+});
+';
 
 // Include the layout
 include VIEW_PATH . '/client/layouts/app.php';
+?>

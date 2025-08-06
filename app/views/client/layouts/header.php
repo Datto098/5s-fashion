@@ -88,10 +88,10 @@
                     </a>
 
                     <!-- Cart -->
-                    <button class="btn btn-link text-dark me-3 position-relative" onclick="toggleCartSidebar()">
+                    <a href="<?= url('simple-cart') ?>" class="btn btn-link text-dark me-3 position-relative">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="badge bg-primary badge-sm position-absolute" id="cart-count"><?= getCartCount() ?></span>
-                    </button>
+                    </a>
 
                     <!-- Mobile Menu Toggle -->
                     <button class="btn btn-link text-dark d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">

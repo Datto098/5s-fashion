@@ -221,7 +221,7 @@ function enhanceProductCards() {
 			quickViewBtn.addEventListener('click', function (e) {
 				e.preventDefault();
 				const productId = this.getAttribute('onclick').match(/\d+/)[0];
-				showQuickViewModal(productId);
+				quickView(productId);
 			});
 		}
 	});

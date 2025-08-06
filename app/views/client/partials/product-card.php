@@ -54,18 +54,6 @@
                     title="Xem nhanh">
                 <i class="fas fa-eye"></i>
             </button>
-            <button class="btn btn-sm btn-light rounded-circle"
-                    onclick="addToCart(<?= $product['id'] ?>)"
-                    title="Thêm vào giỏ">
-                <i class="fas fa-shopping-cart"></i>
-            </button>
-        </div>
-
-        <!-- Quick Add to Cart Button -->
-        <div class="quick-add-cart">
-            <button class="btn btn-primary btn-sm w-100" onclick="addToCart(<?= $product['id'] ?>)">
-                <i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ
-            </button>
         </div>
     </div>
 
@@ -234,21 +222,6 @@
     background: rgba(255,255,255,0.9);
 }
 
-.quick-add-cart {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 10px;
-    background: linear-gradient(transparent, rgba(0,0,0,0.8));
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
-}
-
-.product-card:hover .quick-add-cart {
-    transform: translateY(0);
-}
-
 .product-info {
     flex: 1;
     display: flex;
@@ -308,17 +281,6 @@
         justify-content: center;
         padding: 10px;
         background: rgba(0,0,0,0.05);
-    }
-
-    .quick-add-cart {
-        position: static;
-        transform: none;
-        background: none;
-        padding: 10px;
-    }
-
-    .product-card:hover .quick-add-cart {
-        transform: none;
     }
 }
 </style>

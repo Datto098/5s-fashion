@@ -23,11 +23,22 @@ $router->get('/search', 'HomeController@shop'); // Search uses same shop method
 $router->get('/product/{slug}', 'HomeController@product');
 
 // Cart routes
-$router->get('/cart', 'HomeController@cart');
+$router->get('/cart', 'CartController@index');
 $router->post('/cart/add', 'CartController@add');
 $router->post('/cart/update', 'CartController@update');
 $router->post('/cart/remove', 'CartController@remove');
 $router->post('/cart/clear', 'CartController@clear');
+$router->get('/cart/count', 'CartController@getCount');
+$router->get('/cart/data', 'CartController@getCartData');
+
+// Simple Cart routes (for testing)
+$router->get('/simple-cart', 'SimpleCartController@index');
+$router->post('/simple-cart/add', 'SimpleCartController@add');
+$router->post('/simple-cart/update', 'SimpleCartController@update');
+$router->post('/simple-cart/remove', 'SimpleCartController@remove');
+$router->post('/simple-cart/clear', 'SimpleCartController@clear');
+$router->get('/simple-cart/count', 'SimpleCartController@getCount');
+$router->get('/simple-cart/data', 'SimpleCartController@getCartData');
 
 // Checkout routes
 $router->get('/checkout', 'HomeController@checkout');

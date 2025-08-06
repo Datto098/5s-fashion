@@ -15,19 +15,14 @@ define('UPLOAD_PATH', PUBLIC_PATH . '/uploads');
 
 // URL Constants
 $isPublicDir = (basename($_SERVER['SCRIPT_NAME']) === 'index.php' && strpos($_SERVER['SCRIPT_NAME'], '/public/') !== false);
-$defaultUrl = ($_SERVER['SERVER_PORT'] == '8080')
+$defaultUrl = (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '8080')
     ? 'http://localhost:8080'
     : 'http://localhost/5s-fashion';
 define('BASE_URL', rtrim($_ENV['APP_URL'] ?? $defaultUrl, '/'));
 
-// Asset URLs - adjust based on whether we're in public/ or root
-if ($isPublicDir) {
-    define('ASSET_URL', BASE_URL . '/assets');
-    define('UPLOAD_URL', BASE_URL . '/uploads');
-} else {
-    define('ASSET_URL', BASE_URL . '/public/assets');
-    define('UPLOAD_URL', BASE_URL . '/public/uploads');
-}// Application States
+// Asset URLs - always use /public/ prefix for development environment
+define('ASSET_URL', BASE_URL . '/public/assets');
+define('UPLOAD_URL', BASE_URL . '/public/uploads');// Application States
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'development');
 define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN));
 

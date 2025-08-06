@@ -644,91 +644,6 @@ function updateWishlistButtonsFromAPI() {
 		});
 }
 
-// Quick View
-function quickView(productId) {
-	// Show loading modal
-	showLoading();
-
-	fetch(`${BASE_URL}/ajax/product/data?id=${productId}`)
-		.then((response) => {
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-			return response.json();
-		})
-		.then((data) => {
-			hideLoading();
-			if (data.success) {
-				showQuickViewModal(data.product);
-			} else {
-				throw new Error(
-					data.message || 'Không thể tải thông tin sản phẩm'
-				);
-			}
-		})
-		.catch((error) => {
-			hideLoading();
-			console.error('Error:', error);
-			showToast('Không thể tải thông tin sản phẩm!', 'error');
-		});
-}
-
-function showQuickViewModal(product) {
-	// Create and show quick view modal
-	const modal = document.createElement('div');
-	modal.className = 'modal fade';
-	modal.innerHTML = `
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">${product.name}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <img src="${getImageUrl(product.featured_image)}"
-                                 alt="${
-										product.name
-									}" class="product-image img-fluid">
-                        </div>
-                        <div class="col-md-6">
-                            <p class="text-muted">${
-								product.category_name || 'Chưa phân loại'
-							}</p>
-                            <h4>${formatCurrency(
-								product.sale_price || product.price
-							)}</h4>
-                            <p>${product.description || ''}</p>
-                            <div class="mt-3">
-                                <button class="btn btn-primary me-2" onclick="addToCart(${
-									product.id
-								})">
-                                    <i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ
-                                </button>
-                                <a href="${BASE_URL}/product/${
-		product.slug
-	}" class="btn btn-outline-primary">
-                                    Xem Chi Tiết
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-	document.body.appendChild(modal);
-	const bsModal = new bootstrap.Modal(modal);
-	bsModal.show();
-
-	// Remove modal when hidden
-	modal.addEventListener('hidden.bs.modal', function () {
-		document.body.removeChild(modal);
-	});
-}
-
 // Utility Functions
 function formatCurrency(amount) {
 	return new Intl.NumberFormat('vi-VN', {
@@ -937,9 +852,895 @@ const customCSS = `
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
 }
+
+/* Quick View Modal Styles */
+#quickViewModal .modal-dialog {
+    max-width: 90%;
+    width: 100%;
+    margin: 1rem auto;
+}
+
+@media (min-width: 992px) {
+    #quickViewModal .modal-dialog {
+        max-width: 1000px;
+    }
+}
+
+#quickViewModal .modal-body {
+    padding: 2rem;
+}
+
+#quickViewModal .product-actions {
+    margin-top: 1.5rem !important;
+    padding-top: 1rem !important;
+    border-top: 1px solid #eee !important;
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    z-index: 10 !important;
+    background: white !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    opacity: 1 !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 0.5rem !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+}
+
+#quickViewModal .product-actions .btn {
+    min-width: 160px !important;
+    width: auto !important;
+    height: 45px !important;
+    padding: 0.75rem 1.5rem !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    background: var(--bs-btn-bg) !important;
+    backdrop-filter: none !important;
+    display: inline-block !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    z-index: 11 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    border-radius: 0.375rem !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    border: 1px solid transparent !important;
+    cursor: pointer !important;
+}
+
+#quickViewModal .product-actions .btn-danger {
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+}
+
+#quickViewModal .product-actions .btn-outline-secondary {
+    background: transparent !important;
+    border-color: #6c757d !important;
+    color: #6c757d !important;
+}
+
+#quickViewModal .product-actions .btn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+/* Force show on all screen sizes - Override global .product-actions */
+#quickViewModal .product-actions {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    overflow: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 0.5rem !important;
+    top: auto !important;
+    right: auto !important;
+    transform: none !important;
+}
+
+@media (min-width: 768px) {
+    #quickViewModal .product-actions {
+        display: block !important;
+        visibility: visible !important;
+        height: auto !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        position: static !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 0.5rem !important;
+        top: auto !important;
+        right: auto !important;
+        transform: none !important;
+    }
+
+    #quickViewModal .product-actions .btn {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        margin-right: 0.5rem !important;
+        height: 45px !important;
+        min-height: 45px !important;
+        position: static !important;
+        top: auto !important;
+        right: auto !important;
+        transform: none !important;
+    }
+}
+
+/* Add explicit styles to override any conflicting CSS */
+#quickViewModal .product-actions .btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+#quickViewModal .product-actions .btn-outline-secondary {
+    background-color: transparent !important;
+    border-color: #6c757d !important;
+    color: #6c757d !important;
+}
+
+#quickViewModal .product-actions .btn-danger:hover {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+    color: #ffffff !important;
+}
+
+#quickViewModal .product-actions .btn-outline-secondary:hover {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: #ffffff !important;
+}
+
+@media (max-width: 767px) {
+    #quickViewModal .product-actions .btn {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+        margin-right: 0 !important;
+    }
+
+    #quickViewModal .modal-dialog {
+        max-width: 95%;
+    }
+}
+
+/* Very specific selectors to override any global .product-actions CSS */
+#quickViewModal .modal-body .product-actions,
+#quickViewModal .modal-content .product-actions,
+.modal#quickViewModal .product-actions {
+    position: static !important;
+    opacity: 1 !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: none !important;
+    display: block !important;
+    visibility: visible !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 0.5rem !important;
+    background: white !important;
+    padding: 1rem !important;
+    margin-top: 1.5rem !important;
+    border-top: 1px solid #eee !important;
+}
+
+/* Ensure modal backdrop is properly handled */
+.modal-backdrop {
+    transition: opacity 0.15s linear;
+}
+
+.modal-backdrop.fade {
+    opacity: 0;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+}
+
+/* Force remove backdrop when needed */
+body:not(.modal-open) .modal-backdrop {
+    display: none !important;
+}
 `;
 
 // Add custom CSS to head
 const styleSheet = document.createElement('style');
 styleSheet.textContent = customCSS;
 document.head.appendChild(styleSheet);
+
+/**
+ * Quick View Modal Functions
+ */
+function quickView(productId) {
+	console.log('QuickView for product ID:', productId);
+
+	// Show modal immediately with loading state
+	const modal = new bootstrap.Modal(
+		document.getElementById('quickViewModal')
+	);
+
+	// Add event listener to clean up when modal is hidden
+	const modalElement = document.getElementById('quickViewModal');
+	modalElement.addEventListener(
+		'hidden.bs.modal',
+		function () {
+			// Clean up any remaining backdrops
+			const backdrops = document.querySelectorAll('.modal-backdrop');
+			backdrops.forEach((backdrop) => backdrop.remove());
+
+			// Ensure body classes and styles are restored
+			document.body.style.overflow = '';
+			document.body.classList.remove('modal-open');
+			document.documentElement.classList.remove('modal-open');
+
+			// Reset selected variant
+			selectedVariant = null;
+		},
+		{ once: true }
+	); // Use once: true to automatically remove the listener after first use
+
+	modal.show();
+
+	// Set loading content
+	document.getElementById('quickViewContent').innerHTML = `
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+        </div>
+    `;
+
+	// Fetch product data
+	fetch(`${BASE_URL}/ajax/product/quickview?id=${productId}`)
+		.then((response) => response.json())
+		.then((data) => {
+			if (data.success) {
+				renderQuickViewContent(data.product);
+			} else {
+				throw new Error(
+					data.message || 'Không thể tải thông tin sản phẩm'
+				);
+			}
+		})
+		.catch((error) => {
+			console.error('QuickView error:', error);
+			document.getElementById('quickViewContent').innerHTML = `
+                <div class="alert alert-danger text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ${error.message || 'Có lỗi xảy ra khi tải sản phẩm'}
+                </div>
+            `;
+		});
+}
+
+function renderQuickViewContent(product) {
+	// Store product data globally for variant handling
+	window.currentQuickViewProduct = product;
+
+	const imageUrl = getImageUrl(product.featured_image);
+	const currentPrice = product.sale_price || product.price;
+	const originalPrice = product.sale_price ? product.price : null;
+
+	// Calculate discount percentage
+	let discountBadge = '';
+	if (originalPrice && product.sale_price) {
+		const discount = Math.round(
+			((originalPrice - product.sale_price) / originalPrice) * 100
+		);
+		discountBadge = `<span class="badge bg-danger position-absolute" style="top: 10px; left: 10px;">-${discount}%</span>`;
+	}
+
+	// Build variants HTML
+	let variantsHTML = '';
+	if (product.variants && product.variants.length > 0) {
+		// Group variants by color
+		const variantsByColor = {};
+		product.variants.forEach((variant) => {
+			if (!variantsByColor[variant.color]) {
+				variantsByColor[variant.color] = [];
+			}
+			variantsByColor[variant.color].push(variant);
+		});
+
+		const firstColor = Object.keys(variantsByColor)[0];
+		const firstVariant = variantsByColor[firstColor][0];
+
+		// Auto-select first variant
+		selectedVariant = {
+			id: firstVariant.id,
+			size: firstVariant.size,
+			price: parseFloat(firstVariant.price),
+			color: firstVariant.color,
+		};
+
+		variantsHTML = `
+            <div class="variant-selection mb-3">
+                <h6>Chọn Màu Sắc:</h6>
+                <div class="color-options mb-3">
+                    ${Object.keys(variantsByColor)
+						.map(
+							(color, index) => `
+                        <button type="button" class="btn btn-outline-secondary color-option ${
+							index === 0 ? 'active' : ''
+						}"
+                                data-color="${color}" onclick="selectColor('${color}')">
+                            ${color}
+                        </button>
+                    `
+						)
+						.join('')}
+                </div>
+
+                <h6>Chọn Kích Thước:</h6>
+                <div class="size-options mb-3" id="sizeOptions">
+                    ${variantsByColor[firstColor]
+						.map(
+							(variant, index) => `
+                        <button type="button" class="btn btn-outline-secondary size-option ${
+							index === 0 ? 'active' : ''
+						}"
+                                data-variant-id="${variant.id}" data-size="${
+								variant.size
+							}"
+                                data-price="${variant.price}" data-color="${
+								variant.color
+							}"
+                                onclick="selectSize('${variant.id}', '${
+								variant.size
+							}', ${variant.price}, '${variant.color}')">
+                            ${variant.size}
+                        </button>
+                    `
+						)
+						.join('')}
+                </div>
+            </div>
+        `;
+	}
+
+	// Create the complete modal content
+	const content = `
+        <div class="row g-4">
+            <div class="col-lg-6 col-md-12 mb-4 mb-lg-0">
+                <div class="product-image-container position-relative">
+                    ${discountBadge}
+                    <img src="${imageUrl}" alt="${
+		product.name
+	}" class="img-fluid rounded w-100" style="max-height: 500px; object-fit: cover;">
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-12">
+                <div class="product-details h-100 d-flex flex-column">
+                    <h4 class="product-title mb-2">${product.name}</h4>
+
+                    <div class="product-price mb-3">
+                        <span class="current-price h4 text-danger fw-bold">${formatCurrency(
+							currentPrice
+						)}</span>
+                        ${
+							originalPrice
+								? `<span class="original-price text-muted text-decoration-line-through ms-2">${formatCurrency(
+										originalPrice
+								  )}</span>`
+								: ''
+						}
+                    </div>
+
+                    ${
+						product.rating
+							? `
+                        <div class="product-rating mb-3">
+                            <div class="stars">
+                                ${generateStars(product.rating)}
+                                <span class="ms-2 text-muted">(${
+									product.review_count || 0
+								} đánh giá)</span>
+                            </div>
+                        </div>
+                    `
+							: ''
+					}
+
+                    ${
+						product.description
+							? `
+                        <div class="product-description mb-3">
+                            <p class="text-muted">${product.description.substring(
+								0,
+								200
+							)}${
+									product.description.length > 200
+										? '...'
+										: ''
+							  }</p>
+                        </div>
+                    `
+							: ''
+					}
+
+                    ${variantsHTML}
+
+                    <div class="quantity-selection mb-3">
+                        <label class="form-label">Số Lượng:</label>
+                        <div class="input-group" style="width: 120px;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(-1)">-</button>
+                            <input type="number" class="form-control text-center" id="quantityInput" value="1" min="1" max="10">
+                            <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="product-actions d-block mt-auto">
+                        <button class="btn btn-danger btn-lg me-2 mb-2" onclick="addToCartFromQuickView(${
+							product.id
+						})"
+                                ${!product.in_stock ? 'disabled' : ''}>
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            ${product.in_stock ? 'Thêm Vào Giỏ' : 'Hết Hàng'}
+                        </button>
+                        <button class="btn btn-outline-secondary btn-lg mb-2" onclick="toggleWishlist(${
+							product.id
+						})">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+
+                    <div class="product-meta mt-3">
+                        ${
+							product.category_name
+								? `<small class="text-muted">Danh mục: ${product.category_name}</small>`
+								: ''
+						}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+	// Set content to modal
+	document.getElementById('quickViewContent').innerHTML = content;
+
+	// Debug: Log to console để kiểm tra
+	console.log('Quick view content rendered successfully');
+	console.log(
+		'Modal height:',
+		document.getElementById('quickViewContent').scrollHeight
+	);
+
+	// Debug: Check if buttons exist and styles
+	setTimeout(() => {
+		const addToCartBtn = document.querySelector(
+			'#quickViewModal .product-actions .btn-danger'
+		);
+		const wishlistBtn = document.querySelector(
+			'#quickViewModal .product-actions .btn-outline-secondary'
+		);
+		const productActions = document.querySelector(
+			'#quickViewModal .product-actions'
+		);
+		const modalContent = document.querySelector('#quickViewContent');
+
+		console.log('=== DEBUGGING BUTTON VISIBILITY ===');
+		console.log(
+			'Modal content HTML:',
+			modalContent?.innerHTML.substring(0, 500)
+		);
+		console.log('Add to cart button found:', !!addToCartBtn);
+		console.log('Wishlist button found:', !!wishlistBtn);
+		console.log('Product actions div found:', !!productActions);
+
+		if (addToCartBtn) {
+			const styles = window.getComputedStyle(addToCartBtn);
+			const rect = addToCartBtn.getBoundingClientRect();
+			console.log('Add to cart button styles:', {
+				display: styles.display,
+				visibility: styles.visibility,
+				opacity: styles.opacity,
+				width: styles.width,
+				height: styles.height,
+				position: styles.position,
+				zIndex: styles.zIndex,
+				background: styles.backgroundColor,
+				color: styles.color,
+			});
+			console.log('Add to cart button position:', {
+				top: rect.top,
+				left: rect.left,
+				width: rect.width,
+				height: rect.height,
+				visible: rect.width > 0 && rect.height > 0,
+			});
+		}
+
+		if (productActions) {
+			const styles = window.getComputedStyle(productActions);
+			const rect = productActions.getBoundingClientRect();
+			console.log('Product actions styles:', {
+				display: styles.display,
+				visibility: styles.visibility,
+				width: styles.width,
+				height: styles.height,
+				overflow: styles.overflow,
+			});
+			console.log('Product actions position:', {
+				top: rect.top,
+				left: rect.left,
+				width: rect.width,
+				height: rect.height,
+				visible: rect.width > 0 && rect.height > 0,
+			});
+		}
+
+		// Force make buttons visible if they exist but not showing
+		if (
+			addToCartBtn &&
+			(!addToCartBtn.offsetWidth || !addToCartBtn.offsetHeight)
+		) {
+			console.log('Force showing buttons...');
+			addToCartBtn.style.cssText = `
+				display: inline-block !important;
+				visibility: visible !important;
+				opacity: 1 !important;
+				width: auto !important;
+				height: 45px !important;
+				min-width: 160px !important;
+				background-color: #dc3545 !important;
+				border-color: #dc3545 !important;
+				color: white !important;
+				padding: 0.75rem 1.5rem !important;
+				border-radius: 0.375rem !important;
+				margin-right: 0.5rem !important;
+				position: static !important;
+				top: auto !important;
+				right: auto !important;
+				bottom: auto !important;
+				left: auto !important;
+				transform: none !important;
+				z-index: 999 !important;
+			`;
+		}
+
+		if (
+			wishlistBtn &&
+			(!wishlistBtn.offsetWidth || !wishlistBtn.offsetHeight)
+		) {
+			wishlistBtn.style.cssText = `
+				display: inline-block !important;
+				visibility: visible !important;
+				opacity: 1 !important;
+				width: auto !important;
+				height: 45px !important;
+				min-width: 160px !important;
+				background-color: transparent !important;
+				border-color: #6c757d !important;
+				color: #6c757d !important;
+				padding: 0.75rem 1.5rem !important;
+				border-radius: 0.375rem !important;
+				position: static !important;
+				top: auto !important;
+				right: auto !important;
+				bottom: auto !important;
+				left: auto !important;
+				transform: none !important;
+				z-index: 999 !important;
+			`;
+		}
+
+		// Also force the product-actions container
+		if (productActions) {
+			productActions.style.cssText = `
+				position: static !important;
+				opacity: 1 !important;
+				top: auto !important;
+				right: auto !important;
+				bottom: auto !important;
+				left: auto !important;
+				transform: none !important;
+				display: block !important;
+				visibility: visible !important;
+				flex-direction: row !important;
+				justify-content: flex-start !important;
+				gap: 0.5rem !important;
+				background: white !important;
+				padding: 1rem !important;
+				margin-top: 1.5rem !important;
+				border-top: 1px solid #eee !important;
+				width: 100% !important;
+				height: auto !important;
+				overflow: visible !important;
+				z-index: 10 !important;
+			`;
+		}
+
+		console.log('=== END DEBUGGING ===');
+	}, 300);
+}
+
+// Global variables for variant selection
+let selectedVariant = null;
+
+function selectColor(color) {
+	// Update color selection UI
+	document
+		.querySelectorAll('.color-option')
+		.forEach((btn) => btn.classList.remove('active'));
+	document.querySelector(`[data-color="${color}"]`).classList.add('active');
+
+	// Get current product data to update size options
+	const currentProductData = window.currentQuickViewProduct;
+	if (currentProductData && currentProductData.variants) {
+		// Group variants by color
+		const variantsByColor = {};
+		currentProductData.variants.forEach((variant) => {
+			if (!variantsByColor[variant.color]) {
+				variantsByColor[variant.color] = [];
+			}
+			variantsByColor[variant.color].push(variant);
+		});
+
+		// Update size options for selected color
+		const sizeOptionsContainer = document.getElementById('sizeOptions');
+		if (sizeOptionsContainer && variantsByColor[color]) {
+			sizeOptionsContainer.innerHTML = variantsByColor[color]
+				.map(
+					(variant, index) => `
+                <button type="button" class="btn btn-outline-secondary size-option ${
+					index === 0 ? 'active' : ''
+				}"
+                        data-variant-id="${variant.id}" data-size="${
+						variant.size
+					}"
+                        data-price="${variant.price}" data-color="${
+						variant.color
+					}"
+                        onclick="selectSize('${variant.id}', '${
+						variant.size
+					}', ${variant.price}, '${variant.color}')">
+                    ${variant.size}
+                </button>
+            `
+				)
+				.join('');
+
+			// Auto-select first size of the selected color
+			if (variantsByColor[color].length > 0) {
+				const firstVariant = variantsByColor[color][0];
+				selectSize(
+					firstVariant.id,
+					firstVariant.size,
+					firstVariant.price,
+					firstVariant.color
+				);
+			}
+		}
+	}
+
+	console.log('Selected color:', color);
+}
+
+function selectSize(variantId, size, price, color) {
+	// Update size selection UI
+	document
+		.querySelectorAll('.size-option')
+		.forEach((btn) => btn.classList.remove('active'));
+	document
+		.querySelector(`[data-variant-id="${variantId}"]`)
+		.classList.add('active');
+
+	// Update selected variant with complete information
+	selectedVariant = {
+		id: variantId,
+		size: size,
+		price: parseFloat(price),
+		color: color,
+	};
+
+	// Update price display
+	const priceElement = document.querySelector('.current-price');
+	if (priceElement) {
+		priceElement.textContent = formatCurrency(price);
+	}
+
+	console.log('Selected variant:', selectedVariant);
+}
+
+function changeQuantity(delta) {
+	const quantityInput = document.getElementById('quantityInput');
+	const currentQty = parseInt(quantityInput.value) || 1;
+	const newQty = Math.max(1, Math.min(10, currentQty + delta));
+	quantityInput.value = newQty;
+}
+
+function addToCartFromQuickView(productId) {
+	const quantity =
+		parseInt(document.getElementById('quantityInput').value) || 1;
+
+	// Check if product has variants and ensure one is selected
+	const currentProductData = window.currentQuickViewProduct;
+	if (
+		currentProductData &&
+		currentProductData.variants &&
+		currentProductData.variants.length > 0
+	) {
+		if (!selectedVariant) {
+			showToast('Vui lòng chọn màu sắc và kích thước!', 'warning');
+			return;
+		}
+	}
+
+	// Prepare variant data
+	let variant = null;
+	let variantId = null;
+
+	if (selectedVariant) {
+		// Send variant ID to match backend logic
+		variantId = selectedVariant.id;
+		variant = {
+			id: selectedVariant.id,
+			size: selectedVariant.size,
+			color: selectedVariant.color,
+			price: selectedVariant.price,
+		};
+	}
+
+	console.log('Adding to cart from QuickView:', {
+		productId,
+		quantity,
+		variant,
+		variantId,
+	});
+
+	// Get modal instance before adding to cart
+	const modal = bootstrap.Modal.getInstance(
+		document.getElementById('quickViewModal')
+	);
+
+	// Make API call with variant ID
+	if (window.addToCartInProgress) {
+		console.log('AddToCart already in progress, skipping...');
+		return;
+	}
+
+	window.addToCartInProgress = true;
+	showLoading();
+
+	fetch(`${BASE_URL}/ajax/cart/add`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			product_id: productId,
+			quantity: quantity,
+			variant_id: variantId,
+			variant: variant ? `${variant.color} - ${variant.size}` : null,
+		}),
+	})
+		.then((response) => response.json())
+		.then((data) => {
+			hideLoading();
+			window.addToCartInProgress = false;
+
+			if (data.success) {
+				showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+				updateCartCounter(data.cart_count);
+				loadCartItemsFromServer();
+
+				// Close modal immediately after success
+				if (modal) {
+					modal.hide();
+				}
+			} else {
+				showToast(data.message || 'Có lỗi xảy ra!', 'error');
+			}
+		})
+		.catch((error) => {
+			hideLoading();
+			window.addToCartInProgress = false;
+			console.error('Error:', error);
+			showToast('Có lỗi xảy ra khi thêm vào giỏ hàng!', 'error');
+		});
+
+	// Also remove any leftover backdrop manually
+	setTimeout(() => {
+		// Remove any remaining modal backdrops
+		const backdrops = document.querySelectorAll('.modal-backdrop');
+		backdrops.forEach((backdrop) => backdrop.remove());
+
+		// Ensure body overflow is restored
+		document.body.style.overflow = '';
+		document.body.classList.remove('modal-open');
+
+		// Remove modal-open class from html if it exists
+		document.documentElement.classList.remove('modal-open');
+	}, 100);
+}
+
+function generateStars(rating) {
+	const fullStars = Math.floor(rating);
+	const hasHalfStar = rating % 1 !== 0;
+	const emptyStars = 5 - Math.ceil(rating);
+
+	let starsHTML = '';
+
+	// Full stars
+	for (let i = 0; i < fullStars; i++) {
+		starsHTML += '<i class="fas fa-star text-warning"></i>';
+	}
+
+	// Half star
+	if (hasHalfStar) {
+		starsHTML += '<i class="fas fa-star-half-alt text-warning"></i>';
+	}
+
+	// Empty stars
+	for (let i = 0; i < emptyStars; i++) {
+		starsHTML += '<i class="far fa-star text-warning"></i>';
+	}
+
+	return starsHTML;
+}
+
+function showToast(message, type = 'info') {
+	// Remove existing toasts
+	document
+		.querySelectorAll('.toast-notification')
+		.forEach((toast) => toast.remove());
+
+	// Create toast
+	const toast = document.createElement('div');
+	toast.className = `toast-notification position-fixed`;
+	toast.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 15px 20px;
+        background: ${
+			type === 'success'
+				? '#28a745'
+				: type === 'error'
+				? '#dc3545'
+				: '#17a2b8'
+		};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+
+	const icon =
+		type === 'success'
+			? 'check-circle'
+			: type === 'error'
+			? 'exclamation-triangle'
+			: 'info-circle';
+	toast.innerHTML = `<i class="fas fa-${icon} me-2"></i>${message}`;
+
+	document.body.appendChild(toast);
+
+	// Animate in
+	setTimeout(() => (toast.style.transform = 'translateX(0)'), 100);
+
+	// Remove after 3 seconds
+	setTimeout(() => {
+		toast.style.transform = 'translateX(100%)';
+		setTimeout(() => toast.remove(), 300);
+	}, 3000);
+}

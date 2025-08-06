@@ -34,6 +34,12 @@ class UnifiedCartManager {
 	 * Add item to cart - unified method for all pages
 	 */
 	async addToCart(productId, quantity = 1, variant = null) {
+		console.log('UnifiedCartManager.addToCart called with:', {
+			productId,
+			quantity,
+			variant,
+		});
+
 		// Prevent double execution
 		if (window.cartOperationInProgress) {
 			console.log('Cart operation already in progress');
@@ -46,20 +52,33 @@ class UnifiedCartManager {
 			// Show loading state
 			this.showLoading();
 
-			const response = await fetch(
-				'http://localhost/5s-fashion/public/ajax/cart/add',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						product_id: productId,
-						quantity: quantity,
-						variant: variant,
-					}),
-				}
-			);
+			const requestData = {
+				product_id: productId,
+				quantity: quantity,
+				variant_color: variant?.color || '',
+				variant_size: variant?.size || '',
+				variant_id: variant?.id || null,
+				variant_name: variant?.name || '',
+				variant_price: variant?.price || null,
+			};
+
+			console.log('Sending request data:', requestData);
+
+			const response = await fetch('/5s-fashion/ajax/cart/add', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					product_id: productId,
+					quantity: quantity,
+					variant_color: variant?.color || '',
+					variant_size: variant?.size || '',
+					variant_id: variant?.id || null,
+					variant_name: variant?.name || '',
+					variant_price: variant?.price || null,
+				}),
+			});
 
 			const data = await response.json();
 
@@ -105,20 +124,17 @@ class UnifiedCartManager {
 	 */
 	async updateCartItem(productId, quantity, variant = null) {
 		try {
-			const response = await fetch(
-				'http://localhost/5s-fashion/public/ajax/cart/update',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						product_id: productId,
-						quantity: quantity,
-						variant: variant,
-					}),
-				}
-			);
+			const response = await fetch('/5s-fashion/cart/update', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					product_id: productId,
+					quantity: quantity,
+					variant: variant,
+				}),
+			});
 
 			const data = await response.json();
 
@@ -142,19 +158,16 @@ class UnifiedCartManager {
 	 */
 	async removeFromCart(productId, variant = null) {
 		try {
-			const response = await fetch(
-				'http://localhost/5s-fashion/public/ajax/cart/remove',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						product_id: productId,
-						variant: variant,
-					}),
-				}
-			);
+			const response = await fetch('/5s-fashion/cart/remove', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					product_id: productId,
+					variant: variant,
+				}),
+			});
 
 			const data = await response.json();
 
@@ -178,15 +191,12 @@ class UnifiedCartManager {
 	 */
 	async getCartItems() {
 		try {
-			const response = await fetch(
-				'http://localhost/5s-fashion/public/ajax/cart/items',
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			);
+			const response = await fetch('/5s-fashion/cart/data', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);
@@ -195,8 +205,8 @@ class UnifiedCartManager {
 			const data = await response.json();
 
 			// Ensure we always return an array
-			if (data.success && Array.isArray(data.items)) {
-				return data.items;
+			if (data.success && Array.isArray(data.cart_items)) {
+				return data.cart_items;
 			} else {
 				console.warn('Invalid cart data:', data);
 				return [];
@@ -232,6 +242,9 @@ class UnifiedCartManager {
 					timestamp: Date.now(),
 				})
 			);
+
+			// Also update cart_items for compatibility
+			localStorage.setItem('cart_items', JSON.stringify(items));
 
 			// Trigger cross-tab sync
 			localStorage.setItem('cart_sync', Date.now().toString());
