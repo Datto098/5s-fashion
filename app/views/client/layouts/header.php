@@ -88,9 +88,9 @@
                     </a>
 
                     <!-- Cart -->
-                    <a href="<?= url('simple-cart') ?>" class="btn btn-link text-dark me-3 position-relative">
+                    <a href="<?= url('cart') ?>" class="btn btn-link text-dark me-3 position-relative">
                         <i class="fas fa-shopping-cart"></i>
-                        <span class="badge bg-primary badge-sm position-absolute" id="cart-count"><?= getCartCount() ?></span>
+                        <span class="badge bg-primary badge-sm position-absolute cart-count" id="cart-count"><?= getCartCount() ?></span>
                     </a>
 
                     <!-- Mobile Menu Toggle -->

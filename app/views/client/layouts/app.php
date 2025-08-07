@@ -270,8 +270,6 @@
     }
 
     .empty-cart i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
         color: #dee2e6;
     }
 
@@ -338,7 +336,7 @@
         </div>
         <div class="cart-sidebar-body">
             <div id="cart-items">
-                <!-- Cart items will be loaded here by unified-cart.js -->
+                <!-- Cart items will be loaded here by cart.js -->
                 <div class="empty-cart">
                     <i class="fas fa-shopping-cart"></i>
                     <p>Giỏ hàng trống</p>
@@ -384,12 +382,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 
+    <!-- Unified notification system -->
+    <script src="<?= asset('js/notifications.js') ?>"></script>
+
     <!-- Unified cart and wishlist systems -->
-    <script src="<?= asset('js/unified-cart.js') ?>"></script>
+    <script src="<?= asset('js/cart.js') ?>"></script>
     <script src="<?= asset('js/unified-wishlist.js') ?>"></script>
 
     <!-- Main client JavaScript -->
     <script src="<?= asset('js/client.js') ?>?v=<?= time() ?>"></script>
+
+    <!-- Initialize global cart manager -->
+    <script>
+        // Initialize global cartManager
+        let cartManager;
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof CartManager !== 'undefined') {
+                cartManager = new CartManager();
+                window.cartManager = cartManager;
+
+                // Update cart counter on page load
+                cartManager.updateCartCounter();
+            }
+        });
+    </script>
 
     <!-- Custom JS for current page -->
     <?php if (isset($custom_js)): ?>

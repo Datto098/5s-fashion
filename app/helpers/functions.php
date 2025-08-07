@@ -4,6 +4,8 @@
  * 5S Fashion E-commerce Platform
  */
 
+require_once __DIR__ . '/../models/Cart.php';
+
 /**
  * Redirect to URL
  */
@@ -159,8 +161,8 @@ function getCart()
  */
 function getCartCount()
 {
-    $cart = getCart();
-    return array_sum(array_column($cart, 'quantity'));
+    $cartModel = new Cart();
+    return $cartModel->getCartCount();
 }
 
 /**

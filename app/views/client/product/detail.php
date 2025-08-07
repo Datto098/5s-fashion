@@ -1058,89 +1058,62 @@ function handleAddToCart(productId) {
 
     const quantity = parseInt(document.getElementById("quantity").value) || 1;
 
-    // Prepare variant object if selected
-    let variant = null;
+    // Get variant ID if selected
+    let variantId = null;
     if (selectedVariant) {
-        variant = {
-            id: selectedVariant.id,
-            color: selectedVariant.color,
-            size: selectedVariant.size,
-            name: (selectedVariant.color || "") + (selectedVariant.color && selectedVariant.size ? "-" : "") + (selectedVariant.size || ""),
-            price: selectedVariant.price
-        };
-        console.log('Prepared variant object:', variant);
+        variantId = selectedVariant.id;
     }
 
-    // Use unified cart manager directly
-    if (typeof unifiedCartManager !== 'undefined' && unifiedCartManager.addToCart) {
-        console.log('Using unifiedCartManager.addToCart');
-        return unifiedCartManager.addToCart(productId, quantity, variant);
+    // Use the new CartManager - ensure it's available
+    if (window.cartManager) {
+        // Create button element for the cart manager
+        const btn = document.createElement('button');
+        btn.dataset.productId = productId;
+        btn.dataset.variantId = variantId;
+        btn.dataset.quantity = quantity;
+
+        return window.cartManager.addToCart(btn);
     } else {
-        console.log('unifiedCartManager not available, calling global addToCart');
-        return window.addToCart(productId, quantity, variant);
+        // Fallback to direct API call if cartManager not available
+        console.warn('CartManager not available, using fallback');
+
+        const data = {
+            product_id: parseInt(productId),
+            quantity: quantity,
+            variant_id: variantId ? parseInt(variantId) : null
+        };
+
+        fetch('/5s-fashion/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showNotification('Đã thêm vào giỏ hàng!', 'success');
+                // Update cart counter if function exists
+                if (window.updateCartCounter) {
+                    window.updateCartCounter(result.cart_count);
+                }
+            } else {
+                showNotification(result.message || 'Có lỗi xảy ra', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Add to cart error:', error);
+            showNotification('Có lỗi xảy ra khi thêm vào giỏ hàng', 'error');
+        });
     }
 }
 
 function addToCart(productId) {
-    console.log('addToCart called with productId:', productId);
-    console.log('selectedVariant:', selectedVariant);
-
-    const quantity = parseInt(document.getElementById("quantity").value) || 1;
-
-    // Prepare variant object if selected
-    let variant = null;
-    if (selectedVariant) {
-        variant = {
-            id: selectedVariant.id,
-            color: selectedVariant.color,
-            size: selectedVariant.size,
-            name: (selectedVariant.color || "") + (selectedVariant.color && selectedVariant.size ? "-" : "") + (selectedVariant.size || ""),
-            price: selectedVariant.price
-        };
-        console.log('Prepared variant object:', variant);
-    }
-
-    // Use unified cart manager directly if available
-    if (typeof unifiedCartManager !== 'undefined' && unifiedCartManager.addToCart) {
-        console.log('Using unifiedCartManager.addToCart');
-        unifiedCartManager.addToCart(productId, quantity, variant);
-    } else {
-        console.log('Using fallback direct API call');
-        // Fallback to direct API call
-        const cartData = {
-            product_id: productId,
-            quantity: quantity,
-            variant_id: variant?.id || null,
-            variant_color: variant?.color || '',
-            variant_size: variant?.size || '',
-            variant_name: variant?.name || '',
-            variant_price: variant?.price || null
-        };
-
-        fetch('/5s-fashion/ajax/cart/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(cartData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification("Đã thêm " + quantity + " sản phẩm vào giỏ hàng!", "success");
-                if (data.cart_count !== undefined) {
-                    updateCartCounter(data.cart_count);
-                }
-            } else {
-                showNotification(data.message || "Có lỗi xảy ra khi thêm vào giỏ hàng", "error");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            showNotification("Có lỗi xảy ra khi thêm vào giỏ hàng", "error");
-        });
-    }
+    // Redirect to handleAddToCart for consistency
+    return handleAddToCart(productId);
 }
+
 
 function buyNow(productId) {
     const quantity = parseInt(document.getElementById("quantity").value) || 1;
@@ -1165,7 +1138,12 @@ function buyNow(productId) {
         // Redirect to checkout (simulation)
         setTimeout(() => {
             // window.location.href = "/checkout";
-            alert("Chuyển đến trang thanh toán (Demo)");
+            // Demo buy now action
+            if (window.showInfo) {
+                window.showInfo("Chuyển đến trang thanh toán (Demo)", "Mua ngay");
+            } else {
+                alert("Chuyển đến trang thanh toán (Demo)");
+            }
         }, 1500);
     }, 1000);
 }
@@ -1272,9 +1250,6 @@ function showNotification(message, type = "info") {
     }, 4000);
 }
 
-// Variant management variables
-let selectedVariant = null;
-
 // Select variant function for new design
 function selectVariant(element) {
     if (element.classList.contains("out-of-stock")) {
@@ -1353,6 +1328,8 @@ function updateAddToCartButton() {
     }
 }
 
+// DEPRECATED: Use global cartManager instead
+/*
 // Update cart counter function
 function updateCartCounter(count) {
     // Update header cart counter if exists
@@ -1368,6 +1345,14 @@ function updateCartCounter(count) {
         counter.textContent = count;
     });
 }
+*/
+
+// Use global cartManager instead
+window.updateCartCounter = function(count) {
+    if (window.cartManager) {
+        window.cartManager.updateCartCounter(count);
+    }
+};
 
 // Initialize variant system on page load
 document.addEventListener("DOMContentLoaded", function() {

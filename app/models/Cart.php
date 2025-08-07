@@ -1,7 +1,6 @@
 <?php
 
 require_once APP_PATH . '/core/Model.php';
-require_once APP_PATH . '/config/database.php';
 
 class Cart extends BaseModel {
     protected $table = 'carts';
@@ -12,224 +11,219 @@ class Cart extends BaseModel {
 
     /**
      * Thêm sản phẩm vào giỏ hàng
+     * @param int $productId
+     * @param int $quantity
+     * @param int|null $variantId
+     * @return bool
      */
-    public function addToCart($data) {
-        try {
-            // Lấy session_id hoặc user_id
-            $sessionId = $this->getSessionId();
-            $userId = $this->getCurrentUserId();
+    public function addToCart($productId, $quantity = 1, $variantId = null) {
+        $userId = $this->getCurrentUserId();
+        $sessionId = $this->getSessionId();
 
-            // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
-            $existingItem = $this->findExistingCartItem($data, $sessionId, $userId);
+        // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
+        $existingItem = $this->getExistingCartItem($productId, $variantId, $userId, $sessionId);
 
-            if ($existingItem) {
-                // Nếu đã có, cập nhật số lượng
-                return $this->updateCartItemQuantity($existingItem['id'], $existingItem['quantity'] + $data['quantity']);
-            } else {
-                // Nếu chưa có, thêm mới
-                $cartData = [
-                    'user_id' => $userId,
-                    'session_id' => $sessionId,
-                    'product_id' => $data['product_id'],
-                    'variant_id' => $data['variant_id'] ?? null,
-                    'product_name' => $data['product_name'],
-                    'product_image' => $data['product_image'] ?? null,
-                    'variant_name' => $data['variant_name'] ?? null,
-                    'variant_color' => $data['variant_color'] ?? null,
-                    'variant_size' => $data['variant_size'] ?? null,
-                    'price' => $data['price'],
-                    'quantity' => $data['quantity'],
-                    'total_price' => $data['price'] * $data['quantity']
-                ];
+        if ($existingItem) {
+            // Cập nhật số lượng nếu đã có
+            $newQuantity = $existingItem['quantity'] + $quantity;
+            return $this->updateQuantity($existingItem['id'], $newQuantity);
+        } else {
+            // Thêm mới nếu chưa có
+            $price = $this->getProductPrice($productId, $variantId);
 
-                return $this->create($cartData);
-            }
-        } catch (Exception $e) {
-            error_log("Cart addToCart error: " . $e->getMessage());
-            return false;
+            return $this->create([
+                'user_id' => $userId,
+                'session_id' => $sessionId,
+                'product_id' => $productId,
+                'variant_id' => $variantId,
+                'quantity' => $quantity,
+                'price' => $price
+            ]);
         }
     }
 
     /**
-     * Lấy tất cả items trong giỏ hàng
+     * Lấy danh sách sản phẩm trong giỏ hàng
+     * @return array
      */
     public function getCartItems() {
-        try {
-            $sessionId = $this->getSessionId();
-            $userId = $this->getCurrentUserId();
+        $userId = $this->getCurrentUserId();
+        $sessionId = $this->getSessionId();
 
-            $sql = "SELECT c.*, p.featured_image as product_original_image
-                    FROM {$this->table} c
-                    LEFT JOIN products p ON c.product_id = p.id
-                    WHERE ";
+        $sql = "
+            SELECT
+                c.*,
+                p.name as product_name,
+                p.slug as product_slug,
+                p.featured_image as product_image,
+                pv.variant_name,
+                pv.sku as variant_sku,
+                GROUP_CONCAT(
+                    CONCAT(pa.name, ': ', pav.value)
+                    ORDER BY pa.sort_order SEPARATOR ', '
+                ) as variant_attributes
+            FROM {$this->table} c
+            JOIN products p ON c.product_id = p.id
+            LEFT JOIN product_variants pv ON c.variant_id = pv.id
+            LEFT JOIN product_variant_attributes pva ON pv.id = pva.variant_id
+            LEFT JOIN product_attribute_values pav ON pva.attribute_value_id = pav.id
+            LEFT JOIN product_attributes pa ON pav.attribute_id = pa.id
+            WHERE " . $this->getCartCondition($userId, $sessionId) . "
+            GROUP BY c.id
+            ORDER BY c.created_at DESC
+        ";
 
-            $params = [];
-
-            if ($userId) {
-                $sql .= "(c.user_id = ? OR c.session_id = ?) ";
-                $params = [$userId, $sessionId];
-            } else {
-                $sql .= "c.session_id = ? ";
-                $params = [$sessionId];
-            }
-
-            $sql .= "ORDER BY c.created_at DESC";
-
-            return $this->db->query($sql, $params)->fetchAll();
-        } catch (Exception $e) {
-            error_log("Cart getCartItems error: " . $e->getMessage());
-            return [];
-        }
+        return $this->db->query($sql, $this->getCartParams($userId, $sessionId))->fetchAll();
     }
 
     /**
-     * Cập nhật số lượng sản phẩm trong giỏ hàng
+     * Cập nhật số lượng sản phẩm
+     * @param int $cartId
+     * @param int $quantity
+     * @return bool
      */
-    public function updateCartItemQuantity($cartId, $quantity) {
-        try {
-            if ($quantity <= 0) {
-                return $this->removeCartItem($cartId);
-            }
-
-            // Lấy thông tin cart item
-            $cartItem = $this->find($cartId);
-            if (!$cartItem) {
-                return false;
-            }
-
-            $totalPrice = $cartItem['price'] * $quantity;
-
-            return $this->update($cartId, [
-                'quantity' => $quantity,
-                'total_price' => $totalPrice
-            ]);
-        } catch (Exception $e) {
-            error_log("Cart updateCartItemQuantity error: " . $e->getMessage());
-            return false;
+    public function updateQuantity($cartId, $quantity) {
+        if ($quantity <= 0) {
+            return $this->removeItem($cartId);
         }
+
+        return $this->update($cartId, ['quantity' => $quantity]);
     }
 
     /**
      * Xóa sản phẩm khỏi giỏ hàng
+     * @param int $cartId
+     * @return bool
      */
-    public function removeCartItem($cartId) {
-        try {
-            return $this->delete($cartId);
-        } catch (Exception $e) {
-            error_log("Cart removeCartItem error: " . $e->getMessage());
-            return false;
-        }
+    public function removeItem($cartId) {
+        return $this->delete($cartId);
     }
 
     /**
      * Xóa toàn bộ giỏ hàng
+     * @return bool
      */
     public function clearCart() {
-        try {
-            $sessionId = $this->getSessionId();
-            $userId = $this->getCurrentUserId();
+        $userId = $this->getCurrentUserId();
+        $sessionId = $this->getSessionId();
 
-            $sql = "DELETE FROM {$this->table} WHERE ";
-            $params = [];
+        $sql = "DELETE FROM {$this->table} WHERE " . $this->getCartCondition($userId, $sessionId);
 
-            if ($userId) {
-                $sql .= "(user_id = ? OR session_id = ?)";
-                $params = [$userId, $sessionId];
-            } else {
-                $sql .= "session_id = ?";
-                $params = [$sessionId];
-            }
-
-            return $this->db->query($sql, $params);
-        } catch (Exception $e) {
-            error_log("Cart clearCart error: " . $e->getMessage());
-            return false;
-        }
+        return $this->db->query($sql, $this->getCartParams($userId, $sessionId));
     }
 
     /**
-     * Lấy tổng số lượng items trong giỏ hàng
+     * Lấy số lượng sản phẩm trong giỏ hàng
+     * @return int
      */
     public function getCartCount() {
-        try {
-            $sessionId = $this->getSessionId();
-            $userId = $this->getCurrentUserId();
+        $userId = $this->getCurrentUserId();
+        $sessionId = $this->getSessionId();
 
-            $sql = "SELECT SUM(quantity) as total_count FROM {$this->table} WHERE ";
-            $params = [];
+        $sql = "SELECT SUM(quantity) as total FROM {$this->table} WHERE " . $this->getCartCondition($userId, $sessionId);
+        $result = $this->db->query($sql, $this->getCartParams($userId, $sessionId))->fetch();
 
-            if ($userId) {
-                $sql .= "(user_id = ? OR session_id = ?)";
-                $params = [$userId, $sessionId];
-            } else {
-                $sql .= "session_id = ?";
-                $params = [$sessionId];
-            }
-
-            $result = $this->db->query($sql, $params)->fetch();
-            return (int)($result['total_count'] ?? 0);
-        } catch (Exception $e) {
-            error_log("Cart getCartCount error: " . $e->getMessage());
-            return 0;
-        }
+        return (int)($result['total'] ?? 0);
     }
 
     /**
      * Lấy tổng giá trị giỏ hàng
+     * @return float
      */
     public function getCartTotal() {
-        try {
-            $sessionId = $this->getSessionId();
-            $userId = $this->getCurrentUserId();
+        $userId = $this->getCurrentUserId();
+        $sessionId = $this->getSessionId();
 
-            $sql = "SELECT SUM(total_price) as total_amount FROM {$this->table} WHERE ";
-            $params = [];
+        $sql = "SELECT SUM(quantity * price) as total FROM {$this->table} WHERE " . $this->getCartCondition($userId, $sessionId);
+        $result = $this->db->query($sql, $this->getCartParams($userId, $sessionId))->fetch();
 
-            if ($userId) {
-                $sql .= "(user_id = ? OR session_id = ?)";
-                $params = [$userId, $sessionId];
-            } else {
-                $sql .= "session_id = ?";
-                $params = [$sessionId];
-            }
-
-            $result = $this->db->query($sql, $params)->fetch();
-            return (float)($result['total_amount'] ?? 0);
-        } catch (Exception $e) {
-            error_log("Cart getCartTotal error: " . $e->getMessage());
-            return 0;
-        }
+        return (float)($result['total'] ?? 0);
     }
 
     /**
-     * Tìm sản phẩm đã có trong giỏ hàng
+     * Chuyển giỏ hàng từ session sang user khi đăng nhập
+     * @param int $userId
+     * @return bool
      */
-    private function findExistingCartItem($data, $sessionId, $userId) {
-        $sql = "SELECT * FROM {$this->table} WHERE product_id = ? AND ";
-        $params = [$data['product_id']];
+    public function transferSessionCartToUser($userId) {
+        $sessionId = $this->getSessionId();
 
-        // Kiểm tra variant nếu có
-        if (!empty($data['variant_id'])) {
+        $sql = "UPDATE {$this->table} SET user_id = ? WHERE session_id = ? AND user_id IS NULL";
+        return $this->db->query($sql, [$userId, $sessionId]);
+    }
+
+    // === PRIVATE METHODS ===
+
+    /**
+     * Lấy sản phẩm đã có trong giỏ hàng
+     */
+    private function getExistingCartItem($productId, $variantId, $userId, $sessionId) {
+        $sql = "SELECT * FROM {$this->table} WHERE product_id = ? AND ";
+        $params = [$productId];
+
+        if ($variantId) {
             $sql .= "variant_id = ? AND ";
-            $params[] = $data['variant_id'];
+            $params[] = $variantId;
         } else {
             $sql .= "variant_id IS NULL AND ";
         }
 
-        if ($userId) {
-            $sql .= "(user_id = ? OR session_id = ?)";
-            $params[] = $userId;
-            $params[] = $sessionId;
-        } else {
-            $sql .= "session_id = ?";
-            $params[] = $sessionId;
-        }
+        $sql .= $this->getCartCondition($userId, $sessionId);
+        $params = array_merge($params, $this->getCartParams($userId, $sessionId));
 
         return $this->db->query($sql, $params)->fetch();
     }
 
     /**
-     * Lấy session ID
+     * Lấy giá sản phẩm (có thể từ variant hoặc product)
+     */
+    private function getProductPrice($productId, $variantId = null) {
+        if ($variantId) {
+            // Lấy giá từ variant trước
+            $sql = "SELECT price, sale_price FROM product_variants WHERE id = ?";
+            $variant = $this->db->query($sql, [$variantId])->fetch();
+
+            if ($variant && ($variant['price'] || $variant['sale_price'])) {
+                return $variant['sale_price'] ?: $variant['price'];
+            }
+        }
+
+        // Lấy giá từ product
+        $sql = "SELECT price, sale_price FROM products WHERE id = ?";
+        $product = $this->db->query($sql, [$productId])->fetch();
+
+        return $product ? ($product['sale_price'] ?: $product['price']) : 0;
+    }
+
+    /**
+     * Lấy điều kiện WHERE cho cart query
+     */
+    private function getCartCondition($userId, $sessionId) {
+        if ($userId) {
+            return "(user_id = ? OR session_id = ?)";
+        }
+        return "session_id = ?";
+    }
+
+    /**
+     * Lấy parameters cho cart query
+     */
+    private function getCartParams($userId, $sessionId) {
+        if ($userId) {
+            return [$userId, $sessionId];
+        }
+        return [$sessionId];
+    }
+
+    /**
+     * Lấy User ID hiện tại
+     */
+    private function getCurrentUserId() {
+        return $_SESSION['user_id'] ?? null;
+    }
+
+    /**
+     * Lấy hoặc tạo Session ID cho guest
      */
     private function getSessionId() {
         if (session_status() == PHP_SESSION_NONE) {
@@ -237,35 +231,9 @@ class Cart extends BaseModel {
         }
 
         if (!isset($_SESSION['cart_session_id'])) {
-            $_SESSION['cart_session_id'] = uniqid('cart_', true);
+            $_SESSION['cart_session_id'] = 'cart_' . uniqid() . '_' . time();
         }
 
         return $_SESSION['cart_session_id'];
-    }
-
-    /**
-     * Lấy user ID hiện tại (nếu đã đăng nhập)
-     */
-    private function getCurrentUserId() {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        return $_SESSION['user_id'] ?? null;
-    }
-
-    /**
-     * Chuyển giỏ hàng từ session sang user khi đăng nhập
-     */
-    public function transferSessionCartToUser($userId) {
-        try {
-            $sessionId = $this->getSessionId();
-
-            $sql = "UPDATE {$this->table} SET user_id = ? WHERE session_id = ? AND user_id IS NULL";
-            return $this->db->query($sql, [$userId, $sessionId]);
-        } catch (Exception $e) {
-            error_log("Cart transferSessionCartToUser error: " . $e->getMessage());
-            return false;
-        }
     }
 }

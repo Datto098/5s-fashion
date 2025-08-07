@@ -7,117 +7,104 @@ require_once MODEL_PATH . '/ProductVariant.php';
 class CartController extends BaseController {
     private $cartModel;
     private $productModel;
-    private $variantModel;
 
     public function __construct() {
-        parent::__construct();
         $this->cartModel = new Cart();
         $this->productModel = new Product();
-        $this->variantModel = new ProductVariant();
     }
 
     /**
      * Hiển thị trang giỏ hàng
      */
     public function index() {
-        try {
-            $cartItems = $this->cartModel->getCartItems();
-            $cartTotal = $this->cartModel->getCartTotal();
-            $cartCount = $this->cartModel->getCartCount();
+        $cartItems = $this->cartModel->getCartItems();
+        $cartTotal = $this->cartModel->getCartTotal();
+        $cartCount = $this->cartModel->getCartCount();
 
-            // Chuẩn bị dữ liệu cho view
-            $data = [
-                'cartItems' => $cartItems,
-                'cartTotal' => $cartTotal,
-                'cartCount' => $cartCount,
-                'title' => 'Giỏ hàng - 5S Fashion'
-            ];
+        $data = [
+            'title' => 'Giỏ hàng - 5S Fashion',
+            'cartItems' => $cartItems,
+            'cartTotal' => $cartTotal,
+            'cartCount' => $cartCount
+        ];
 
-            $this->view('client/cart/index', $data);
-        } catch (Exception $e) {
-            error_log("CartController index error: " . $e->getMessage());
-            $this->redirect('/');
-        }
+        $this->render('client/cart/index', $data, 'client/layouts/app');
     }
 
     /**
-     * Thêm sản phẩm vào giỏ hàng
+     * Thêm sản phẩm vào giỏ hàng (API)
      */
     public function add() {
+        header('Content-Type: application/json');
+
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                $this->jsonResponse(['success' => false, 'message' => 'Invalid request method']);
-                return;
+                throw new Exception('Invalid request method');
             }
 
             $input = json_decode(file_get_contents('php://input'), true);
 
-            // Validate input
+            if (!$input) {
+                throw new Exception('Invalid JSON data');
+            }
+
+            // Validate required fields
             $productId = (int)($input['product_id'] ?? 0);
             $quantity = (int)($input['quantity'] ?? 1);
             $variantId = !empty($input['variant_id']) ? (int)$input['variant_id'] : null;
 
-            if ($productId <= 0 || $quantity <= 0) {
-                $this->jsonResponse(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
-                return;
+            if ($productId <= 0) {
+                throw new Exception('Product ID is required');
             }
 
-            // Lấy thông tin sản phẩm
+            if ($quantity <= 0) {
+                throw new Exception('Quantity must be greater than 0');
+            }
+
+            // Kiểm tra sản phẩm có tồn tại không
             $product = $this->productModel->find($productId);
             if (!$product) {
-                $this->jsonResponse(['success' => false, 'message' => 'Sản phẩm không tồn tại']);
-                return;
+                throw new Exception('Product not found');
             }
 
-            // Chuẩn bị dữ liệu cart
-            $cartData = [
-                'product_id' => $productId,
-                'product_name' => $product['name'],
-                'product_image' => $product['featured_image'],
-                'quantity' => $quantity,
-                'price' => $product['price']
-            ];
-
-            // Xử lý variant nếu có
+            // Kiểm tra variant nếu có
             if ($variantId) {
-                $variant = $this->variantModel->find($variantId);
-                if ($variant) {
-                    $cartData['variant_id'] = $variantId;
-                    $cartData['variant_name'] = $input['variant_name'] ?? '';
-                    $cartData['variant_color'] = $input['variant_color'] ?? '';
-                    $cartData['variant_size'] = $input['variant_size'] ?? '';
-                    $cartData['price'] = $variant['price'] ?? $product['price'];
+                $variant = $this->productModel->getVariantById($variantId);
+                if (!$variant || $variant['product_id'] != $productId) {
+                    throw new Exception('Invalid product variant');
                 }
             }
 
             // Thêm vào giỏ hàng
-            $result = $this->cartModel->addToCart($cartData);
+            $result = $this->cartModel->addToCart($productId, $quantity, $variantId);
 
             if ($result) {
-                $cartCount = $this->cartModel->getCartCount();
-                $this->jsonResponse([
+                echo json_encode([
                     'success' => true,
                     'message' => 'Đã thêm sản phẩm vào giỏ hàng!',
-                    'cart_count' => $cartCount
+                    'cart_count' => $this->cartModel->getCartCount()
                 ]);
             } else {
-                $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra khi thêm vào giỏ hàng']);
+                throw new Exception('Failed to add product to cart');
             }
 
         } catch (Exception $e) {
-            error_log("CartController add error: " . $e->getMessage());
-            $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra khi thêm vào giỏ hàng']);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 
     /**
-     * Cập nhật số lượng sản phẩm trong giỏ hàng
+     * Cập nhật số lượng sản phẩm (API)
      */
     public function update() {
+        header('Content-Type: application/json');
+
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                $this->jsonResponse(['success' => false, 'message' => 'Invalid request method']);
-                return;
+                throw new Exception('Invalid request method');
             }
 
             $input = json_decode(file_get_contents('php://input'), true);
@@ -126,132 +113,153 @@ class CartController extends BaseController {
             $quantity = (int)($input['quantity'] ?? 1);
 
             if ($cartId <= 0) {
-                $this->jsonResponse(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
-                return;
+                throw new Exception('Cart ID is required');
             }
 
-            $result = $this->cartModel->updateCartItemQuantity($cartId, $quantity);
+            if ($quantity < 0) {
+                throw new Exception('Quantity cannot be negative');
+            }
+
+            $result = $this->cartModel->updateQuantity($cartId, $quantity);
 
             if ($result) {
-                $cartCount = $this->cartModel->getCartCount();
-                $cartTotal = $this->cartModel->getCartTotal();
-
-                $this->jsonResponse([
+                echo json_encode([
                     'success' => true,
-                    'message' => 'Đã cập nhật số lượng!',
-                    'cart_count' => $cartCount,
-                    'cart_total' => $cartTotal
+                    'message' => $quantity > 0 ? 'Đã cập nhật số lượng!' : 'Đã xóa sản phẩm!',
+                    'cart_count' => $this->cartModel->getCartCount(),
+                    'cart_total' => $this->cartModel->getCartTotal()
                 ]);
             } else {
-                $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra khi cập nhật']);
+                throw new Exception('Failed to update cart');
             }
 
         } catch (Exception $e) {
-            error_log("CartController update error: " . $e->getMessage());
-            $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra khi cập nhật']);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 
     /**
-     * Xóa sản phẩm khỏi giỏ hàng
+     * Xóa sản phẩm khỏi giỏ hàng (API)
      */
     public function remove() {
+        header('Content-Type: application/json');
+
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                $this->jsonResponse(['success' => false, 'message' => 'Invalid request method']);
-                return;
+                throw new Exception('Invalid request method');
             }
 
             $input = json_decode(file_get_contents('php://input'), true);
             $cartId = (int)($input['cart_id'] ?? 0);
 
             if ($cartId <= 0) {
-                $this->jsonResponse(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
-                return;
+                throw new Exception('Cart ID is required');
             }
 
-            $result = $this->cartModel->removeCartItem($cartId);
+            $result = $this->cartModel->removeItem($cartId);
 
             if ($result) {
-                $cartCount = $this->cartModel->getCartCount();
-                $cartTotal = $this->cartModel->getCartTotal();
-
-                $this->jsonResponse([
+                echo json_encode([
                     'success' => true,
                     'message' => 'Đã xóa sản phẩm khỏi giỏ hàng!',
-                    'cart_count' => $cartCount,
-                    'cart_total' => $cartTotal
+                    'cart_count' => $this->cartModel->getCartCount(),
+                    'cart_total' => $this->cartModel->getCartTotal()
                 ]);
             } else {
-                $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra khi xóa sản phẩm']);
+                throw new Exception('Failed to remove item from cart');
             }
 
         } catch (Exception $e) {
-            error_log("CartController remove error: " . $e->getMessage());
-            $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra khi xóa sản phẩm']);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 
     /**
-     * Xóa toàn bộ giỏ hàng
+     * Xóa toàn bộ giỏ hàng (API)
      */
     public function clear() {
+        header('Content-Type: application/json');
+
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                $this->jsonResponse(['success' => false, 'message' => 'Invalid request method']);
-                return;
+                throw new Exception('Invalid request method');
             }
 
             $result = $this->cartModel->clearCart();
 
             if ($result) {
-                $this->jsonResponse([
+                echo json_encode([
                     'success' => true,
                     'message' => 'Đã xóa toàn bộ giỏ hàng!',
                     'cart_count' => 0,
                     'cart_total' => 0
                 ]);
             } else {
-                $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra khi xóa giỏ hàng']);
+                throw new Exception('Failed to clear cart');
             }
 
         } catch (Exception $e) {
-            error_log("CartController clear error: " . $e->getMessage());
-            $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra khi xóa giỏ hàng']);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 
     /**
-     * Lấy số lượng sản phẩm trong giỏ hàng (AJAX)
+     * Lấy thông tin giỏ hàng (API)
      */
-    public function getCount() {
-        try {
-            $cartCount = $this->cartModel->getCartCount();
-            $this->jsonResponse(['success' => true, 'count' => $cartCount]);
-        } catch (Exception $e) {
-            error_log("CartController getCount error: " . $e->getMessage());
-            $this->jsonResponse(['success' => false, 'count' => 0]);
-        }
-    }
+    public function get() {
+        header('Content-Type: application/json');
 
-    /**
-     * Lấy thông tin giỏ hàng (AJAX)
-     */
-    public function getCartData() {
         try {
             $cartItems = $this->cartModel->getCartItems();
             $cartTotal = $this->cartModel->getCartTotal();
             $cartCount = $this->cartModel->getCartCount();
 
-            $this->jsonResponse([
+            echo json_encode([
                 'success' => true,
-                'items' => $cartItems,
-                'total' => $cartTotal,
-                'count' => $cartCount
+                'data' => [
+                    'items' => $cartItems,
+                    'total' => $cartTotal,
+                    'count' => $cartCount
+                ]
             ]);
+
         } catch (Exception $e) {
-            error_log("CartController getCartData error: " . $e->getMessage());
-            $this->jsonResponse(['success' => false, 'message' => 'Có lỗi xảy ra']);
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Lấy số lượng sản phẩm trong giỏ hàng (API)
+     */
+    public function count() {
+        header('Content-Type: application/json');
+
+        try {
+            $count = $this->cartModel->getCartCount();
+
+            echo json_encode([
+                'success' => true,
+                'count' => $count
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'count' => 0
+            ]);
         }
     }
 }

@@ -21,6 +21,6 @@ if ($uri && $uri !== '') {
     $_GET['url'] = $uri;
 }
 
-// Load the main application
-require_once __DIR__ . '/index.php';
+// Load the main application from root (not public/index.php)
+require_once __DIR__ . '/../index.php';
 ?>

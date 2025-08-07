@@ -39,10 +39,12 @@ if ($isAdminRequest) {
     // Handle admin routing directly with App.php
     require_once APP_PATH . '/core/App.php';
     $app = new App();
+    exit; // Stop execution after handling admin routes
 } else {
     // Handle client website routing with Router
     require_once APP_PATH . '/core/Router.php';
     require_once APP_PATH . '/helpers/functions.php';
     require_once APP_PATH . '/routes/web.php';
+    exit; // Stop execution after handling client routes
 }
 ?>
