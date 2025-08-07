@@ -420,6 +420,7 @@
                 </div>
             </div>
 
+<<<<<<< HEAD
             <!-- Cart Summary -->
             <div class="col-lg-4">
                 <!-- Promo Code Section -->
@@ -476,6 +477,19 @@
                             <i class="fas fa-lock me-1"></i>
                             Thanh toán an toàn & bảo mật
                         </small>
+=======
+
+                                <!-- Checkout Button -->
+                                <a href="<?= url('checkout') ?>" class="btn btn-primary btn-lg w-100 mb-2" id="checkoutBtn">
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    Tiến hành thanh toán
+                                </a>
+
+                               
+                            </div>
+                        </div>
+
+>>>>>>> main
                     </div>
                 </div>
             </div>
@@ -561,6 +575,7 @@ function updateCartQuantity(element, action) {
         quantity = parseInt(element.value);
     }
 
+<<<<<<< HEAD
     if (quantity < 1) {
         quantity = 1;
     }
@@ -582,6 +597,101 @@ function applyPromoCode() {
         if (window.showWarning) {
             window.showWarning('Vui lòng nhập mã giảm giá');
         } else {
+=======
+    // Update cart summary
+    function updateCartSummary() {
+        const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        // Kiểm tra elements tồn tại trước khi cập nhật
+        const subtotalElement = document.getElementById('subtotal');
+        const shippingElement = document.getElementById('shippingFee');
+        const totalElement = document.getElementById('totalAmount');
+
+        if (subtotalElement) subtotalElement.textContent = formatPrice(subtotal);
+        if (shippingElement) shippingElement.textContent = formatPrice(shippingFee);
+        if (totalElement) totalElement.textContent = formatPrice(total);
+
+        // Update free shipping progress
+        updateFreeShippingProgress(subtotal);
+    }
+
+    // Update quantity
+    function updateQuantity(cartKey, newQuantity) {
+        if (newQuantity < 1) return;
+
+        fetch('/5s-fashion/ajax/cart/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                cart_key: cartKey,
+                quantity: newQuantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadCartItems(); // Reload cart
+            } else {
+                alert('Có lỗi xảy ra: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating quantity:', error);
+            alert('Có lỗi xảy ra khi cập nhật số lượng');
+        });
+    }
+
+    // Remove cart item
+    function removeCartItem(cartKey) {
+        if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) return;
+
+        fetch('/5s-fashion/ajax/cart/remove', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                cart_key: cartKey
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadCartItems(); // Reload cart
+            } else {
+                alert('Có lỗi xảy ra: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error removing item:', error);
+            alert('Có lỗi xảy ra khi xóa sản phẩm');
+        });
+    }
+
+    // Format price
+    function formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(price);
+    }
+
+    // Proceed to checkout
+    function proceedToCheckout() {
+        if (cartItems.length === 0) {
+            alert('Giỏ hàng trống');
+            return;
+        }
+        window.location.href = '/checkout';
+    }
+
+    // Apply promo code
+    function applyPromoCode() {
+        const promoCode = document.getElementById('promoCodeInput').value.trim();
+        if (!promoCode) {
+>>>>>>> main
             alert('Vui lòng nhập mã giảm giá');
         }
         return;

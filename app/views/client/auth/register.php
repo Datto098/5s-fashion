@@ -13,7 +13,14 @@ ob_start();
                         <p class="auth-subtitle">Tạo tài khoản mới tại 5S Fashion</p>
                     </div>
 
-                    <form action="<?= url('register') ?>" method="POST" class="auth-form">
+                    <?php if (hasFlash('error')): ?>
+                        <div class="alert alert-danger"><?= getFlash('error') ?></div>
+                    <?php endif; ?>
+                    <?php if (hasFlash('success')): ?>
+                        <div class="alert alert-success"><?= getFlash('success') ?></div>
+                    <?php endif; ?>
+
+                    <form action="<?= url('registerUser') ?>" method="POST" class="auth-form">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">

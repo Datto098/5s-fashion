@@ -48,16 +48,15 @@ $router->post('/reset-password', 'AuthController@resetPassword');
 
 // User Account routes
 $router->get('/account', 'AccountController@index');
-$router->get('/account/profile', 'AccountController@profile');
-$router->post('/account/profile', 'AccountController@updateProfile');
+// $router->get('/account/profile', 'AccountController@profile');
+// $router->post('/account/profile', 'AccountController@updateProfile');
 $router->get('/account/password', 'AccountController@passwordForm');
 $router->post('/account/password', 'AccountController@updatePassword');
 $router->get('/orders', 'AccountController@orders');
 $router->get('/orders/{id}', 'AccountController@orderDetail');
-$router->get('/addresses', 'AccountController@addresses');
-$router->post('/addresses', 'AccountController@addAddress');
-$router->put('/addresses/{id}', 'AccountController@updateAddress');
-$router->delete('/addresses/{id}', 'AccountController@deleteAddress');
+
+
+
 
 // Wishlist routes
 $router->get('/wishlist', 'WishlistController@index');
@@ -92,8 +91,8 @@ $router->get('/faq', 'PageController@faq');
 $router->post('/newsletter', 'NewsletterController@subscribe');
 
 // Blog routes (future)
-$router->get('/blog', 'BlogController@index');
-$router->get('/blog/{slug}', 'BlogController@show');
+$router->get('/blog', 'PostController@index');
+$router->get('/blog/{id}', 'PostController@show');
 
 // Category routes
 $router->get('/category/{slug}', function($slug) {

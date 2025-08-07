@@ -71,7 +71,7 @@
 
         <!-- Product Name -->
         <h5 class="product-name mb-2">
-            <a href="/product/<?= urlencode($product['slug']) ?>"
+            <a href="<?= url('product/' . ($product['slug'] ?? 'product-' . $product['id'])) ?>"
                class="text-dark text-decoration-none">
                 <?= htmlspecialchars($product['name']) ?>
             </a>

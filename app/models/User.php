@@ -8,10 +8,10 @@ class User extends BaseModel
 {
     protected $table = 'users';
     protected $primaryKey = 'id';
-    protected $fillable = [
-        'username', 'email', 'password_hash', 'full_name', 'phone',
-        'avatar', 'role', 'status', 'email_verified_at'
-    ];
+protected $fillable = [
+    'username', 'email', 'password_hash', 'full_name', 'phone',
+    'avatar', 'role', 'status', 'email_verified_at', 'birthday', 'address',  'email_verify_token'
+];
     protected $hidden = ['password_hash', 'remember_token', 'reset_token'];
 
     /**
@@ -51,17 +51,15 @@ class User extends BaseModel
      */
     public function createUser($data)
     {
-        // Hash password if provided
+        // Hash password nếu có
         if (isset($data['password'])) {
             $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
             unset($data['password']);
         }
-
-        // Generate username if not provided
+        // Tạo username nếu chưa có
         if (!isset($data['username']) && isset($data['email'])) {
             $data['username'] = $this->generateUsername($data['email']);
         }
-
         return $this->create($data);
     }
 
@@ -495,9 +493,8 @@ class User extends BaseModel
     {
         // Temporarily disabled until last_login_at column is added to database
         // TODO: Run migration to add last_login_at column
-        // $sql = "UPDATE {$this->table} SET last_login_at = NOW() WHERE id = :id";
-        // return $this->db->execute($sql, ['id' => $userId]);
-        return true; // Return true to avoid breaking login flow
+        $sql = "UPDATE {$this->table} SET last_login_at = NOW() WHERE id = :id";
+        return $this->db->execute($sql, ['id' => $userId]);
     }
 
     /**
@@ -521,12 +518,9 @@ class User extends BaseModel
      */
     public function findByResetToken($token)
     {
-        // Temporarily disabled until reset_token columns are added to database
-        // TODO: Run migration to add reset_token and reset_token_expires_at columns
-        // $sql = "SELECT * FROM {$this->table} WHERE reset_token = :token AND reset_token_expires_at > NOW()";
-        // $result = $this->db->fetchOne($sql, ['token' => $token]);
-        // return $result ? $this->hideFields($result) : null;
-        return null;
+        $sql = "SELECT * FROM {$this->table} WHERE reset_token = :token AND reset_token_expires_at > NOW()";
+        $result = $this->db->fetchOne($sql, ['token' => $token]);
+        return $result ? $this->hideFields($result) : null;
     }
 
     /**

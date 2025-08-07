@@ -108,6 +108,12 @@ function getActiveClass($menuPath, $currentPath) {
 
         <div class="nav-section">
             <div class="nav-section-title">Marketing</div>
+             <div class="nav-item">
+                <a href="/5s-fashion/admin/post" class="nav-link <?= getActiveClass('/5s-fashion/admin/post', $currentPath) ?>">
+                    <i class="fas fa-newspaper nav-icon"></i>
+                    <span class="nav-text">Quản lý Post</span>
+                </a>
+            </div>
             <div class="nav-item">
                 <a href="/5s-fashion/admin/coupons" class="nav-link <?= getActiveClass('/5s-fashion/admin/coupons', $currentPath) ?>">
                     <i class="fas fa-ticket-alt nav-icon"></i>

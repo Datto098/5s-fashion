@@ -22,7 +22,7 @@
                         <div class="dropdown">
                             <a class="text-white dropdown-toggle text-decoration-none" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-user me-1"></i>
-                                <?= htmlspecialchars($user['name'] ?? $user['email'] ?? 'User') ?>
+                                <?= htmlspecialchars($user['name'] ?? $user['full_name'] ?? 'User') ?>
                             </a>
                             <ul class="dropdown-menu">
                                 <?php if (isset($user['role']) && $user['role'] === 'admin'): ?>
@@ -199,7 +199,7 @@
                         <i class="fas fa-user-circle fa-2x text-primary"></i>
                     </div>
                     <div>
-                        <div class="fw-bold"><?= htmlspecialchars(getUser()['name']) ?></div>
+        <div class="fw-bold"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></div>
                         <small class="text-muted"><?= htmlspecialchars(getUser()['email']) ?></small>
                     </div>
                 </div>

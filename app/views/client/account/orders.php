@@ -13,7 +13,7 @@ ob_start();
                         <div class="user-avatar">
                             <i class="fas fa-user-circle fa-4x text-danger"></i>
                         </div>
-                        <h5 class="mt-2"><?= htmlspecialchars(getUser()['name'] ?? 'User') ?></h5>
+                        <h5 class="mt-2"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></h5>
                         <p class="text-muted"><?= htmlspecialchars(getUser()['email'] ?? '') ?></p>
                     </div>
 

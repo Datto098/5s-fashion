@@ -55,6 +55,15 @@ class Wishlist extends BaseModel
         ]);
     }
 
+    public function removeFromWishlistById($userId, $wishlistId)
+    {
+        $sql = "DELETE FROM {$this->table} WHERE user_id = :user_id AND id = :wishlist_id";
+        return $this->db->execute($sql, [
+            'user_id' => $userId,
+            'wishlist_id' => $wishlistId
+        ]);
+    }
+
     /**
      * Check if product is in wishlist
      */

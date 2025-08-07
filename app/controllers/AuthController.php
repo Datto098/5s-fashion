@@ -97,6 +97,14 @@ class AuthController extends Controller
                 return;
             }
 
+
+            // Chặn đăng nhập nếu chưa xác thực email 
+            if ($user['role'] === 'customer' && empty($user['email_verified_at'])) {
+                setFlash('error', 'Bạn cần xác thực email trước khi đăng nhập. Vui lòng kiểm tra email.');
+                redirect('login');
+                return;
+            }
+
             if ($user['status'] !== 'active') {
                 setFlash('error', 'Tài khoản của bạn đã bị khóa');
                 redirect('login');
@@ -124,7 +132,9 @@ class AuthController extends Controller
             }
 
             // Update last login
-            // $this->userModel->updateLastLogin($user['id']);
+            $this->userModel->updateLastLogin($user['id']);
+            $user['last_login_at'] = date('Y-m-d H:i:s'); 
+            $_SESSION['user'] = $user;
 
             // Force save session
             session_write_close();
@@ -186,12 +196,8 @@ class AuthController extends Controller
         // Handle both 'name' and 'first_name'/'last_name' formats
         $firstName = trim($_POST['first_name'] ?? '');
         $lastName = trim($_POST['last_name'] ?? '');
-        $name = trim($_POST['name'] ?? '');
-
-        // If using first_name/last_name, combine them
-        if (!empty($firstName) || !empty($lastName)) {
-            $name = trim($firstName . ' ' . $lastName);
-        }
+        $name = trim($firstName . ' ' . $lastName);
+        $username = $lastName; // Lấy tên đăng nhập từ trường "Tên"
 
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
@@ -231,20 +237,37 @@ class AuthController extends Controller
             redirect('register');
         }
 
-        // Create user
+        // Check if username exists
+        if ($this->userModel->findByUsername($username)) {
+            setFlash('error', 'Tên đăng nhập đã tồn tại, vui lòng chọn tên khác');
+            redirect('register');
+        }
+
+        // Tạo token xác thực email
+        $verifyToken = bin2hex(random_bytes(32));
         $userData = [
-            'name' => $name,
+            'username' => $username,
             'email' => $email,
             'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+            'full_name' => $name,
             'phone' => $phone,
             'role' => 'customer',
-            'status' => 'active'
+            'status' => 'active',
+            'email_verify_token' => $verifyToken
         ];
-
-        $userId = $this->userModel->create($userData);
+        $userId = $this->userModel->createUser($userData);
 
         if ($userId) {
-            setFlash('success', 'Đăng ký thành công! Vui lòng đăng nhập.');
+            // Gửi email xác thực
+            require_once APP_PATH . '/helpers/PHPMailerHelper.php';
+            require_once APP_PATH . '/helpers/functions.php';
+            $verifyUrl = url('public/verify-email/' . $verifyToken);
+            $sendResult = PHPMailerHelper::sendVerificationEmail($email, $name, $verifyUrl);
+            if ($sendResult) {
+                setFlash('success', 'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.');
+            } else {
+                setFlash('error', 'Đăng ký thành công nhưng gửi email xác thực thất bại.');
+            }
             redirect('login');
         } else {
             setFlash('error', 'Có lỗi xảy ra khi đăng ký');
