@@ -420,7 +420,6 @@
                 </div>
             </div>
 
-<<<<<<< HEAD
             <!-- Cart Summary -->
             <div class="col-lg-4">
                 <!-- Promo Code Section -->
@@ -477,19 +476,6 @@
                             <i class="fas fa-lock me-1"></i>
                             Thanh toán an toàn & bảo mật
                         </small>
-=======
-
-                                <!-- Checkout Button -->
-                                <a href="<?= url('checkout') ?>" class="btn btn-primary btn-lg w-100 mb-2" id="checkoutBtn">
-                                    <i class="fas fa-credit-card me-2"></i>
-                                    Tiến hành thanh toán
-                                </a>
-
-                               
-                            </div>
-                        </div>
-
->>>>>>> main
                     </div>
                 </div>
             </div>
@@ -575,29 +561,6 @@ function updateCartQuantity(element, action) {
         quantity = parseInt(element.value);
     }
 
-<<<<<<< HEAD
-    if (quantity < 1) {
-        quantity = 1;
-    }
-
-    quantityInput.value = quantity;
-
-    // Call CartManager to update quantity
-    if (window.cartManager) {
-        window.cartManager.updateCartQuantity(quantityInput);
-    }
-}
-
-// removeCartItem function removed - handled by CartManager auto-binding
-
-function applyPromoCode() {
-    const promoCode = document.getElementById('promo-code').value.trim();
-
-    if (!promoCode) {
-        if (window.showWarning) {
-            window.showWarning('Vui lòng nhập mã giảm giá');
-        } else {
-=======
     // Update cart summary
     function updateCartSummary() {
         const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -691,7 +654,6 @@ function applyPromoCode() {
     function applyPromoCode() {
         const promoCode = document.getElementById('promoCodeInput').value.trim();
         if (!promoCode) {
->>>>>>> main
             alert('Vui lòng nhập mã giảm giá');
         }
         return;
