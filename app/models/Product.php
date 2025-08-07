@@ -1038,4 +1038,15 @@ class Product extends BaseModel
         $sql = "UPDATE products SET has_variants = 0 WHERE id = :id";
         return $this->db->execute($sql, ['id' => $this->id ?? 0]);
     }
+
+    /**
+     * Get variant by ID
+     * @param int $variantId
+     * @return array|null
+     */
+    public function getVariantById($variantId)
+    {
+        $sql = "SELECT * FROM product_variants WHERE id = ?";
+        return $this->db->query($sql, [$variantId])->fetch();
+    }
 }

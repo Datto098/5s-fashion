@@ -202,6 +202,12 @@ class App
             $controllerFile = APP_PATH . '/controllers/' . $controllerName . '.php';
 
             if (file_exists($controllerFile)) {
+                // Load BaseController first if it exists
+                $baseControllerFile = APP_PATH . '/controllers/BaseController.php';
+                if (file_exists($baseControllerFile)) {
+                    require_once $baseControllerFile;
+                }
+
                 require_once $controllerFile;
                 $this->controller = new $controllerName;
                 $this->method = $method;

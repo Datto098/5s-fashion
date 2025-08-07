@@ -28,17 +28,8 @@ $router->post('/cart/add', 'CartController@add');
 $router->post('/cart/update', 'CartController@update');
 $router->post('/cart/remove', 'CartController@remove');
 $router->post('/cart/clear', 'CartController@clear');
-$router->get('/cart/count', 'CartController@getCount');
-$router->get('/cart/data', 'CartController@getCartData');
-
-// Simple Cart routes (for testing)
-$router->get('/simple-cart', 'SimpleCartController@index');
-$router->post('/simple-cart/add', 'SimpleCartController@add');
-$router->post('/simple-cart/update', 'SimpleCartController@update');
-$router->post('/simple-cart/remove', 'SimpleCartController@remove');
-$router->post('/simple-cart/clear', 'SimpleCartController@clear');
-$router->get('/simple-cart/count', 'SimpleCartController@getCount');
-$router->get('/simple-cart/data', 'SimpleCartController@getCartData');
+$router->get('/cart/count', 'CartController@count');
+$router->get('/cart/get', 'CartController@get');
 
 // Checkout routes
 $router->get('/checkout', 'HomeController@checkout');
@@ -210,6 +201,9 @@ $router->get('/admin/{controller}/{id}/{subcontroller}/{action}', function($cont
 $router->set404(function() {
     require_once VIEW_PATH . '/errors/404.php';
 });
+
+// Load core classes (ensure BaseController is loaded)
+require_once APP_PATH . '/controllers/BaseController.php';
 
 // Process the request
 try {

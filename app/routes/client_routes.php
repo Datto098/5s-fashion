@@ -16,13 +16,15 @@ return [
     // Product
     'product/{slug}' => 'HomeController@product',
 
-    // Cart
-    'cart' => 'HomeController@cart',
-    'simple-cart' => 'SimpleCartController@index',
-    'cart/add' => 'SimpleCartController@add',
-    'cart/update' => 'SimpleCartController@update',
-    'cart/remove' => 'SimpleCartController@remove',
-    'cart/data' => 'SimpleCartController@getCartData',
+    // Cart - Updated to use new CartController
+    'cart' => 'CartController@index',
+    'cart/debug' => 'CartController@debug',
+    'cart/add' => 'CartController@add',
+    'cart/update' => 'CartController@update',
+    'cart/remove' => 'CartController@remove',
+    'cart/clear' => 'CartController@clear',
+    'cart/count' => 'CartController@count',
+    'cart/get' => 'CartController@get',
 
     // Checkout
     'checkout' => 'HomeController@checkout',

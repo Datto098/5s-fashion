@@ -422,6 +422,8 @@ function loadCartItems() {
 	if (cartTotal) cartTotal.textContent = formatCurrency(total);
 }
 
+// DEPRECATED: Use cartManager.updateCartCounter() instead
+/*
 function updateCartCounter(count = null) {
 	const counter = document.getElementById('cart-count');
 	if (counter) {
@@ -435,6 +437,21 @@ function updateCartCounter(count = null) {
 			counter.style.display = 'inline';
 		} else {
 			counter.style.display = 'none';
+		}
+	}
+}
+*/
+
+// Use global cartManager instead
+function updateCartCounter(count = null) {
+	if (window.cartManager) {
+		window.cartManager.updateCartCounter(count);
+	} else {
+		// Fallback for direct counter update
+		const counter = document.getElementById('cart-count');
+		if (counter && count !== null) {
+			counter.textContent = count;
+			counter.style.display = count > 0 ? 'inline' : 'none';
 		}
 	}
 }
@@ -657,7 +674,19 @@ function formatCurrency(amount) {
 }
 
 function showToast(message, type = 'info') {
-	// Create toast element
+	// Use unified notification system if available
+	if (window.showNotification) {
+		const typeMap = {
+			success: 'success',
+			error: 'error',
+			warning: 'warning',
+			info: 'info',
+		};
+		window.showNotification(message, typeMap[type] || 'info');
+		return;
+	}
+
+	// Fallback to Bootstrap toast
 	const toast = document.createElement('div');
 	toast.className = `toast align-items-center text-white bg-${
 		type === 'error' ? 'danger' : type
@@ -1581,7 +1610,12 @@ function addToCartFromQuickView(productId) {
 		currentProductData.variants.length > 0
 	) {
 		if (!selectedVariant) {
-			showToast('Vui lòng chọn màu sắc và kích thước!', 'warning');
+			// Use unified notifications
+			if (window.showWarning) {
+				window.showWarning('Vui lòng chọn màu sắc và kích thước!');
+			} else {
+				showToast('Vui lòng chọn màu sắc và kích thước!', 'warning');
+			}
 			return;
 		}
 	}
@@ -1622,7 +1656,7 @@ function addToCartFromQuickView(productId) {
 	window.addToCartInProgress = true;
 	showLoading();
 
-	fetch(`${BASE_URL}/ajax/cart/add`, {
+	fetch(`${BASE_URL}/cart/add`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -1631,7 +1665,6 @@ function addToCartFromQuickView(productId) {
 			product_id: productId,
 			quantity: quantity,
 			variant_id: variantId,
-			variant: variant ? `${variant.color} - ${variant.size}` : null,
 		}),
 	})
 		.then((response) => response.json())
@@ -1640,23 +1673,37 @@ function addToCartFromQuickView(productId) {
 			window.addToCartInProgress = false;
 
 			if (data.success) {
-				showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+				// Use unified notifications
+				if (window.showSuccess) {
+					window.showSuccess('Đã thêm sản phẩm vào giỏ hàng!');
+				} else {
+					showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+				}
 				updateCartCounter(data.cart_count);
-				loadCartItemsFromServer();
 
 				// Close modal immediately after success
 				if (modal) {
 					modal.hide();
 				}
 			} else {
-				showToast(data.message || 'Có lỗi xảy ra!', 'error');
+				// Use unified notifications
+				if (window.showError) {
+					window.showError(data.message || 'Có lỗi xảy ra!');
+				} else {
+					showToast(data.message || 'Có lỗi xảy ra!', 'error');
+				}
 			}
 		})
 		.catch((error) => {
 			hideLoading();
 			window.addToCartInProgress = false;
 			console.error('Error:', error);
-			showToast('Có lỗi xảy ra khi thêm vào giỏ hàng!', 'error');
+			// Use unified notifications
+			if (window.showError) {
+				window.showError('Có lỗi xảy ra khi thêm vào giỏ hàng!');
+			} else {
+				showToast('Có lỗi xảy ra khi thêm vào giỏ hàng!', 'error');
+			}
 		});
 
 	// Also remove any leftover backdrop manually
@@ -1700,12 +1747,23 @@ function generateStars(rating) {
 }
 
 function showToast(message, type = 'info') {
-	// Remove existing toasts
+	// Use unified notification system if available
+	if (window.showNotification) {
+		const typeMap = {
+			success: 'success',
+			error: 'error',
+			warning: 'warning',
+			info: 'info',
+		};
+		window.showNotification(message, typeMap[type] || 'info');
+		return;
+	}
+
+	// Fallback to custom toast
 	document
 		.querySelectorAll('.toast-notification')
 		.forEach((toast) => toast.remove());
 
-	// Create toast
 	const toast = document.createElement('div');
 	toast.className = `toast-notification position-fixed`;
 	toast.style.cssText = `
