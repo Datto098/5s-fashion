@@ -814,80 +814,17 @@
                                     <span id="subtotal">0đ</span>
                                 </div>
 
-                                <div class="summary-item d-flex justify-content-between mb-2">
-                                    <span>Phí vận chuyển:</span>
-                                    <span id="shippingFee">30.000đ</span>
-                                </div>
-
-                                <div class="summary-item d-flex justify-content-between mb-2" id="discountRow" style="display: none;">
-                                    <span class="text-success">Giảm giá:</span>
-                                    <span class="text-success" id="discountAmount">-0đ</span>
-                                </div>
-
-                                <hr>
-
-                                <div class="summary-total d-flex justify-content-between mb-3">
-                                    <strong>Tổng cộng:</strong>
-                                    <strong class="text-primary" id="totalAmount">0đ</strong>
-                                </div>
-
-                                <!-- Promo Code -->
-                                <div class="promo-code-section mb-3">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="Mã giảm giá" id="promoCodeInput">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="applyPromoCode()">
-                                            Áp dụng
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Free shipping notice -->
-                                <div class="free-shipping-notice mb-3" id="freeShippingNotice">
-                                    <div class="progress mb-2" style="height: 8px;">
-                                        <div class="progress-bar bg-success" role="progressbar" id="freeShippingProgress" style="width: 0%"></div>
-                                    </div>
-                                    <small class="text-muted" id="freeShippingText">
-                                        Mua thêm <strong id="remainingAmount">500.000đ</strong> để được <strong>miễn phí vận chuyển</strong>
-                                    </small>
-                                </div>
 
                                 <!-- Checkout Button -->
-                                <button class="btn btn-primary btn-lg w-100 mb-2" onclick="proceedToCheckout()" id="checkoutBtn">
+                                <a href="<?= url('checkout') ?>" class="btn btn-primary btn-lg w-100 mb-2" id="checkoutBtn">
                                     <i class="fas fa-credit-card me-2"></i>
                                     Tiến hành thanh toán
-                                </button>
+                                </a>
 
-                                <!-- Payment Methods -->
-                                <div class="payment-methods text-center">
-                                    <small class="text-muted d-block mb-2">Phương thức thanh toán:</small>
-                                    <div class="payment-icons">
-                                        <img src="/5s-fashion/public/assets/images/visa.png" alt="Visa" class="payment-icon" onerror="this.style.display='none'">
-                                        <img src="/5s-fashion/public/assets/images/mastercard.png" alt="Mastercard" class="payment-icon" onerror="this.style.display='none'">
-                                        <img src="/5s-fashion/public/assets/images/momo.png" alt="MoMo" class="payment-icon" onerror="this.style.display='none'">
-                                        <img src="/5s-fashion/public/assets/images/vnpay.png" alt="VNPay" class="payment-icon" onerror="this.style.display='none'">
-                                    </div>
-                                </div>
-
-                                <!-- Security Notice -->
-                                <div class="security-notice text-center mt-3">
-                                    <small class="text-muted">
-                                        <i class="fas fa-shield-alt me-1"></i>
-                                        Thanh toán an toàn & bảo mật
-                                    </small>
-                                </div>
+                               
                             </div>
                         </div>
 
-                        <!-- Recommended Products -->
-                        <div class="recommended-products mt-4">
-                            <h6 class="mb-3">
-                                <i class="fas fa-heart me-2"></i>
-                                Có thể bạn quan tâm
-                            </h6>
-                            <div class="recommended-items" id="recommendedProducts">
-                                <!-- Will be populated by JavaScript -->
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1021,8 +958,6 @@
     // Update cart summary
     function updateCartSummary() {
         const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const shippingFee = subtotal >= 500000 ? 0 : 30000;
-        const total = subtotal + shippingFee;
 
         // Kiểm tra elements tồn tại trước khi cập nhật
         const subtotalElement = document.getElementById('subtotal');
@@ -1035,37 +970,6 @@
 
         // Update free shipping progress
         updateFreeShippingProgress(subtotal);
-    }
-
-    // Update free shipping progress
-    function updateFreeShippingProgress(subtotal) {
-        const freeShippingThreshold = 500000;
-        const progress = Math.min((subtotal / freeShippingThreshold) * 100, 100);
-        const remaining = Math.max(freeShippingThreshold - subtotal, 0);
-
-        // Kiểm tra element tồn tại trước khi cập nhật
-        const progressElement = document.getElementById('freeShippingProgress');
-        const remainingElement = document.getElementById('remainingAmount');
-        const textElement = document.getElementById('freeShippingText');
-
-        if (progressElement) {
-            progressElement.style.width = progress + '%';
-        }
-
-        if (remaining > 0) {
-            if (remainingElement) {
-                remainingElement.textContent = formatPrice(remaining);
-            }
-            if (textElement) {
-                textElement.innerHTML =
-                    `Mua thêm <strong>${formatPrice(remaining)}</strong> để được <strong>miễn phí vận chuyển</strong>`;
-            }
-        } else {
-            if (textElement) {
-                textElement.innerHTML =
-                    '<strong class="text-success">🎉 Bạn được miễn phí vận chuyển!</strong>';
-            }
-        }
     }
 
     // Update quantity
