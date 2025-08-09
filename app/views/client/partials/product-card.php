@@ -203,9 +203,10 @@
     right: 10px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     opacity: 0;
     transition: opacity 0.3s ease;
+    z-index: 3;
 }
 
 .product-card:hover .product-actions {
@@ -213,13 +214,35 @@
 }
 
 .product-actions .btn {
-    width: 35px;
-    height: 35px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(10px);
-    background: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.95);
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.product-actions .btn:hover {
+    background: rgba(255,255,255,1);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.product-actions .btn i {
+    font-size: 16px;
+    line-height: 1;
+    color: #495057;
+    transition: color 0.3s ease;
+}
+
+.product-actions .btn:hover i {
+    color: #dc3545;
 }
 
 .product-info {
@@ -236,6 +259,7 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .product-name a:hover {

@@ -347,7 +347,7 @@ if (!empty($product['featured_image'])) {
         <div class="navigation">
             <a href="/" class="nav-link">🏠 Trang chủ</a>
             <a href="/shop" class="nav-link">🛒 Cửa hàng</a>
-            <a href="/cart" class="nav-link primary">🛍️ Giỏ hàng</a>
+            <a href="/?route=cart" class="nav-link primary">🛍️ Giỏ hàng</a>
         </div>
 
         <div class="footer">

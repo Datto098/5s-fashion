@@ -1,0 +1,419 @@
+/**
+ * Components CSS - Common reusable components
+ * Contains shared styles for buttons, cards, forms, and other UI components
+ * Used across multiple pages to maintain consistency and reduce duplication
+ */
+
+/* ===== COMMON BUTTONS ===== */
+/* Note: Only apply to specific button classes, not all .btn to avoid conflicts */
+
+/* Primary Action Buttons - Used for main actions like submit, checkout, etc. */
+.btn-primary-action,
+.btn-success-action,
+.btn-outline-primary-action,
+.btn-outline-secondary-action {
+    border-radius: 50px !important;
+    padding: 15px 30px !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    text-transform: none !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    min-height: 50px !important;
+    line-height: 1.2 !important;
+}
+
+.btn-primary-action:hover,
+.btn-success-action:hover,
+.btn-outline-primary-action:hover,
+.btn-outline-secondary-action:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    text-decoration: none !important;
+}
+
+.btn-primary-action:focus,
+.btn-success-action:focus,
+.btn-outline-primary-action:focus,
+.btn-outline-secondary-action:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Default Bootstrap buttons - minimal override for header/nav buttons */
+.btn {
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn:hover {
+    text-decoration: none;
+}
+
+/* Button Variants for Action Buttons */
+.btn-primary-action {
+    background: #dc3545 !important;
+    color: white !important;
+}
+
+.btn-primary-action:hover {
+    background: #c82333 !important;
+    color: white !important;
+}
+
+.btn-success-action {
+    background: #28a745 !important;
+    color: white !important;
+}
+
+.btn-success-action:hover {
+    background: #1e7e34 !important;
+    color: white !important;
+}
+
+.btn-outline-primary-action {
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+    background: transparent !important;
+}
+
+.btn-outline-primary-action:hover {
+    background: #dc3545 !important;
+    color: white !important;
+    border-color: #dc3545 !important;
+}
+
+.btn-outline-secondary-action {
+    border: 2px solid #6c757d !important;
+    color: #6c757d !important;
+    background: transparent !important;
+}
+
+.btn-outline-secondary-action:hover {
+    background: #6c757d !important;
+    color: white !important;
+    border-color: #6c757d !important;
+}
+
+/* Special Buttons */
+.btn-copy {
+    background: #007bff !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    font-size: 0.875rem !important;
+    min-height: auto !important;
+}
+
+.btn-copy:hover {
+    background: #0056b3 !important;
+    color: white !important;
+}
+
+.btn-loading {
+    position: relative !important;
+    pointer-events: none !important;
+    opacity: 0.6 !important;
+}
+
+.btn-loading::after {
+    content: "" !important;
+    position: absolute !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin: auto !important;
+    border: 2px solid transparent !important;
+    border-top-color: currentColor !important;
+    border-radius: 50% !important;
+    animation: button-loading-spinner 1s ease infinite !important;
+}
+
+@keyframes button-loading-spinner {
+    from {
+        transform: rotate(0turn);
+    }
+
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+/* Button Icons */
+.btn i {
+    margin-right: 8px !important;
+    font-size: 1rem !important;
+}
+
+.btn i:last-child {
+    margin-right: 0 !important;
+}
+
+/* ===== COMMON CARDS ===== */
+.card {
+    border: none !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s ease !important;
+    background: white !important;
+    overflow: hidden !important;
+}
+
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card-header {
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    padding: 20px 25px !important;
+    border-radius: 20px 20px 0 0 !important;
+}
+
+.card-header h4,
+.card-header h5 {
+    margin: 0 !important;
+    color: #495057 !important;
+}
+
+.card-header.bg-warning {
+    background: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.card-body {
+    padding: 25px !important;
+    background: white !important;
+}
+
+.card-footer {
+    background: #f8f9fa !important;
+    border-top: 1px solid #dee2e6 !important;
+    padding: 20px 25px !important;
+    border-radius: 0 0 20px 20px !important;
+}
+
+/* ===== COMMON FORMS ===== */
+.form-control,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="search"],
+textarea,
+select {
+    border: 1px solid #e9ecef !important;
+    padding: 15px 25px !important;
+    font-size: 1.1rem !important;
+    transition: all 0.3s ease !important;
+    min-height: 50px !important;
+    background: white !important;
+    color: #495057 !important;
+}
+
+.form-control:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    outline: none !important;
+}
+
+/* Form Validation States */
+.form-control.is-valid {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.valid-feedback {
+    color: #28a745 !important;
+    font-size: 0.875rem !important;
+    margin-top: 5px !important;
+}
+
+.invalid-feedback {
+    color: #dc3545 !important;
+    font-size: 0.875rem !important;
+    margin-top: 5px !important;
+}
+
+/* Input Groups */
+.input-group .form-control:first-child {
+    border-radius: 50px 0 0 50px !important;
+}
+
+.input-group .form-control:last-child {
+    border-radius: 0 50px 50px 0 !important;
+}
+
+.input-group .btn:last-child {
+    border-radius: 0 50px 50px 0 !important;
+}
+
+.input-group .btn:first-child {
+    border-radius: 50px 0 0 50px !important;
+}
+
+/* ===== COMMON LAYOUTS ===== */
+.action-buttons {
+    margin-top: 30px !important;
+    padding: 25px !important;
+    background: #f8f9fa !important;
+    border-radius: 20px !important;
+    border: 1px solid #e9ecef !important;
+}
+
+.action-buttons .row {
+    margin: 0 -10px !important;
+}
+
+/* Action buttons use the new action button classes */
+.action-buttons .btn-primary-action,
+.action-buttons .btn-success-action,
+.action-buttons .btn-outline-primary-action,
+.action-buttons .btn-outline-secondary-action {
+    width: 100% !important;
+    margin-bottom: 15px !important;
+    padding: 15px 20px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    min-height: 50px !important;
+}
+
+.action-buttons .btn-primary-action i,
+.action-buttons .btn-success-action i,
+.action-buttons .btn-outline-primary-action i,
+.action-buttons .btn-outline-secondary-action i {
+    margin-right: 8px !important;
+    font-size: 1.1rem !important;
+}
+
+.action-buttons .btn-primary-action:hover,
+.action-buttons .btn-success-action:hover,
+.action-buttons .btn-outline-primary-action:hover,
+.action-buttons .btn-outline-secondary-action:hover {
+    opacity: 0.9 !important;
+}
+
+.action-buttons .btn:hover {
+    opacity: 0.9 !important;
+}
+
+.action-buttons .col-md-3,
+.action-buttons .col-sm-6 {
+    padding: 0 10px !important;
+}
+
+/* ===== COMMON UTILITIES ===== */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.text-primary {
+    color: #dc3545 !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.fw-bold {
+    font-weight: 700 !important;
+}
+
+.fw-semibold {
+    font-weight: 600 !important;
+}
+
+.fw-medium {
+    font-weight: 500 !important;
+}
+
+/* ===== RESPONSIVE UTILITIES ===== */
+@media (max-width: 768px) {
+    .btn {
+        padding: 12px 25px !important;
+        font-size: 1rem !important;
+        min-height: 45px !important;
+    }
+
+    .form-control,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="search"],
+    textarea,
+    select {
+        padding: 12px 20px !important;
+        font-size: 1rem !important;
+        min-height: 45px !important;
+    }
+
+    .card-header,
+    .card-body,
+    .card-footer {
+        padding: 20px !important;
+    }
+
+    .action-buttons .btn {
+        margin-bottom: 10px !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn {
+        padding: 10px 20px !important;
+        font-size: 0.9rem !important;
+        min-height: 42px !important;
+    }
+
+    .form-control,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    input[type="search"],
+    textarea,
+    select {
+        padding: 10px 18px !important;
+        font-size: 0.9rem !important;
+        min-height: 42px !important;
+    }
+
+    .card-header,
+    .card-body,
+    .card-footer {
+        padding: 15px !important;
+    }
+
+    .action-buttons {
+        padding: 20px !important;
+    }
+
+    .action-buttons .btn {
+        font-size: 0.85rem !important;
+    }
+}

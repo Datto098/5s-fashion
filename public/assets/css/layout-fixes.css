@@ -1,0 +1,406 @@
+/**
+ * Layout Fixes CSS - Minimal critical overrides only
+ * Ensures consistent header/footer across all pages
+ * This file should be loaded last to override any conflicts
+ * Note: Common components moved to components.css
+ */
+
+/* Critical Layout Elements - Use !important to override conflicts */
+
+/* Force consistent header styling */
+.main-header {
+    position: relative !important;
+    z-index: 1000 !important;
+    background: #fff !important;
+    border-bottom: 1px solid #e9ecef !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.navbar {
+    padding: 1rem 0 !important;
+    background: transparent !important;
+}
+
+.navbar-brand {
+    color: #dc3545 !important;
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+.navbar-brand:hover,
+.navbar-brand:focus {
+    color: #dc3545 !important;
+    text-decoration: none !important;
+}
+
+.navbar-nav .nav-link {
+    color: #343a40 !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 1rem !important;
+    transition: color 0.3s ease !important;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link:focus {
+    color: #dc3545 !important;
+}
+
+.navbar-nav .nav-link.active {
+    color: #dc3545 !important;
+    font-weight: 600 !important;
+}
+
+/* Force consistent footer styling */
+.main-footer {
+    background: #343a40 !important;
+    color: #fff !important;
+    margin-top: auto !important;
+}
+
+.footer-section {
+    background: #343a40 !important;
+    padding: 3rem 0 !important;
+}
+
+.footer-section h5 {
+    color: #fff !important;
+    font-weight: 600 !important;
+    margin-bottom: 1rem !important;
+}
+
+.footer-section a {
+    color: #adb5bd !important;
+    text-decoration: none !important;
+    transition: color 0.3s ease !important;
+}
+
+.footer-section a:hover {
+    color: #dc3545 !important;
+}
+
+.footer-bottom {
+    background: #2c3034 !important;
+    border-top: 1px solid #495057 !important;
+    padding: 1rem 0 !important;
+}
+
+/* Ensure body consistency - but preserve icon fonts */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+    line-height: 1.6 !important;
+    color: #343a40 !important;
+    background: #fff !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Font Awesome icon preservation - critical for icons to work */
+.fas,
+.far,
+.fal,
+.fab,
+.fa,
+[class*="fa-"],
+.fa-solid,
+.fa-regular,
+.fa-light,
+.fa-brands {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands", "FontAwesome" !important;
+    font-weight: 900 !important;
+}
+
+.far,
+.fa-regular {
+    font-weight: 400 !important;
+}
+
+.fal,
+.fa-light {
+    font-weight: 300 !important;
+}
+
+/* Main content area - ensures proper flex layout */
+main {
+    flex: 1 !important;
+    padding-top: 0 !important;
+}
+
+/* Prevent CSS conflicts on critical layout elements */
+.main-header *,
+.main-footer * {
+    box-sizing: border-box !important;
+}
+
+/* Page-specific section isolation to prevent conflicts */
+section:not(.header-section):not(.footer-section) {
+    isolation: isolate;
+}
+
+/* Critical: Newsletter form specific overrides (homepage specific) */
+.newsletter-form .input-group {
+    border-radius: 50px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.newsletter-form .form-control {
+    border-radius: 50px 0 0 50px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+}
+
+.newsletter-form .btn {
+    border-radius: 0 50px 50px 0 !important;
+    border: none !important;
+}
+
+/* Header button fixes - keep original Bootstrap button styling for header/nav */
+.header-actions .btn,
+.navbar .btn,
+.top-bar .btn {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 1rem !important;
+    border-radius: 0.375rem !important;
+    min-height: auto !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border: 1px solid transparent !important;
+}
+
+.header-actions .btn:hover,
+.navbar .btn:hover,
+.top-bar .btn:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.header-actions .btn-link {
+    color: #6c757d !important;
+    text-decoration: none !important;
+    border: none !important;
+    background: none !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.header-actions .btn-link:hover {
+    color: #dc3545 !important;
+}
+
+.far,
+.fal,
+.fab,
+.fa,
+[class*="fa-"],
+.fa-solid,
+.fa-regular,
+.fa-light,
+.fa-brands {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands", "FontAwesome" !important;
+    font-weight: 900 !important;
+}
+
+.far,
+.fa-regular {
+    font-weight: 400 !important;
+}
+
+.fal,
+.fa-light {
+    font-weight: 300 !important;
+}
+
+/* Container consistency */
+.container,
+.container-fluid,
+.container-lg,
+.container-md,
+.container-sm,
+.container-xl,
+.container-xxl {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+}
+
+/* Main content area */
+main {
+    flex: 1 !important;
+    padding-top: 0 !important;
+}
+
+/* Prevent CSS conflicts on critical layout elements */
+.main-header *,
+.main-footer * {
+    box-sizing: border-box !important;
+}
+
+/* Page-specific section styles should not affect header/footer */
+section:not(.header-section):not(.footer-section) {
+    isolation: isolate;
+}
+
+/* Reset any problematic margins/padding on layout elements */
+.main-header,
+.main-footer {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.main-header .container,
+.main-footer .container {
+    margin: 0 auto !important;
+}
+
+/* Utility classes for consistent spacing */
+.section-padding {
+    padding: 4rem 0 !important;
+}
+
+.section-margin {
+    margin: 2rem 0 !important;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1.5rem !important;
+    }
+
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem !important;
+    }
+
+    .container {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.3rem !important;
+    }
+}
+
+/* Prevent inheritance issues - but preserve icons */
+.main-header,
+.main-header *:not(.fas):not(.far):not(.fal):not(.fab):not(.fa):not([class*="fa-"]),
+.main-footer,
+.main-footer *:not(.fas):not(.far):not(.fal):not(.fab):not(.fa):not([class*="fa-"]) {
+    /* Reset critical properties that might be inherited - except for icons */
+    font-family: inherit !important;
+}
+
+/* Ensure consistent top-level layout structure */
+#app,
+.app-wrapper,
+body>* {
+    box-sizing: border-box !important;
+}
+
+/* Override any page-specific styles that might affect layout */
+.checkout-section *,
+.success-section *,
+.cart-section *,
+.shop-section *,
+.home-section * {
+    /* Prevent these from affecting header/footer */
+    isolation: isolate;
+}
+
+/* Fix any z-index conflicts */
+.main-header {
+    z-index: 1030 !important;
+    /* Higher than Bootstrap modals */
+}
+
+.main-footer {
+    z-index: 10 !important;
+}
+
+/* Cart sidebar should not conflict */
+.cart-sidebar {
+    z-index: 1040 !important;
+}
+
+/* Additional Font Awesome fixes */
+i[class*="fa-"],
+span[class*="fa-"],
+em[class*="fa-"] {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands" !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+
+/* Global Form Control Consistency - Match homepage size */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="search"],
+select.form-control {
+    border-radius: 50px !important;
+    border: 1px solid #e9ecef !important;
+    padding: 15px 25px !important;
+    font-size: 1.1rem !important;
+    transition: all 0.3s ease !important;
+    min-height: 50px !important;
+}
+
+.form-control:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select.form-control:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    outline: none !important;
+}
+
+/* Newsletter form specific - keep rounded and match global size */
+.newsletter-form .input-group {
+    border-radius: 50px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.newsletter-form .form-control {
+    border-radius: 50px 0 0 50px !important;
+    padding: 15px 25px !important;
+    font-size: 1.1rem !important;
+    border: none !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    min-height: 50px !important;
+}
+
+.newsletter-form .btn {
+    border-radius: 0 50px 50px 0 !important;
+    padding: 15px 30px !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    min-height: 50px !important;
+    border: none !important;
+}
+
+/* Input groups should maintain rounded corners */
+.input-group .form-control:first-child {
+    border-radius: 50px 0 0 50px !important;
+}
+
+.input-group .form-control:last-child {
+    border-radius: 0 50px 50px 0 !important;
+}
+
+.input-group .btn:last-child {
+    border-radius: 0 50px 50px 0 !important;
+}
+
+.input-group .btn:first-child {
+    border-radius: 50px 0 0 50px !important;
+}

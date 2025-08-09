@@ -1996,7 +1996,7 @@ function buyNowWithVariant(productId) {
     .then(data => {
         if (data.success) {
             // Redirect to checkout page
-            window.location.href = "http://localhost/5s-fashion/public/checkout";
+            window.location.href = "/5s-fashion/checkout";
         } else {
             showNotification(data.message || "Có lỗi xảy ra khi mua hàng", "error");
         }

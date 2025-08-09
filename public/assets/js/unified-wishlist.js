@@ -5,34 +5,84 @@
 
 class UnifiedWishlistManager {
 	constructor() {
+		this.syncInProgress = false;
+		this.lastSyncTime = 0;
+		this.initializingSync = false;
+		this.SYNC_THROTTLE_MS = 2000; // Throttle syncs to max once per 2 seconds
 		this.init();
 	}
 
 	init() {
-		// Check if user is logged in
-		this.isLoggedIn =
-			document.body.getAttribute('data-logged-in') === 'true';
+		// Check if user is logged in - multiple fallback methods
+		this.isLoggedIn = this.detectLoginStatus();
 
-		if (this.isLoggedIn) {
-			// Load wishlist from server
-			this.syncWishlistFromServer();
+		// Only sync if logged in and not in init state
+		if (this.isLoggedIn && !this.initializingSync) {
+			// Mark as initializing to prevent loops
+			this.initializingSync = true;
+
+			// Delayed sync to avoid conflicts
+			setTimeout(() => {
+				this.syncWishlistFromServer().finally(() => {
+					this.initializingSync = false;
+				});
+			}, 1000);
 		}
 
 		// Setup event listeners
 		this.setupEventListeners();
 	}
 
+	/**
+	 * Detect user login status with multiple fallback methods
+	 */
+	detectLoginStatus() {
+		// Method 1: Check body attribute
+		const bodyAttr = document.body.getAttribute('data-logged-in');
+		if (bodyAttr === 'true') return true;
+		if (bodyAttr === 'false') return false;
+
+		// Method 2: Check for session cookie
+		const hasSessionCookie = document.cookie.includes('PHPSESSID');
+
+		// Method 3: Check localStorage for auth data
+		const authData =
+			localStorage.getItem('userSession') ||
+			sessionStorage.getItem('userSession');
+		const hasAuthData = authData && authData.includes('user');
+
+		// Return true if any method indicates login
+		const isLoggedIn = hasSessionCookie || hasAuthData;
+
+		console.log('Login status detection:', {
+			bodyAttr,
+			hasSessionCookie,
+			hasAuthData,
+			final: isLoggedIn,
+		});
+
+		return isLoggedIn;
+	}
+
 	setupEventListeners() {
-		// Listen for storage changes (for cross-tab sync)
+		// Throttle storage event listener
+		let storageEventTimeout;
 		window.addEventListener('storage', (e) => {
 			if (e.key === 'wishlist_sync') {
-				this.syncWishlistFromServer();
+				clearTimeout(storageEventTimeout);
+				storageEventTimeout = setTimeout(() => {
+					this.syncWishlistFromServer();
+				}, 1000);
 			}
 		});
 
-		// Listen for custom wishlist events
+		// Throttle custom wishlist events
+		let customEventTimeout;
 		document.addEventListener('wishlistUpdated', () => {
-			this.syncWishlistFromServer();
+			clearTimeout(customEventTimeout);
+			customEventTimeout = setTimeout(() => {
+				this.syncWishlistFromServer();
+			}, 500);
 		});
 	}
 
@@ -231,25 +281,88 @@ class UnifiedWishlistManager {
 		}
 
 		try {
-			const response = await fetch('/5s-fashion/wishlist', {
+			// Try API endpoint first
+			const response = await fetch('/5s-fashion/ajax/wishlist/list', {
 				method: 'GET',
 				headers: {
-					'Content-Type': 'text/html',
+					'Content-Type': 'application/json',
 				},
 			});
 
-			const html = await response.text();
+			// Check if response is ok
+			if (!response.ok) {
+				throw new Error(
+					`HTTP ${response.status}: ${response.statusText}`
+				);
+			}
 
-			// Parse HTML to extract wishlist product IDs
-			const parser = new DOMParser();
-			const doc = parser.parseFromString(html, 'text/html');
-			const wishlistItems = doc.querySelectorAll('[data-product-id]');
+			// Get response text first to check if it's valid JSON
+			const responseText = await response.text();
 
-			return Array.from(wishlistItems).map((item) =>
-				parseInt(item.getAttribute('data-product-id'))
-			);
+			// Check if response looks like JSON
+			if (
+				!responseText.trim().startsWith('{') &&
+				!responseText.trim().startsWith('[')
+			) {
+				console.error(
+					'Invalid JSON response:',
+					responseText.substring(0, 200)
+				);
+				throw new Error(
+					'Server returned non-JSON response: ' +
+						responseText.substring(0, 100)
+				);
+			}
+
+			// Parse JSON
+			const data = JSON.parse(responseText);
+
+			if (data.success && Array.isArray(data.data)) {
+				return data.data.map((item) =>
+					parseInt(item.product_id || item.id)
+				);
+			}
+
+			// Fallback: try to get from cache
+			const cache = localStorage.getItem('wishlist_cache');
+			if (cache) {
+				const parsed = JSON.parse(cache);
+				const cacheAge = Date.now() - parsed.timestamp;
+				// Use cache if less than 5 minutes old
+				if (cacheAge < 300000 && Array.isArray(parsed.items)) {
+					return parsed.items;
+				}
+			}
+
+			// Last fallback: return empty array
+			return [];
 		} catch (error) {
 			console.error('Get wishlist items error:', error);
+
+			// Log additional debug info
+			console.log('Debug info:', {
+				isLoggedIn: this.isLoggedIn,
+				bodyAttribute: document.body.getAttribute('data-logged-in'),
+				sessionInfo: document.cookie.includes('PHPSESSID'),
+			});
+
+			// Try to get from cache on error
+			const cache = localStorage.getItem('wishlist_cache');
+			if (cache) {
+				try {
+					const parsed = JSON.parse(cache);
+					if (Array.isArray(parsed.items)) {
+						console.log(
+							'Using cached wishlist items:',
+							parsed.items.length
+						);
+						return parsed.items;
+					}
+				} catch (e) {
+					console.error('Cache corrupted:', e);
+				}
+			}
+
 			return [];
 		}
 	}
@@ -264,6 +377,19 @@ class UnifiedWishlistManager {
 			this.updateWishlistCounter(0);
 			return;
 		}
+
+		// Throttle sync requests
+		const now = Date.now();
+		if (
+			this.syncInProgress ||
+			now - this.lastSyncTime < this.SYNC_THROTTLE_MS
+		) {
+			console.log('Wishlist sync throttled');
+			return;
+		}
+
+		this.syncInProgress = true;
+		this.lastSyncTime = now;
 
 		try {
 			const wishlistProductIds = await this.getWishlistItems();
@@ -287,6 +413,8 @@ class UnifiedWishlistManager {
 			localStorage.setItem('wishlist_sync', Date.now().toString());
 		} catch (error) {
 			console.error('Sync wishlist error:', error);
+		} finally {
+			this.syncInProgress = false;
 		}
 	}
 

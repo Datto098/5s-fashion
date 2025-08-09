@@ -3,632 +3,1039 @@
  * Handles checkout process including form validation, order processing, and payment
  */
 
+console.log('Checkout.js loaded successfully');
+
+// Force immediate template replacement test
+console.log('=== TESTING TEMPLATE REPLACEMENT IMMEDIATELY ===');
+
+const TEST_TEMPLATE = `
+    <div class="order-item">
+        <div class="item-name fw-bold">{name}</div>
+        <div class="item-price text-danger fw-bold">{price}</div>
+        <img src="{image}" alt="{name}">
+    </div>
+`;
+
+const TEST_DATA = {
+	name: 'Váy Maxi Nữ Hoa Nhí',
+	price: '599,000 ₫',
+	image: '/uploads/products/test.jpg',
+};
+
+let testResult = TEST_TEMPLATE;
+console.log('Before replacement:', testResult);
+
+// Manual replacement like in CheckoutManager - FIXED WITH global regex
+testResult = testResult.replace(/\{name\}/g, TEST_DATA.name);
+testResult = testResult.replace(/\{price\}/g, TEST_DATA.price);
+testResult = testResult.replace(/\{image\}/g, TEST_DATA.image);
+
+console.log('After replacement:', testResult);
+console.log('Contains {name}?', testResult.includes('{name}'));
+console.log('Contains product name?', testResult.includes('Váy Maxi'));
+
 class CheckoutManager {
 	constructor() {
-		this.cart = [];
-		this.orderData = {};
-		this.promoCode = null;
-		this.discountAmount = 0;
-		this.shippingFee = 30000; // Default shipping fee
-
-		this.initializeEventListeners();
+		console.log('CheckoutManager constructor called');
+		this.cart = null;
+		this.addresses = [];
+		this.selectedAddress = null;
+		this.orderSummary = {
+			subtotal: 0,
+			shipping: 30000,
+			discount: 0,
+			total: 0,
+		};
+		console.log('CheckoutManager initialized');
 	}
 
-	/**
-	 * Initialize event listeners
-	 */
-	initializeEventListeners() {
-		// Shipping method change
-		document
-			.querySelectorAll('input[name="shippingMethod"]')
-			.forEach((input) => {
-				input.addEventListener('change', () => {
-					this.updateShippingFee();
-				});
-			});
-
-		// Payment method change
-		document
-			.querySelectorAll('input[name="paymentMethod"]')
-			.forEach((input) => {
-				input.addEventListener('change', () => {
-					this.updatePaymentMethod();
-				});
-			});
-
-		// Form validation on input
-		const requiredFields = document.querySelectorAll(
-			'input[required], select[required]'
-		);
-		requiredFields.forEach((field) => {
-			field.addEventListener('blur', () => {
-				this.validateField(field);
-			});
-		});
-	}
-
-	/**
-	 * Load order from cart
-	 */
-	loadOrder() {
+	async loadOrder() {
 		try {
-			// Load cart from localStorage
-			const savedCart = localStorage.getItem('cart');
-			this.cart = savedCart ? JSON.parse(savedCart) : [];
+			const response = await fetch('/5s-fashion/ajax/cart/items');
+			if (response.ok) {
+				const data = await response.json();
+				console.log('Cart API Response:', data);
+				console.log('First cart item (if exists):', data.items?.[0]);
 
-			if (this.cart.length === 0) {
-				this.showMessage(
-					'Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.',
-					'error'
-				);
-				setTimeout(() => {
-					window.location.href = '/cart';
-				}, 2000);
-				return;
+				if (data.success && data.items && data.items.length > 0) {
+					this.cart = data.items;
+					this.displayOrderItems();
+					this.calculateTotal();
+				} else {
+					// Redirect to cart if empty
+					window.location.href = '/?route=cart';
+				}
+			} else {
+				throw new Error('Failed to load cart');
 			}
-
-			// Load saved promo code
-			const savedPromo = localStorage.getItem('promoCode');
-			if (savedPromo) {
-				const promoData = JSON.parse(savedPromo);
-				this.promoCode = promoData.code;
-				this.discountAmount = promoData.discount;
-				document.getElementById('checkoutPromoCode').value =
-					promoData.code;
-			}
-
-			this.displayOrderItems();
-			this.updateOrderSummary();
 		} catch (error) {
 			console.error('Error loading order:', error);
-			this.showMessage('Có lỗi xảy ra khi tải đơn hàng', 'error');
+			this.showError('Không thể tải thông tin đơn hàng');
 		}
 	}
 
-	/**
-	 * Display order items
-	 */
 	displayOrderItems() {
-		const container = document.getElementById('orderItems');
-		const template = document.getElementById('orderItemTemplate').innerHTML;
-		let html = '';
-
-		this.cart.forEach((item) => {
-			let itemHTML = template
-				.replace(
-					/\{\{image\}\}/g,
-					item.image ||
-						'/5s-fashion/public/assets/images/placeholder.jpg'
-				)
-				.replace(/\{\{name\}\}/g, item.name)
-				.replace(/\{\{quantity\}\}/g, item.quantity)
-				.replace(/\{\{variant\}\}/g, this.formatVariant(item))
-				.replace(
-					/\{\{totalPrice\}\}/g,
-					this.formatPrice(item.price * item.quantity)
-				);
-
-			html += itemHTML;
-		});
-
-		container.innerHTML = html;
-	}
-
-	/**
-	 * Update order summary
-	 */
-	updateOrderSummary() {
-		const subtotal = this.getSubtotal();
-		const shipping = this.getShippingFee();
-		const total = this.getTotal();
-
-		document.getElementById('orderSubtotal').textContent =
-			this.formatPrice(subtotal);
-		document.getElementById('orderShipping').textContent =
-			this.formatPrice(shipping);
-		document.getElementById('orderTotal').textContent =
-			this.formatPrice(total);
-
-		// Update discount display
-		const discountRow = document.getElementById('orderDiscountRow');
-		if (this.discountAmount > 0) {
-			discountRow.style.display = 'flex';
-			document.getElementById('orderDiscount').textContent =
-				'-' + this.formatPrice(this.discountAmount);
-		} else {
-			discountRow.style.display = 'none';
+		const orderItemsContainer = document.querySelector('.order-items');
+		if (!orderItemsContainer || !this.cart || this.cart.length === 0) {
+			console.warn('No order items container or empty cart');
+			return;
 		}
-	}
 
-	/**
-	 * Initialize form with saved data
-	 */
-	initializeForm() {
-		// Load saved customer data from localStorage if available
-		const savedCustomer = localStorage.getItem('customerInfo');
-		if (savedCustomer) {
-			const customerData = JSON.parse(savedCustomer);
-			Object.keys(customerData).forEach((key) => {
-				const field = document.getElementById(key);
-				if (field) {
-					field.value = customerData[key];
+		const template = document.getElementById('orderItemTemplate');
+		if (!template) {
+			console.error('Order item template not found');
+			return;
+		}
+
+		console.log(`Processing ${this.cart.length} cart items`);
+
+		let html = '';
+		this.cart.forEach((item, index) => {
+			console.log(`Processing item ${index + 1}:`, item);
+
+			// Clone template properly
+			let templateContent = template.innerHTML;
+
+			console.log('Raw template:', templateContent);
+
+			// Debug log
+			console.log('Cart item:', item);
+
+			// Process image URL with better path handling
+			let imageUrl = '';
+			if (item.product_image && item.product_image.trim() !== '') {
+				const imagePath = item.product_image.trim();
+
+				// Remove any leading slashes and uploads/products/ prefix
+				let cleanPath = imagePath
+					.replace(/^\/+/, '')
+					.replace(/^uploads\/products\//, '');
+
+				// Check if it's already a full URL
+				if (imagePath.startsWith('http')) {
+					imageUrl = imagePath;
+				} else {
+					// Always use serve-file.php for relative paths
+					imageUrl = `/5s-fashion/serve-file.php?file=${encodeURIComponent(
+						'products/' + cleanPath
+					)}`;
+				}
+			}
+
+			console.log('Image processing:', {
+				original: item.product_image,
+				processed: imageUrl,
+			});
+
+			const productName = item.product_name || 'Sản phẩm';
+			console.log('Product name processing:', {
+				product_name: item.product_name,
+				final: productName,
+			});
+
+			// Build variant info from the variant field
+			let variantInfo = '';
+			if (item.variant) {
+				// variant might be a string or object, handle both cases
+				if (typeof item.variant === 'string') {
+					variantInfo = item.variant;
+				} else if (typeof item.variant === 'object') {
+					const parts = [];
+					if (item.variant.color)
+						parts.push(`Màu: ${item.variant.color}`);
+					if (item.variant.size)
+						parts.push(`Size: ${item.variant.size}`);
+					variantInfo = parts.join(' | ');
+				}
+			}
+
+			console.log('Product name:', productName);
+			console.log('About to replace {name} with:', productName);
+
+			// Perform replacements with validation
+			const replacements = [
+				[
+					'{image}',
+					imageUrl || '/5s-fashion/public/assets/images/no-image.jpg',
+				],
+				['{name}', productName],
+				['{variant_info}', variantInfo],
+				['{quantity}', item.quantity || 1],
+				[
+					'{price}',
+					this.formatCurrency(
+						(item.price || 0) * (item.quantity || 1)
+					),
+				],
+			];
+
+			replacements.forEach(([placeholder, value]) => {
+				const beforeReplace = templateContent;
+				// Use global regex to replace ALL occurrences (browser compatible)
+				const regex = new RegExp(
+					placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+					'g'
+				);
+				templateContent = templateContent.replace(regex, value);
+
+				if (
+					beforeReplace === templateContent &&
+					beforeReplace.includes(placeholder)
+				) {
+					console.warn(
+						`❌ Placeholder ${placeholder} was NOT replaced!`
+					);
+				} else if (beforeReplace !== templateContent) {
+					console.log(`✅ Replaced ${placeholder} with:`, value);
 				}
 			});
-		}
+
+			console.log('Final template content:', templateContent);
+
+			html += templateContent;
+		});
+
+		orderItemsContainer.innerHTML = html;
+
+		// Add error handling for images with better fallback
+		orderItemsContainer
+			.querySelectorAll('.item-image img')
+			.forEach((img) => {
+				img.onerror = function () {
+					// Only set fallback once to prevent loops
+					if (!this.src.includes('no-image.jpg')) {
+						this.src =
+							'/5s-fashion/public/assets/images/no-image.jpg';
+						this.style.objectFit = 'contain';
+						this.style.padding = '10px';
+					}
+				};
+
+				// Add loading event for success feedback
+				img.onload = function () {
+					console.log('Image loaded successfully:', this.src);
+				};
+			});
 	}
 
-	/**
-	 * Update shipping fee based on selected method
-	 */
-	updateShippingFee() {
-		const selectedMethod = document.querySelector(
-			'input[name="shippingMethod"]:checked'
-		);
-		if (!selectedMethod) return;
+	calculateTotal() {
+		if (!this.cart) return;
 
-		switch (selectedMethod.value) {
-			case 'standard':
-				this.shippingFee = 30000;
-				break;
-			case 'express':
-				this.shippingFee = 50000;
-				break;
-			default:
-				this.shippingFee = 30000;
-		}
+		this.orderSummary.subtotal = this.cart.reduce((total, item) => {
+			return total + (item.price || 0) * (item.quantity || 1);
+		}, 0);
 
+		this.orderSummary.total =
+			this.orderSummary.subtotal +
+			this.orderSummary.shipping -
+			this.orderSummary.discount;
 		this.updateOrderSummary();
 	}
 
-	/**
-	 * Update payment method
-	 */
-	updatePaymentMethod() {
-		const selectedMethod = document.querySelector(
-			'input[name="paymentMethod"]:checked'
-		);
-		console.log('Payment method changed:', selectedMethod?.value);
-	}
+	updateOrderSummary() {
+		const summaryContainer = document.querySelector('.order-summary');
+		if (!summaryContainer) return;
 
-	/**
-	 * Apply promo code for checkout
-	 */
-	async applyCheckoutPromoCode() {
-		const promoCodeInput = document.getElementById('checkoutPromoCode');
-		const code = promoCodeInput.value.trim().toUpperCase();
+		// Only update the totals section, not the entire summary
+		let totalsHtml = `
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="order-items">
+                        <!-- Items will be populated by displayOrderItems -->
+                    </div>
 
-		if (!code) {
-			this.showMessage('Vui lòng nhập mã giảm giá', 'error');
-			return;
-		}
+                    <hr>
 
-		try {
-			// Show loading
-			const button = promoCodeInput.nextElementSibling;
-			const originalText = button.textContent;
-			button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-			button.disabled = true;
-
-			// Validate promo code
-			const response = await this.validatePromoCode(code);
-
-			if (response.valid) {
-				this.promoCode = code;
-				this.discountAmount = response.discount;
-				localStorage.setItem(
-					'promoCode',
-					JSON.stringify({
-						code: code,
-						discount: response.discount,
-					})
-				);
-
-				this.updateOrderSummary();
-				this.showMessage(
-					`Đã áp dụng mã giảm giá ${code}! Giảm ${this.formatPrice(
-						response.discount
-					)}`,
-					'success'
-				);
-			} else {
-				this.showMessage(
-					response.message || 'Mã giảm giá không hợp lệ',
-					'error'
-				);
-			}
-
-			// Restore button
-			button.textContent = originalText;
-			button.disabled = false;
-		} catch (error) {
-			console.error('Error applying promo code:', error);
-			this.showMessage('Có lỗi xảy ra khi áp dụng mã giảm giá', 'error');
-		}
-	}
-
-	/**
-	 * Validate promo code
-	 */
-	async validatePromoCode(code) {
-		// Simulate API delay
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-
-		// Mock promo codes
-		const promoCodes = {
-			WELCOME10: { discount: 50000, minOrder: 200000 },
-			SALE20: { discount: 100000, minOrder: 300000 },
-			FREESHIP: { discount: 30000, minOrder: 150000 },
-			VIP30: { discount: 150000, minOrder: 500000 },
-		};
-
-		const promo = promoCodes[code];
-		if (!promo) {
-			return { valid: false, message: 'Mã giảm giá không tồn tại' };
-		}
-
-		const subtotal = this.getSubtotal();
-		if (subtotal < promo.minOrder) {
-			return {
-				valid: false,
-				message: `Đơn hàng tối thiểu ${this.formatPrice(
-					promo.minOrder
-				)} để sử dụng mã này`,
-			};
-		}
-
-		return { valid: true, discount: promo.discount };
-	}
-
-	/**
-	 * Validate form field
-	 */
-	validateField(field) {
-		const value = field.value.trim();
-		let isValid = true;
-		let message = '';
-
-		// Remove existing validation classes
-		field.classList.remove('is-invalid');
-		const existingFeedback =
-			field.parentNode.querySelector('.invalid-feedback');
-		if (existingFeedback) {
-			existingFeedback.remove();
-		}
-
-		// Required validation
-		if (field.hasAttribute('required') && !value) {
-			isValid = false;
-			message = 'Trường này là bắt buộc';
-		}
-
-		// Specific field validations
-		switch (field.type) {
-			case 'email':
-				if (value && !this.isValidEmail(value)) {
-					isValid = false;
-					message = 'Email không hợp lệ';
-				}
-				break;
-			case 'tel':
-				if (value && !this.isValidPhone(value)) {
-					isValid = false;
-					message = 'Số điện thoại không hợp lệ';
-				}
-				break;
-		}
-
-		// Show validation message
-		if (!isValid) {
-			field.classList.add('is-invalid');
-			const feedback = document.createElement('div');
-			feedback.className = 'invalid-feedback';
-			feedback.textContent = message;
-			field.parentNode.appendChild(feedback);
-		}
-
-		return isValid;
-	}
-
-	/**
-	 * Validate entire form
-	 */
-	validateForm() {
-		const form = document.getElementById('checkoutForm');
-		const requiredFields = form.querySelectorAll(
-			'input[required], select[required]'
-		);
-		let isValid = true;
-
-		requiredFields.forEach((field) => {
-			if (!this.validateField(field)) {
-				isValid = false;
-			}
-		});
-
-		return isValid;
-	}
-
-	/**
-	 * Place order
-	 */
-	async placeOrder() {
-		// Validate form
-		if (!this.validateForm()) {
-			this.showMessage(
-				'Vui lòng điền đầy đủ thông tin bắt buộc',
-				'error'
-			);
-			return;
-		}
-
-		// Validate address selection
-		if (window.addressManager) {
-			const selectedAddress = window.addressManager.getSelectedAddress();
-			if (!selectedAddress) {
-				this.showMessage('Vui lòng chọn địa chỉ giao hàng', 'error');
-				return;
-			}
-		}
-
-		try {
-			// Show loading
-			this.showLoadingOverlay('Đang xử lý đơn hàng...');
-
-			// Collect order data
-			this.orderData = this.collectOrderData();
-			
-			if (!this.orderData) {
-				this.hideLoadingOverlay();
-				return;
-			}
-
-			// Save customer info for future use
-			localStorage.setItem(
-				'customerInfo',
-				JSON.stringify({
-					fullName: this.orderData.customer.name,
-					phone: this.orderData.customer.phone,
-					email: this.orderData.customer.email,
-				})
-			);
-
-			// Process order based on payment method
-			const result = await this.processOrder();
-
-			if (result.success) {
-				// Clear cart
-				localStorage.removeItem('cart');
-				localStorage.removeItem('promoCode');
-
-				// Redirect to success page
-				window.location.href = `/order-success?orderCode=${result.orderCode}`;
-			} else {
-				throw new Error(result.message || 'Có lỗi xảy ra khi đặt hàng');
-			}
-		} catch (error) {
-			console.error('Error placing order:', error);
-			this.showMessage(
-				error.message || 'Có lỗi xảy ra khi đặt hàng',
-				'error'
-			);
-		} finally {
-			this.hideLoadingOverlay();
-		}
-	}
-
-	/**
-	 * Collect order data from form
-	 */
-	collectOrderData() {
-		// Get shipping method
-		const shippingMethod = document.querySelector('input[name="shippingMethod"]:checked')?.value || 'standard';
-		
-		// Get payment method
-		const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'cod';
-		
-		// Get order notes
-		const orderNotes = document.getElementById('orderNotes')?.value.trim() || '';
-
-		// Get address from address manager
-		const selectedAddress = window.addressManager?.getSelectedAddress();
-		if (!selectedAddress) {
-			this.showMessage('Vui lòng chọn địa chỉ giao hàng', 'error');
-			return null;
-		}
-
-		return {
-			items: this.cart,
-			customer: {
-				name: selectedAddress.name,
-				phone: selectedAddress.phone,
-				email: '', // Can be added later if needed
-				address: selectedAddress.address,
-				note: selectedAddress.note || ''
-			},
-			shipping: {
-				method: shippingMethod,
-				fee: this.getShippingFee()
-			},
-			payment: {
-				method: paymentMethod
-			},
-			orderNotes: orderNotes,
-			subtotal: this.getSubtotal(),
-			total: this.getTotal(),
-			discount: this.discountAmount,
-			promoCode: this.promoCode,
-			orderDate: new Date().toISOString()
-		};
-	}
-
-	/**
-	 * Process order
-	 */
-	async processOrder() {
-		// Simulate API delay
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-
-		// Generate order code
-		const orderCode = 'ORD' + Date.now();
-
-		// Mock successful order
-		return {
-			success: true,
-			orderCode: orderCode,
-			message: 'Đặt hàng thành công',
-		};
-	}
-
-	/**
-	 * Show loading overlay
-	 */
-	showLoadingOverlay(message = 'Đang xử lý...') {
-		const overlay = document.createElement('div');
-		overlay.className = 'loading-overlay';
-		overlay.id = 'loadingOverlay';
-		overlay.innerHTML = `
-            <div class="loading-content">
-                <div class="loading-spinner"></div>
-                <div class="loading-message">${message}</div>
+                    <div class="order-totals">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tạm tính:</span>
+                            <span>${this.formatCurrency(
+								this.orderSummary.subtotal
+							)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Phí vận chuyển:</span>
+                            <span>${this.formatCurrency(
+								this.orderSummary.shipping
+							)}</span>
+                        </div>
+                        ${
+							this.orderSummary.discount > 0
+								? `
+                        <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>Giảm giá:</span>
+                            <span>-${this.formatCurrency(
+								this.orderSummary.discount
+							)}</span>
+                        </div>
+                        `
+								: ''
+						}
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold fs-5">
+                            <span>Tổng cộng:</span>
+                            <span class="text-primary">${this.formatCurrency(
+								this.orderSummary.total
+							)}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
-		document.body.appendChild(overlay);
+
+		summaryContainer.innerHTML = totalsHtml;
+
+		// Display items after updating summary structure
+		this.displayOrderItems();
 	}
 
-	/**
-	 * Hide loading overlay
-	 */
-	hideLoadingOverlay() {
-		const overlay = document.getElementById('loadingOverlay');
-		if (overlay) {
-			overlay.remove();
+	async initializeForm() {
+		try {
+			// Load customer addresses
+			await this.loadAddresses();
+
+			// Render checkout form
+			this.renderCheckoutForm();
+		} catch (error) {
+			console.error('Error initializing form:', error);
+			this.showError('Không thể khởi tạo form thanh toán');
 		}
 	}
 
-	/**
-	 * Calculate subtotal
-	 */
-	getSubtotal() {
-		return this.cart.reduce(
-			(total, item) => total + item.price * item.quantity,
-			0
+	async loadAddresses() {
+		try {
+			const response = await fetch('/5s-fashion/order/addresses');
+			console.log('Address API response status:', response.status);
+
+			if (response.ok) {
+				const data = await response.json();
+				console.log('Load addresses response:', data);
+
+				if (data.success) {
+					this.addresses = data.addresses || [];
+					console.log('Loaded addresses:', this.addresses);
+
+					// Find default address
+					const defaultAddr = this.addresses.find(
+						(addr) => addr.is_default
+					);
+					if (defaultAddr) {
+						this.selectedAddress = defaultAddr;
+						console.log('Selected default address:', defaultAddr);
+					}
+				} else {
+					console.error('Failed to load addresses:', data.message);
+					// Initialize empty addresses array for graceful fallback
+					this.addresses = [];
+				}
+			} else if (response.status === 401 || response.status === 403) {
+				console.warn('User not authenticated, redirecting to login...');
+				// Redirect to login if not authenticated
+				window.location.href =
+					'/5s-fashion/login?redirect=' +
+					encodeURIComponent(window.location.pathname);
+				return;
+			} else {
+				console.error('HTTP error loading addresses:', response.status);
+				// Try to parse error response
+				try {
+					const errorData = await response.json();
+					console.error('Error details:', errorData);
+				} catch (e) {
+					console.error('Could not parse error response');
+				}
+				this.addresses = [];
+			}
+		} catch (error) {
+			console.error('Error loading addresses:', error);
+			// Fallback: empty addresses array
+			this.addresses = [];
+		}
+	}
+
+	renderCheckoutForm() {
+		const formContainer = document.getElementById('checkoutForm');
+		if (!formContainer) return;
+
+		formContainer.innerHTML = `
+            <!-- Customer Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin giao hàng</h5>
+                </div>
+                <div class="card-body">
+                    ${this.renderAddressSection()}
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Phương thức thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <div class="payment-methods">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" checked>
+                            <label class="form-check-label d-flex align-items-center" for="cod">
+                                <i class="fas fa-money-bill text-success me-2"></i>
+                                Thanh toán khi nhận hàng (COD)
+                            </label>
+                            <div class="text-muted small mt-1">Thanh toán bằng tiền mặt khi nhận hàng</div>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
+                            <label class="form-check-label d-flex align-items-center" for="bank_transfer">
+                                <i class="fas fa-university text-primary me-2"></i>
+                                Chuyển khoản ngân hàng
+                            </label>
+                            <div class="text-muted small mt-1">Chuyển khoản trước khi giao hàng</div>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="payment_method" id="momo" value="momo">
+                            <label class="form-check-label d-flex align-items-center" for="momo">
+                                <i class="fab fa-cc-visa text-info me-2"></i>
+                                Ví điện tử MoMo
+                            </label>
+                            <div class="text-muted small mt-1">Thanh toán qua ví MoMo</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Notes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Ghi chú đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" name="order_notes" rows="3"
+                              placeholder="Ghi chú cho người bán (tùy chọn)"></textarea>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-credit-card me-2"></i>
+                    Đặt hàng ngay
+                </button>
+            </div>
+        `;
+
+		// Add form submit handler
+		formContainer.addEventListener('submit', (e) => this.handleSubmit(e));
+	}
+
+	renderAddressSection() {
+		if (this.addresses.length === 0) {
+			return `
+                <div class="text-center py-4">
+                    <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Bạn chưa có địa chỉ giao hàng nào</p>
+                    <button type="button" class="btn btn-primary" onclick="addressManager.showAddressModal()">
+                        <i class="fas fa-plus me-2"></i>Thêm địa chỉ mới
+                    </button>
+                </div>
+            `;
+		}
+
+		let html = `
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="address-list">
+        `;
+
+		this.addresses.forEach((addr, index) => {
+			const isSelected =
+				this.selectedAddress && this.selectedAddress.id === addr.id;
+			html += `
+                <div class="address-item ${
+					isSelected ? 'selected' : ''
+				}" onclick="checkoutManager.selectAddress(${addr.id})">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="shipping_address"
+                               value="${addr.id}" ${
+				isSelected ? 'checked' : ''
+			}>
+                        <label class="form-check-label w-100">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="fw-bold">${
+										addr.name ||
+										addr.full_name ||
+										'Không có tên'
+									}</div>
+                                    <div class="text-muted">${
+										addr.phone || 'Không có SĐT'
+									}</div>
+                                    <div class="address-text">${
+										addr.address || 'Không có địa chỉ'
+									}</div>
+                                    ${
+										addr.is_default
+											? '<span class="badge bg-primary">Mặc định</span>'
+											: ''
+									}
+                                </div>
+                                <div class="address-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                            onclick="event.stopPropagation(); addressManager.editAddress(${
+												addr.id
+											})">
+                                        Sửa
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            onclick="event.stopPropagation(); addressManager.deleteAddress(${
+												addr.id
+											})">
+                                        Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            `;
+		});
+
+		html += `
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-outline-primary w-100" onclick="addressManager.showAddressModal()">
+                        <i class="fas fa-plus me-2"></i>Thêm địa chỉ mới
+                    </button>
+                </div>
+            </div>
+        `;
+
+		return html;
+	}
+
+	selectAddress(addressId) {
+		this.selectedAddress = this.addresses.find(
+			(addr) => addr.id === addressId
 		);
+
+		// Update visual selection
+		document.querySelectorAll('.address-item').forEach((item) => {
+			item.classList.remove('selected');
+		});
+		event.currentTarget.classList.add('selected');
+
+		// Update radio button
+		const radio = document.querySelector(`input[value="${addressId}"]`);
+		if (radio) radio.checked = true;
 	}
 
-	/**
-	 * Get shipping fee
-	 */
-	getShippingFee() {
-		const subtotal = this.getSubtotal();
-		// Free shipping for orders over 500k
-		return subtotal >= 500000 ? 0 : this.shippingFee;
+	async handleSubmit(event) {
+		event.preventDefault();
+
+		if (!this.selectedAddress) {
+			this.showError('Vui lòng chọn địa chỉ giao hàng');
+			return;
+		}
+
+		const formData = new FormData(event.target);
+
+		// Restructure data to match backend expectations
+		const orderData = {
+			customer: {
+				name:
+					this.selectedAddress.name ||
+					this.selectedAddress.full_name ||
+					'',
+				phone: this.selectedAddress.phone || '',
+			},
+			shipping: {
+				address: this.selectedAddress.address || '',
+			},
+			payment: {
+				method: formData.get('payment_method'),
+			},
+			order_notes: formData.get('order_notes') || '',
+			items: this.cart,
+			totals: this.orderSummary,
+		};
+
+		try {
+			const response = await fetch('/5s-fashion/order/place', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(orderData),
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				if (result.success) {
+					// Redirect to success page
+					if (result.redirect_url) {
+						window.location.href = result.redirect_url;
+					} else {
+						// Fallback redirect
+						window.location.href =
+							'/5s-fashion/order/success/' + result.order_id;
+					}
+				} else {
+					this.showError(result.message || 'Không thể tạo đơn hàng');
+				}
+			} else {
+				this.showError('Có lỗi xảy ra khi tạo đơn hàng');
+			}
+		} catch (error) {
+			console.error('Error creating order:', error);
+			this.showError('Có lỗi xảy ra khi tạo đơn hàng');
+		}
 	}
 
-	/**
-	 * Calculate total
-	 */
-	getTotal() {
-		return this.getSubtotal() + this.getShippingFee() - this.discountAmount;
-	}
-
-	/**
-	 * Format variant display
-	 */
-	formatVariant(item) {
-		const parts = [];
-		if (item.size) parts.push(`Size: ${item.size}`);
-		if (item.color) parts.push(`Màu: ${item.color}`);
-		return parts.join(' | ') || 'Mặc định';
-	}
-
-	/**
-	 * Format price
-	 */
-	formatPrice(price) {
+	formatCurrency(amount) {
 		return new Intl.NumberFormat('vi-VN', {
 			style: 'currency',
 			currency: 'VND',
-		}).format(price);
+		}).format(amount);
 	}
 
-	/**
-	 * Validate email
-	 */
-	isValidEmail(email) {
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		return emailRegex.test(email);
-	}
-
-	/**
-	 * Validate phone number
-	 */
-	isValidPhone(phone) {
-		const phoneRegex = /^[0-9]{10,11}$/;
-		return phoneRegex.test(phone.replace(/[^0-9]/g, ''));
-	}
-
-	/**
-	 * Show message to user
-	 */
-	showMessage(message, type = 'info') {
-		// Create message element
-		const messageEl = document.createElement('div');
-		messageEl.className = `alert ${
-			type === 'error' ? 'error-message' : 'success-message'
-		} position-fixed`;
-		messageEl.style.cssText = `
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-            animation: slideInRight 0.3s ease;
-        `;
-
-		messageEl.innerHTML = `
-            <i class="fas fa-${
-				type === 'success' ? 'check-circle' : 'exclamation-circle'
-			} me-2"></i>
-            ${message}
-        `;
-
-		document.body.appendChild(messageEl);
-
-		// Auto remove after 5 seconds
-		setTimeout(() => {
-			messageEl.style.animation = 'slideOutRight 0.3s ease';
-			setTimeout(() => {
-				if (messageEl.parentNode) {
-					messageEl.parentNode.removeChild(messageEl);
-				}
-			}, 300);
-		}, 5000);
+	showError(message) {
+		const errorModal = new bootstrap.Modal(
+			document.getElementById('errorModal')
+		);
+		document.getElementById('errorMessage').textContent = message;
+		errorModal.show();
 	}
 }
 
-// Global functions
-window.applyCheckoutPromoCode = function () {
-	if (window.checkoutManager) {
-		window.checkoutManager.applyCheckoutPromoCode();
+/**
+ * Checkout Address Manager
+ * Handles address management for checkout
+ */
+class CheckoutAddressManager {
+	constructor() {
+		this.provinces = [];
+		this.districts = [];
+		this.wards = [];
+		this.map = null;
+		this.marker = null;
+		this.selectedLocation = null;
 	}
-};
 
-window.placeOrder = function () {
-	if (window.checkoutManager) {
-		window.checkoutManager.placeOrder();
+	async showAddressModal(addressId = null) {
+		const modal = new bootstrap.Modal(
+			document.getElementById('addressModal')
+		);
+
+		if (addressId) {
+			// Edit mode
+			const address = checkoutManager.addresses.find(
+				(addr) => addr.id === addressId
+			);
+			if (address) {
+				this.populateAddressForm(address);
+			}
+		} else {
+			// Add new mode
+			document.getElementById('addressForm').reset();
+		}
+
+		// Load provinces if not loaded
+		if (this.provinces.length === 0) {
+			await this.loadProvinces();
+		}
+
+		modal.show();
 	}
-};
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
+	async loadProvinces() {
+		try {
+			// Use Vietnam provinces API that supports CORS
+			const response = await fetch(
+				'https://vapi.vnappmob.com/api/province/',
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			);
 
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
+			if (response.ok) {
+				const data = await response.json();
+				console.log('Provinces API response:', data);
+
+				// Handle different API response format
+				this.provinces = data.results || data || [];
+				this.populateProvinceSelect();
+			} else {
+				throw new Error(`API returned ${response.status}`);
+			}
+		} catch (error) {
+			console.error('Error loading provinces:', error);
+
+			// Fallback: use static data for major provinces
+			this.provinces = [
+				{ province_id: '1', province_name: 'Thành phố Hà Nội' },
+				{ province_id: '79', province_name: 'Thành phố Hồ Chí Minh' },
+				{ province_id: '48', province_name: 'Thành phố Đà Nẵng' },
+				{ province_id: '31', province_name: 'Thành phố Hải Phòng' },
+				{ province_id: '92', province_name: 'Thành phố Cần Thơ' },
+				{ province_id: '4', province_name: 'Tỉnh Cao Bằng' },
+				{ province_id: '6', province_name: 'Tỉnh Bắc Kạn' },
+				{ province_id: '8', province_name: 'Tỉnh Tuyên Quang' },
+			];
+			this.populateProvinceSelect();
+
+			this.showAddressError(
+				'Đang sử dụng danh sách tỉnh/thành phố cơ bản. Một số tỉnh có thể chưa đầy đủ.'
+			);
+		}
+	}
+
+	populateProvinceSelect() {
+		const select = document.querySelector('select[name="province"]');
+		if (!select) return;
+
+		select.innerHTML = '<option value="">Chọn tỉnh/thành</option>';
+		this.provinces.forEach((province) => {
+			// Handle different API response formats
+			const code = province.province_id || province.code || province.id;
+			const name = province.province_name || province.name;
+			select.innerHTML += `<option value="${code}" data-name="${name}">${name}</option>`;
+		});
+
+		select.addEventListener('change', (e) =>
+			this.loadDistricts(e.target.value)
+		);
+	}
+
+	async loadDistricts(provinceCode) {
+		if (!provinceCode) return;
+
+		try {
+			// Use alternative API endpoint that supports CORS
+			const response = await fetch(
+				`https://vapi.vnappmob.com/api/province/district/${provinceCode}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				console.log('Districts API response:', data);
+
+				// Handle different API response format
+				this.districts = data.results || data.districts || [];
+				this.populateDistrictSelect();
+			} else {
+				throw new Error(`API returned ${response.status}`);
+			}
+		} catch (error) {
+			console.error('Error loading districts:', error);
+
+			// Fallback: provide basic districts for major cities
+			if (provinceCode === '79') {
+				// Ho Chi Minh City
+				this.districts = [
+					{ district_id: '760', district_name: 'Quận 1' },
+					{ district_id: '769', district_name: 'Quận 3' },
+					{ district_id: '778', district_name: 'Quận 10' },
+					{ district_id: '783', district_name: 'Quận Tân Bình' },
+					{ district_id: '794', district_name: 'Quận Bình Thạnh' },
+				];
+			} else if (provinceCode === '1') {
+				// Hanoi
+				this.districts = [
+					{ district_id: '1', district_name: 'Quận Ba Đình' },
+					{ district_id: '5', district_name: 'Quận Hoàn Kiếm' },
+					{ district_id: '6', district_name: 'Quận Tây Hồ' },
+					{ district_id: '7', district_name: 'Quận Long Biên' },
+					{ district_id: '8', district_name: 'Quận Cầu Giấy' },
+				];
+			} else {
+				this.districts = [
+					{
+						district_id: 'default',
+						district_name: 'Quận/Huyện trung tâm',
+					},
+				];
+			}
+
+			this.populateDistrictSelect();
+			this.showAddressError('Đang sử dụng danh sách quận/huyện cơ bản.');
+		}
+	}
+
+	populateDistrictSelect() {
+		const select = document.querySelector('select[name="district"]');
+		if (!select) return;
+
+		select.innerHTML = '<option value="">Chọn quận/huyện</option>';
+		this.districts.forEach((district) => {
+			// Handle different API response formats
+			const code = district.district_id || district.code || district.id;
+			const name = district.district_name || district.name;
+			select.innerHTML += `<option value="${code}" data-name="${name}">${name}</option>`;
+		});
+
+		select.addEventListener('change', (e) =>
+			this.loadWards(e.target.value)
+		);
+	}
+
+	async loadWards(districtCode) {
+		if (!districtCode) return;
+
+		try {
+			// Use Vietnam wards API that supports CORS
+			const response = await fetch(
+				`https://vapi.vnappmob.com/api/province/ward/${districtCode}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				console.log('Wards API response:', data);
+
+				// Handle different API response format
+				this.wards = data.results || data.wards || [];
+				this.populateWardSelect();
+			} else {
+				throw new Error(`API returned ${response.status}`);
+			}
+		} catch (error) {
+			console.error('Error loading wards:', error);
+
+			// Fallback: provide basic wards
+			this.wards = [
+				{ ward_id: 'default-1', ward_name: 'Phường 1' },
+				{ ward_id: 'default-2', ward_name: 'Phường 2' },
+				{ ward_id: 'default-3', ward_name: 'Phường 3' },
+				{ ward_id: 'default-other', ward_name: 'Phường/Xã khác' },
+			];
+
+			this.populateWardSelect();
+			this.showAddressError('Đang sử dụng danh sách phường/xã cơ bản.');
+		}
+	}
+
+	populateWardSelect() {
+		const select = document.querySelector('select[name="ward"]');
+		if (!select) return;
+
+		select.innerHTML = '<option value="">Chọn phường/xã</option>';
+		this.wards.forEach((ward) => {
+			// Handle different API response formats
+			const code = ward.ward_id || ward.code || ward.id;
+			const name = ward.ward_name || ward.name;
+			select.innerHTML += `<option value="${code}" data-name="${name}">${name}</option>`;
+		});
+	}
+
+	showAddressError(message) {
+		console.error('Address API Error:', message);
+
+		// Show notification if available
+		if (typeof showToast === 'function') {
+			showToast(message, 'error');
+		} else if (typeof alert === 'function') {
+			alert(message);
+		}
+
+		// Or create a simple error display in the modal
+		const errorDiv = document.createElement('div');
+		errorDiv.className = 'alert alert-danger mt-2';
+		errorDiv.textContent = message;
+
+		const modal = document.querySelector('#addressModal .modal-body');
+		if (modal) {
+			const existingError = modal.querySelector('.alert-danger');
+			if (existingError) {
+				existingError.remove();
+			}
+			modal.appendChild(errorDiv);
+
+			// Auto remove after 5 seconds
+			setTimeout(() => {
+				if (errorDiv.parentNode) {
+					errorDiv.remove();
+				}
+			}, 5000);
+		}
+	}
+
+	async saveAddress() {
+		const form = document.getElementById('addressForm');
+		const formData = new FormData(form);
+
+		// Get selected names (not just codes)
+		const provinceSelect = form.querySelector('select[name="province"]');
+		const districtSelect = form.querySelector('select[name="district"]');
+		const wardSelect = form.querySelector('select[name="ward"]');
+
+		const addressData = {
+			// Backend expects 'name' and 'address', not 'full_name' and 'address_line'
+			name: formData.get('full_name'),
+			phone: formData.get('phone'),
+			address: `${formData.get('address_line')}, ${
+				wardSelect.options[wardSelect.selectedIndex]?.dataset.name || ''
+			}, ${
+				districtSelect.options[districtSelect.selectedIndex]?.dataset
+					.name || ''
+			}, ${
+				provinceSelect.options[provinceSelect.selectedIndex]?.dataset
+					.name || ''
+			}`,
+			note: formData.get('note') || '', // Optional note field
+			is_default: formData.get('is_default') ? 1 : 0,
+		};
+
+		console.log('Sending address data:', addressData);
+
+		try {
+			const response = await fetch('/5s-fashion/order/addAddress', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(addressData),
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				if (result.success) {
+					// Close modal and reload addresses
+					bootstrap.Modal.getInstance(
+						document.getElementById('addressModal')
+					).hide();
+					await checkoutManager.loadAddresses();
+					checkoutManager.renderCheckoutForm();
+				} else {
+					alert(result.message || 'Không thể lưu địa chỉ');
+				}
+			} else {
+				alert('Có lỗi xảy ra khi lưu địa chỉ');
+			}
+		} catch (error) {
+			console.error('Error saving address:', error);
+			alert('Có lỗi xảy ra khi lưu địa chỉ');
+		}
+	}
+
+	async editAddress(addressId) {
+		// Implementation for editing existing address
+		await this.showAddressModal(addressId);
+	}
+
+	async deleteAddress(addressId) {
+		if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
+
+		try {
+			const response = await fetch(
+				`/5s-fashion/order/deleteAddress/${addressId}`,
+				{
+					method: 'DELETE',
+				}
+			);
+
+			if (response.ok) {
+				const result = await response.json();
+				if (result.success) {
+					alert(result.message);
+					await checkoutManager.loadAddresses();
+					checkoutManager.renderCheckoutForm();
+				} else {
+					alert(result.message || 'Không thể xóa địa chỉ');
+				}
+			} else {
+				alert('Có lỗi xảy ra khi xóa địa chỉ');
+			}
+		} catch (error) {
+			alert('Có lỗi xảy ra khi xóa địa chỉ');
+		}
+	}
+
+	async setDefaultAddress(id) {
+		try {
+			const response = await fetch(
+				`/5s-fashion/order/setDefaultAddress/${id}`,
+				{
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ is_default: true }),
+				}
+			);
+
+			if (response.ok) {
+				const result = await response.json();
+				if (result.success) {
+					alert(result.message);
+					window.location.reload();
+				} else {
+					alert(result.message || 'Không thể đặt địa chỉ mặc định');
+				}
+			} else {
+				alert('Có lỗi xảy ra khi đặt địa chỉ mặc định');
+			}
+		} catch (error) {
+			alert('Có lỗi xảy ra khi đặt địa chỉ mặc định');
+		}
+	}
+
+	populateAddressForm(address) {
+		const form = document.getElementById('addressForm');
+		if (!form) return;
+
+		form.querySelector('[name="full_name"]').value =
+			address.full_name || '';
+		form.querySelector('[name="phone"]').value = address.phone || '';
+		form.querySelector('[name="address_line"]').value =
+			address.address_line || '';
+
+		// Set address type
+		const addressType = form.querySelector(
+			`[name="address_type"][value="${address.address_type}"]`
+		);
+		if (addressType) addressType.checked = true;
+
+		// Set default checkbox
+		const isDefault = form.querySelector('[name="is_default"]');
+		if (isDefault) isDefault.checked = address.is_default == 1;
+	}
+}
+
+// Global instances
+let checkoutManager;
+let addressManager;
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+	console.log('DOM Content Loaded - Initializing checkout');
+
+	checkoutManager = new CheckoutManager();
+	addressManager = new CheckoutAddressManager();
+
+	console.log('About to load order...');
+	checkoutManager.loadOrder();
+
+	console.log('About to initialize form...');
+	checkoutManager.initializeForm();
+});
+
+console.log('Checkout.js fully loaded and ready');

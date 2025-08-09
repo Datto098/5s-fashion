@@ -22,15 +22,6 @@ $router->get('/search', 'HomeController@shop'); // Search uses same shop method
 // Product routes
 $router->get('/product/{slug}', 'HomeController@product');
 
-// Cart routes
-$router->get('/cart', 'CartController@index');
-$router->post('/cart/add', 'CartController@add');
-$router->post('/cart/update', 'CartController@update');
-$router->post('/cart/remove', 'CartController@remove');
-$router->post('/cart/clear', 'CartController@clear');
-$router->get('/cart/count', 'CartController@count');
-$router->get('/cart/get', 'CartController@get');
-
 // Checkout routes
 $router->get('/checkout', 'HomeController@checkout');
 $router->post('/checkout/process', 'CheckoutController@process');
@@ -113,6 +104,7 @@ $router->post('/ajax/cart/update', 'AjaxController@updateCart');
 $router->post('/ajax/cart/remove', 'AjaxController@removeFromCart');
 $router->get('/ajax/cart/items', 'AjaxController@getCartItems');
 $router->post('/ajax/wishlist/toggle', 'AjaxController@toggleWishlist');
+$router->get('/ajax/wishlist/list', 'AjaxController@getWishlistList');
 $router->get('/ajax/search/suggestions', 'AjaxController@searchSuggestions');
 $router->get('/ajax/product/{id}', 'AjaxController@getProduct');
 

@@ -1,0 +1,335 @@
+/* Checkout Validation Styles */
+/* Note: Common form and button styles moved to components.css */
+
+/* Error Messages */
+.error-message {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(238, 90, 36, 0.3);
+    font-weight: 500;
+}
+
+.success-message {
+    background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(64, 192, 87, 0.3);
+    font-weight: 500;
+}
+
+/* Form Validation Styles - Enhanced for checkout */
+/* Note: Basic form styles moved to components.css */
+.form-control.is-invalid {
+    border-color: #dc3545 !important;
+    padding-right: calc(1.5em + 0.75rem) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6l.4.4.4-.4m0 0l.4.4m-.4-.4l-.4.4m.4-.4v3'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right calc(0.375em + 0.1875rem) center !important;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem) !important;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+    animation: shake 0.3s ease-in-out !important;
+}
+
+.form-control.is-valid {
+    border-color: #198754 !important;
+    padding-right: calc(1.5em + 0.75rem) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73l.4-.4 1.4-1.4L7.3 1.74c.2-.2.2-.5 0-.7s-.5-.2-.7 0L3.4 4.2 1.6 2.4c-.2-.2-.5-.2-.7 0s-.2.5 0 .7l1.4 3.63z'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right calc(0.375em + 0.1875rem) center !important;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem) !important;
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
+}
+
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    padding-left: 0.5rem;
+    font-weight: 500;
+}
+
+/* Payment Method Selection */
+.payment-method-item {
+    transition: all 0.3s ease;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.payment-method-item:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.payment-method-item.selected {
+    border-color: #007bff;
+    background-color: #e3f2fd;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.payment-method-item input[type="radio"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+/* Loading States */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Address Selection */
+.address-option {
+    transition: all 0.3s ease;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.address-option:hover {
+    border-color: #28a745;
+    background-color: #f8f9fa;
+}
+
+.address-option.selected {
+    border-color: #28a745;
+    background-color: #d4edda;
+}
+
+.address-option input[type="radio"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+/* Animations */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-10px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(10px);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Form Group Styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-group .required::after {
+    content: " *";
+    color: #dc3545;
+}
+
+/* Confirmation Dialog Override */
+.swal2-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+.swal2-title {
+    color: #495057 !important;
+    font-weight: 600 !important;
+}
+
+.swal2-content {
+    color: #6c757d !important;
+}
+
+/* Order Summary Enhancements */
+.order-summary {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+}
+
+.order-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.order-summary-item:last-child {
+    border-bottom: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #007bff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+
+    .error-message,
+    .success-message {
+        top: 10px !important;
+        right: 10px !important;
+        left: 10px !important;
+        min-width: auto !important;
+    }
+
+    .payment-method-item,
+    .address-option {
+        padding: 12px;
+    }
+
+    .form-control.is-invalid,
+    .form-control.is-valid {
+        background-size: calc(0.65em + 0.375rem) calc(0.65em + 0.375rem);
+    }
+}
+
+/* Focus States */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    outline: 0;
+}
+
+.btn:focus {
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
+    outline: 0;
+}
+
+/* Promo Code Section */
+.promo-code-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px dashed #dee2e6;
+}
+
+.promo-code-section.applied {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+/* Checkout Progress Indicator */
+.checkout-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.checkout-progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 1;
+}
+
+.checkout-step {
+    background: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    z-index: 2;
+    position: relative;
+}
+
+.checkout-step.active {
+    border-color: #007bff;
+    background: #007bff;
+    color: #fff;
+}
+
+.checkout-step.completed {
+    border-color: #28a745;
+    background: #28a745;
+    color: #fff;
+}

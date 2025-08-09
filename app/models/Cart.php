@@ -183,8 +183,13 @@ class Cart extends BaseModel {
             $sql = "SELECT price, sale_price FROM product_variants WHERE id = ?";
             $variant = $this->db->query($sql, [$variantId])->fetch();
 
-            if ($variant && ($variant['price'] || $variant['sale_price'])) {
-                return $variant['sale_price'] ?: $variant['price'];
+            if ($variant) {
+                // Use sale_price if it's set and > 0, otherwise use regular price
+                if (!empty($variant['sale_price']) && $variant['sale_price'] > 0) {
+                    return $variant['sale_price'];
+                } elseif (!empty($variant['price']) && $variant['price'] > 0) {
+                    return $variant['price'];
+                }
             }
         }
 
@@ -192,7 +197,16 @@ class Cart extends BaseModel {
         $sql = "SELECT price, sale_price FROM products WHERE id = ?";
         $product = $this->db->query($sql, [$productId])->fetch();
 
-        return $product ? ($product['sale_price'] ?: $product['price']) : 0;
+        if ($product) {
+            // Use sale_price if it's set and > 0, otherwise use regular price
+            if (!empty($product['sale_price']) && $product['sale_price'] > 0) {
+                return $product['sale_price'];
+            } elseif (!empty($product['price']) && $product['price'] > 0) {
+                return $product['price'];
+            }
+        }
+
+        return 0;
     }
 
     /**

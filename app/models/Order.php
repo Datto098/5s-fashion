@@ -155,19 +155,28 @@ class Order extends BaseModel
             }
 
             // Insert order
-            $orderId = $this->create($orderData);
+            $orderResult = $this->create($orderData);
 
-            if (!$orderId) {
+            if (!$orderResult) {
                 throw new Exception('Failed to create order');
             }
+
+            $orderId = $orderResult['id'];
 
             // Insert order items
             foreach ($items as $item) {
                 $item['order_id'] = $orderId;
                 $item['total'] = $item['price'] * $item['quantity'];
 
-                if (isset($item['variant_info']) && is_array($item['variant_info'])) {
-                    $item['variant_info'] = json_encode($item['variant_info']);
+                if (isset($item['variant_info'])) {
+                    if (is_array($item['variant_info'])) {
+                        $item['variant_info'] = json_encode($item['variant_info']);
+                    } elseif (is_string($item['variant_info']) && !empty($item['variant_info'])) {
+                        // If it's a plain string, wrap it in a simple structure
+                        $item['variant_info'] = json_encode(['info' => $item['variant_info']]);
+                    } else {
+                        $item['variant_info'] = null;
+                    }
                 }
 
                 $this->createOrderItem($item);

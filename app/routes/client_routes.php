@@ -16,15 +16,8 @@ return [
     // Product
     'product/{slug}' => 'HomeController@product',
 
-    // Cart - Updated to use new CartController
-    'cart' => 'CartController@index',
-    'cart/debug' => 'CartController@debug',
-    'cart/add' => 'CartController@add',
-    'cart/update' => 'CartController@update',
-    'cart/remove' => 'CartController@remove',
-    'cart/clear' => 'CartController@clear',
-    'cart/count' => 'CartController@count',
-    'cart/get' => 'CartController@get',
+    // Cart
+    'cart' => 'HomeController@cart',
 
     // Checkout
     'checkout' => 'HomeController@checkout',
@@ -68,6 +61,7 @@ return [
     'ajax/cart/remove' => 'AjaxController@removeFromCart',
     'ajax/cart/items' => 'AjaxController@getCartItems',
     'ajax/wishlist/toggle' => 'AjaxController@toggleWishlist',
+    'ajax/wishlist/list' => 'AjaxController@getWishlistList',
     'ajax/product/data' => 'AjaxController@getProductData',
     'ajax/product/quickview' => 'AjaxController@getProductForQuickView',
 
@@ -93,15 +87,26 @@ return [
 
     // Order API routes for checkout
     'order/addresses' => 'OrderController@getAddresses',
-    'order/addAddress' => 'OrderController@addAddress', 
+    'order/addAddress' => 'OrderController@addAddress',
     'order/editAddress/{id}' => 'OrderController@editAddress',
     'order/getAddress/{id}' => 'OrderController@getAddress',
     'order/updateAddress/{id}' => 'OrderController@updateAddress',
     'order/deleteAddress/{id}' => 'OrderController@deleteAddress',
     'order/setDefaultAddress/{id}' => 'OrderController@setDefaultAddress',
     'order/place' => 'OrderController@placeOrder',
+    'order/success/{id}' => 'OrderController@success',
+    'order/success' => 'OrderController@success',
+    'order/tracking' => 'OrderController@tracking',
 
-    
+    // Payment routes
+    'payment/methods' => 'PaymentController@getMethods',
+    'payment/vnpay' => 'PaymentController@vnpay',
+    'payment/vnpay/return' => 'PaymentController@vnpayReturn',
+    'payment/momo' => 'PaymentController@momo',
+    'payment/momo/return' => 'PaymentController@momoReturn',
+    'payment/bank-transfer' => 'PaymentController@bankTransfer',
+
+
 
     //Posts
     'blog' => 'PostController@index',

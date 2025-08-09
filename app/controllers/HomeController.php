@@ -183,8 +183,18 @@ class HomeController extends Controller
 
     public function cart()
     {
+        // Initialize Cart model
+        $cartModel = $this->model('Cart');
+
+        $cartItems = $cartModel->getCartItems();
+        $cartTotal = $cartModel->getCartTotal();
+        $cartCount = $cartModel->getCartCount();
+
         $data = [
-            'title' => 'Giỏ Hàng - 5S Fashion'
+            'title' => 'Giỏ hàng - 5S Fashion',
+            'cartItems' => $cartItems,
+            'cartTotal' => $cartTotal,
+            'cartCount' => $cartCount
         ];
 
         $this->view('client/cart/index', $data);
@@ -192,16 +202,40 @@ class HomeController extends Controller
 
     public function checkout()
     {
+        // Initialize Cart model
+        $cartModel = $this->model('Cart');
+
+        // Get cart data
+        $cartItems = $cartModel->getCartItems();
+        $cartTotal = $cartModel->getCartTotal();
+        $cartCount = $cartModel->getCartCount();
+
+        // Format cart items for JavaScript compatibility
+        $formattedCartItems = array_map(function($item) {
+            return [
+                'cart_key' => $item['id'] ?? $item['cart_key'] ?? null,
+                'product_id' => $item['product_id'],
+                'name' => $item['product_name'], // Map product_name to name
+                'image' => $item['product_image'], // Map product_image to image
+                'price' => floatval($item['price']),
+                'quantity' => intval($item['quantity']),
+                'variant' => $item['variant_name'] ?? null
+            ];
+        }, $cartItems);
+
         $addresses = [];
-        
+
         // Load user addresses if logged in
         if (isset($_SESSION['user'])) {
             $customerModel = $this->model('Customer');
             $addresses = $customerModel->getAddressesByUserId($_SESSION['user']['id']);
         }
-        
+
         $data = [
             'title' => 'Thanh Toán - 5S Fashion',
+            'cartItems' => $formattedCartItems, // Use formatted items
+            'cartTotal' => $cartTotal,
+            'cartCount' => $cartCount,
             'addresses' => $addresses
         ];
 

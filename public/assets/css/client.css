@@ -393,9 +393,7 @@ body {
 
 /* Utility Classes */
 .text-gradient {
-    background: linear-gradient(45deg, var(--primary-color), var(--info-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--primary-color);
 }
 
 .shadow-hover {
@@ -408,15 +406,15 @@ body {
 }
 
 .bg-gradient-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    background: var(--primary-color);
 }
 
 .bg-gradient-success {
-    background: linear-gradient(135deg, var(--success-color), #20c997);
+    background: var(--success-color);
 }
 
 .bg-gradient-danger {
-    background: linear-gradient(135deg, var(--danger-color), #fd7e14);
+    background: var(--danger-color);
 }
 
 /* Fix Dropdown Z-Index Issues */
