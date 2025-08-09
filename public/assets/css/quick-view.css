@@ -1,0 +1,498 @@
+/**
+ * Quick View Modal Styles
+ * Following UI.md design standards
+ */
+
+/* Modal Base Styling - Following UI.md Standards */
+#quickViewModal .modal-dialog {
+    max-width: 1200px;
+    margin: 1.75rem auto;
+}
+
+#quickViewModal .modal-content {
+    border: none !important;
+    border-radius: 15px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+/* Modal Header - Clean Design */
+#quickViewModal .modal-header {
+    background: #ffffff !important;
+    color: #333333 !important;
+    border-bottom: 1px solid #e9ecef !important;
+    padding: 1.5rem !important;
+}
+
+#quickViewModal .modal-title {
+    font-weight: 600 !important;
+    font-size: 1.25rem !important;
+    color: #333333 !important;
+}
+
+#quickViewModal .modal-title i {
+    color: var(--primary-color, #007bff) !important;
+}
+
+#quickViewModal .btn-close {
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+#quickViewModal .btn-close:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Product Image Container */
+.product-image-container {
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.product-image-container img {
+    transition: transform 0.3s ease;
+}
+
+.product-image-container:hover img {
+    transform: scale(1.02);
+}
+
+/* Product Details */
+.product-details {
+    padding: 0;
+}
+
+.product-name {
+    color: var(--dark-color, #343a40) !important;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+}
+
+/* Price Display */
+.current-price {
+    font-weight: 700 !important;
+    font-size: 2rem !important;
+}
+
+.current-price.text-danger {
+    color: var(--danger-color, #dc3545) !important;
+}
+
+.original-price {
+    font-size: 1.2rem !important;
+    color: var(--secondary-color, #6c757d) !important;
+}
+
+/* Star Rating */
+.stars {
+    font-size: 1rem;
+}
+
+.stars i {
+    margin-right: 2px;
+}
+
+/* Product Description */
+.product-description p {
+    color: var(--secondary-color, #6c757d);
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* Variants Section */
+.product-variants {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.25rem;
+}
+
+.variant-group .form-label {
+    color: #495057;
+    font-weight: 600 !important;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+/* Variant Buttons */
+.variant-group .btn {
+    border-radius: 6px !important;
+    padding: 8px 16px !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    border: 2px solid #e9ecef !important;
+    color: #6c757d !important;
+    background: white !important;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.variant-group .btn:hover {
+    border-color: var(--primary-color, #007bff) !important;
+    color: var(--primary-color, #007bff) !important;
+    background: rgba(0, 123, 255, 0.05) !important;
+    transform: none !important;
+}
+
+.variant-group .btn.active {
+    background: var(--primary-color, #007bff) !important;
+    border-color: var(--primary-color, #007bff) !important;
+    color: white !important;
+}
+
+/* Action Buttons - Clean Design */
+.product-actions .btn-primary-action,
+.product-actions .btn-outline-primary-action,
+.product-actions .btn-outline-secondary-action {
+    font-size: 1rem !important;
+    padding: 12px 24px !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    min-height: 48px !important;
+}
+
+.product-actions .btn-primary-action {
+    background: var(--primary-color, #007bff) !important;
+    color: white !important;
+    border: 2px solid var(--primary-color, #007bff) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+}
+
+.product-actions .btn-primary-action:hover {
+    background: #0056b3 !important;
+    border-color: #0056b3 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25) !important;
+    color: white !important;
+}
+
+.product-actions .btn-outline-primary-action {
+    border: 2px solid var(--primary-color, #007bff) !important;
+    color: var(--primary-color, #007bff) !important;
+    background: transparent !important;
+}
+
+.product-actions .btn-outline-primary-action:hover {
+    background: var(--primary-color, #007bff) !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.25) !important;
+}
+
+.product-actions .btn-outline-secondary-action {
+    border: 2px solid var(--secondary-color, #6c757d) !important;
+    color: var(--secondary-color, #6c757d) !important;
+    background: transparent !important;
+}
+
+.product-actions .btn-outline-secondary-action:hover {
+    background: var(--secondary-color, #6c757d) !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(108, 117, 125, 0.25) !important;
+}
+
+/* Disabled Button */
+.product-actions .btn:disabled {
+    opacity: 0.6;
+    transform: none !important;
+    cursor: not-allowed;
+}
+
+/* Loading and Error States */
+.quick-view-loading,
+.quick-view-error {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quick-view-loading .spinner-border {
+    width: 3rem !important;
+    height: 3rem !important;
+    border-width: 0.3em;
+}
+
+.quick-view-error i {
+    font-size: 3rem;
+    color: var(--danger-color, #dc3545);
+    margin-bottom: 1rem;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75rem !important;
+    padding: 0.5em 0.75em !important;
+    border-radius: 25px !important;
+    font-weight: 600 !important;
+}
+
+.badge.bg-danger {
+    background: var(--danger-color, #dc3545) !important;
+}
+
+.badge.bg-secondary {
+    background: var(--secondary-color, #6c757d) !important;
+}
+
+/* Product Image Carousel */
+.product-image-carousel {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    background: #f8f9fa;
+}
+
+.product-image-carousel .carousel-inner {
+    border-radius: 15px;
+}
+
+.product-image-carousel .carousel-item img {
+    height: 400px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.product-image-carousel .carousel-control-prev,
+.product-image-carousel .carousel-control-next {
+    width: 40px;
+    height: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.product-image-carousel:hover .carousel-control-prev,
+.product-image-carousel:hover .carousel-control-next {
+    opacity: 1;
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.product-image-carousel .carousel-control-prev {
+    left: 15px;
+}
+
+.product-image-carousel .carousel-control-next {
+    right: 15px;
+}
+
+.product-image-carousel .carousel-control-prev-icon,
+.product-image-carousel .carousel-control-next-icon {
+    width: 20px;
+    height: 20px;
+    background-size: 20px;
+    filter: brightness(0) invert(0.5);
+    transition: filter 0.3s ease;
+}
+
+.product-image-carousel:hover .carousel-control-prev-icon,
+.product-image-carousel:hover .carousel-control-next-icon {
+    filter: brightness(0) invert(1);
+}
+
+.product-image-carousel .carousel-indicators {
+    bottom: 15px;
+}
+
+.product-image-carousel .carousel-indicators button {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 0 3px;
+    background: transparent;
+    border: 2px solid #ffffff;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.product-image-carousel .carousel-indicators button.active {
+    background: #007bff;
+    border-color: #007bff;
+    opacity: 1;
+}
+
+.product-image-carousel .carousel-indicators button.active {
+    background: #ffffff;
+    border-color: #007bff;
+}
+
+/* Quantity Selector - Simple & Classic */
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.quantity-selector .quantity-btn {
+    width: 24px;
+    height: 24px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.quantity-selector .quantity-btn:hover {
+    background: #f0f0f0;
+}
+
+.quantity-selector .quantity-input {
+    width: 45px;
+    height: 24px;
+    border: 1px solid #ccc;
+    text-align: center;
+    font-size: 13px;
+    color: #333;
+    background: #fff;
+    padding: 0;
+}
+
+.quantity-selector .quantity-input:focus {
+    outline: none;
+    border-color: #999;
+}
+
+/* Hide spinners */
+.quantity-selector .quantity-input::-webkit-outer-spin-button,
+.quantity-selector .quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-selector .quantity-input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+#quickViewModal .modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+}
+
+#quickViewModal .modal-header {
+    padding: 1rem !important;
+}
+
+#quickViewModal .modal-title {
+    font-size: 1.1rem !important;
+}
+
+.current-price {
+    font-size: 1.5rem !important;
+}
+
+.original-price {
+    font-size: 1rem !important;
+}
+
+.product-actions .btn-primary-action,
+.product-actions .btn-outline-primary-action,
+.product-actions .btn-outline-secondary-action {
+    padding: 12px 20px !important;
+    font-size: 0.9rem !important;
+    min-height: 45px !important;
+}
+
+.product-variants {
+    padding: 0.75rem;
+}
+
+.variant-group .btn {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: 1rem !important;
+    }
+
+    .row.g-4 {
+        --bs-gutter-x: 1rem;
+        --bs-gutter-y: 1rem;
+    }
+
+    .current-price {
+        font-size: 1.3rem !important;
+    }
+
+    .product-actions .row.g-3 {
+        --bs-gutter-x: 0.75rem;
+        --bs-gutter-y: 0.75rem;
+    }
+
+    .quantity-selector {
+        justify-content: center;
+        margin: 1rem auto;
+        gap: 8px;
+    }
+
+    .quantity-selector .quantity-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .quantity-selector .quantity-input {
+        width: 50px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .product-image-carousel .carousel-item img {
+        height: 300px;
+    }
+}
+
+/* Animation for modal appearance */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+#quickViewModal.show .modal-content {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Smooth transitions */
+* {
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Category tag styling */
+.text-muted.small.text-uppercase {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--secondary-color, #6c757d) !important;
+}
+
+.text-muted.small.text-uppercase i {
+    opacity: 0.8;
+}

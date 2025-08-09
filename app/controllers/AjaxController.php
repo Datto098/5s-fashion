@@ -150,65 +150,37 @@ class AjaxController extends Controller
                 }
             }
 
-            // Initialize cart if not exists
-            if (!isset($_SESSION['cart'])) {
-                $_SESSION['cart'] = [];
+            // Initialize Cart model
+            $cartModel = $this->model('Cart');
+
+            // Add to cart using Cart model
+            $result = $cartModel->addToCart($productId, $quantity, $variantId);
+
+            if (!$result) {
+                throw new Exception('Could not add product to cart');
             }
 
-            // Create cart item key
-            $variantKey = 'default';
-            if ($variant) {
-                $variantKey = $variantId . '_' . $variantColor . '_' . $variantSize;
-                $variantKey = md5($variantKey); // Hash to avoid long keys
-            }
-            $cartKey = $productId . '_' . $variantKey;
+            // Get updated cart data
+            $cartItems = $cartModel->getCartItems();
+            $cartTotal = $cartModel->getCartTotal();
+            $cartCount = $cartModel->getCartCount();
 
-            // Debug logging for add to cart
-            error_log("AddToCart - Session ID: " . session_id());
-            error_log("AddToCart - Variant data: " . json_encode($variant));
-            error_log("AddToCart - Cart key: " . $cartKey);
-
-            // Check if item already exists in cart
-            if (isset($_SESSION['cart'][$cartKey])) {
-                $_SESSION['cart'][$cartKey]['quantity'] += $quantity;
-            } else {
-                // Process image path properly - use same logic as product-card.php
-                $imagePath = $product['featured_image'];
-                $imageUrl = '/5s-fashion/assets/images/no-image.jpg'; // default
-
-                if (!empty($imagePath)) {
-                    // Handle image path for file server - same logic as in product-card.php
-                    if (strpos($imagePath, '/uploads/') === 0) {
-                        $cleanPath = substr($imagePath, 9); // Remove '/uploads/'
-                    } elseif (strpos($imagePath, 'uploads/') === 0) {
-                        $cleanPath = substr($imagePath, 8); // Remove 'uploads/'
-                    } else {
-                        $cleanPath = ltrim($imagePath, '/'); // Remove leading '/'
-                    }
-                    $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+            // Find the added item for response
+            $addedItem = null;
+            foreach ($cartItems as $item) {
+                if ($item['product_id'] == $productId &&
+                    ($variantId ? $item['variant_id'] == $variantId : true)) {
+                    $addedItem = $item;
+                    break;
                 }
-
-                $_SESSION['cart'][$cartKey] = [
-                    'product_id' => $productId,
-                    'product_name' => $product['name'],
-                    'product_image' => $imageUrl,
-                    'price' => $priceToUse, // Use determined price
-                    'quantity' => $quantity,
-                    'variant' => $variant,
-                    'added_at' => date('Y-m-d H:i:s')
-                ];
             }
-
-            // Calculate cart totals
-            $cartTotal = $this->calculateCartTotal();
-            $cartCount = $this->getCartItemCount();
 
             $response = [
                 'success' => true,
                 'message' => 'Sản phẩm đã được thêm vào giỏ hàng!',
                 'cart_count' => $cartCount,
                 'cart_total' => $cartTotal,
-                'item' => $_SESSION['cart'][$cartKey]
+                'item' => $addedItem
             ];
 
             echo json_encode($response);
@@ -234,32 +206,29 @@ class AjaxController extends Controller
                 throw new Exception('Invalid JSON data');
             }
 
-            $productId = $input['product_id'] ?? null;
-            $variant = $input['variant'] ?? null;
             $cartKey = $input['cart_key'] ?? null;
             $quantity = $input['quantity'] ?? 1;
 
-            // If cart_key is not provided, create it from product_id and variant
             if (!$cartKey) {
-                if (!$productId) {
-                    throw new Exception('Product ID or cart key is required');
-                }
-                $cartKey = $productId . '_' . ($variant ? md5($variant) : 'default');
+                throw new Exception('Cart key is required');
             }
 
-            // Start session if not started
-            if (!isset($_SESSION['cart'][$cartKey])) {
-                throw new Exception('Item not found in cart');
+            // Load Cart model
+            if (!class_exists('Cart')) {
+                require_once APP_PATH . '/models/Cart.php';
+            }
+            $cartModel = new Cart();
+
+            // Update quantity using cart ID
+            $result = $cartModel->updateQuantity($cartKey, $quantity);
+
+            if (!$result) {
+                throw new Exception('Failed to update cart item');
             }
 
-            if ($quantity <= 0) {
-                unset($_SESSION['cart'][$cartKey]);
-            } else {
-                $_SESSION['cart'][$cartKey]['quantity'] = $quantity;
-            }
-
-            $cartTotal = $this->calculateCartTotal();
-            $cartCount = $this->getCartItemCount();
+            // Get updated cart info
+            $cartTotal = $cartModel->getCartTotal();
+            $cartCount = $cartModel->getCartCount();
 
             echo json_encode([
                 'success' => true,
@@ -289,25 +258,28 @@ class AjaxController extends Controller
                 throw new Exception('Invalid JSON data');
             }
 
-            $productId = $input['product_id'] ?? null;
-            $variant = $input['variant'] ?? null;
             $cartKey = $input['cart_key'] ?? null;
 
-            // If cart_key is not provided, create it from product_id and variant
             if (!$cartKey) {
-                if (!$productId) {
-                    throw new Exception('Product ID or cart key is required');
-                }
-                $cartKey = $productId . '_' . ($variant ? md5($variant) : 'default');
+                throw new Exception('Cart key is required');
             }
 
-            // Start session if not started
-            if (isset($_SESSION['cart'][$cartKey])) {
-                unset($_SESSION['cart'][$cartKey]);
+            // Load Cart model
+            if (!class_exists('Cart')) {
+                require_once APP_PATH . '/models/Cart.php';
+            }
+            $cartModel = new Cart();
+
+            // Remove item using cart ID
+            $result = $cartModel->removeItem($cartKey);
+
+            if (!$result) {
+                throw new Exception('Failed to remove item from cart');
             }
 
-            $cartTotal = $this->calculateCartTotal();
-            $cartCount = $this->getCartItemCount();
+            // Get updated cart info
+            $cartTotal = $cartModel->getCartTotal();
+            $cartCount = $cartModel->getCartCount();
 
             echo json_encode([
                 'success' => true,
@@ -331,18 +303,19 @@ class AjaxController extends Controller
     public function getCartItems()
     {
         try {
-            $cartItems = $_SESSION['cart'] ?? [];
+            // Load Cart model
+            $cartModel = $this->model('Cart');
 
-            // Debug logging
-            error_log("GetCartItems - Session ID: " . session_id());
-            error_log("GetCartItems - Cart items: " . json_encode($cartItems));
-            error_log("GetCartItems - Found " . count($cartItems) . " cart items");
+            // Get cart items from database
+            $cartItems = $cartModel->getCartItems();
+            $cartTotal = $cartModel->getCartTotal();
+            $cartCount = $cartModel->getCartCount();
 
-            // Convert associative array to indexed array for JavaScript
+            // Format items for JavaScript
             $formattedItems = [];
-            foreach ($cartItems as $key => $item) {
+            foreach ($cartItems as $item) {
                 $formattedItems[] = [
-                    'cart_key' => $key,
+                    'cart_key' => $item['id'], // Use cart ID as key
                     'product_id' => $item['product_id'],
                     'product_name' => $item['product_name'],
                     'product_image' => $item['product_image'],
@@ -351,9 +324,6 @@ class AjaxController extends Controller
                     'variant' => $item['variant'] ?? null
                 ];
             }
-
-            $cartTotal = $this->calculateCartTotal();
-            $cartCount = $this->getCartItemCount();
 
             echo json_encode([
                 'success' => true,
@@ -464,6 +434,44 @@ class AjaxController extends Controller
     }
 
     /**
+     * Get wishlist items for current user
+     */
+    public function getWishlistList()
+    {
+        header('Content-Type: application/json');
+
+        try {
+            // Check if user is logged in
+            $user = getUser();
+            if (!$user) {
+                echo json_encode([
+                    'success' => true,
+                    'data' => []
+                ]);
+                return;
+            }
+
+            // Load wishlist model
+            $wishlistModel = $this->model('Wishlist');
+
+            // Get wishlist items for user
+            $wishlistItems = $wishlistModel->getUserWishlist($user['id']);
+
+            echo json_encode([
+                'success' => true,
+                'data' => $wishlistItems
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data' => []
+            ]);
+        }
+    }
+
+    /**
      * Get product data for quick view
      */
     public function getProductData()
@@ -546,6 +554,7 @@ class AjaxController extends Controller
                 'price' => $product['price'],
                 'sale_price' => $product['sale_price'] ?? null,
                 'featured_image' => $product['featured_image'],
+                'image' => $product['featured_image'], // Backward compatibility
                 'images' => $images,
                 'variants' => $variants,
                 'in_stock' => $product['status'] !== 'out_of_stock',
@@ -556,7 +565,7 @@ class AjaxController extends Controller
 
             echo json_encode([
                 'success' => true,
-                'product' => $response
+                'product' => $response // Changed back to 'product' for client.js compatibility
             ]);
 
         } catch (Exception $e) {

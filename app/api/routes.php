@@ -48,6 +48,12 @@ $router->get('/categories/{id}/products', 'CategoryApiController@products');
 // Brands API routes
 $router->get('/brands', 'BrandApiController@index');
 $router->get('/brands/{id}', 'BrandApiController@show');
+
+// Orders API routes
+$router->get('/orders/search', 'OrderTrackingController@search');
+$router->get('/orders/{id}/timeline', 'OrderTrackingController@timeline');
+$router->post('/orders/{id}/cancel', 'OrderTrackingController@cancel');
+$router->get('/orders/{id}/shipping', 'OrderTrackingController@shipping');
 $router->get('/brands/{id}/products', 'BrandApiController@products');
 
 // Authentication API routes

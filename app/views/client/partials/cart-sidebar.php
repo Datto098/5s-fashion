@@ -443,7 +443,7 @@ function removeFromCart(productId) {
 }
 
 function viewCart() {
-    window.location.href = '/cart';
+    window.location.href = '/?route=cart';
 }
 
 function checkout() {
@@ -453,7 +453,7 @@ function checkout() {
         return;
     }
 
-    window.location.href = '/checkout';
+    window.location.href = '/5s-fashion/checkout';
 }
 
 function getCartItems() {

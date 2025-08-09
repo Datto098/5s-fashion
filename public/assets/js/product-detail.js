@@ -535,30 +535,43 @@ function openImageZoom() {
 
 // Utility functions
 function showToast(message, type = 'info') {
-	// Use existing toast function from client.js or create a simple one
-	if (typeof window.showToast === 'function') {
-		window.showToast(message, type);
-	} else {
-		// Simple fallback toast
-		const toast = document.createElement('div');
-		toast.className = `alert alert-${
-			type === 'error' ? 'danger' : type
-		} position-fixed`;
-		toast.style.cssText =
-			'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-		toast.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-        `;
-
-		document.body.appendChild(toast);
-
-		setTimeout(() => {
-			if (toast.parentElement) {
-				toast.remove();
-			}
-		}, 5000);
+	// Use unified notification system if available
+	if (
+		window.showNotification &&
+		typeof window.showNotification === 'function'
+	) {
+		window.showNotification(message, type);
+		return;
 	}
+
+	// Use global showToast if available (but not the same function)
+	if (
+		window.globalShowToast &&
+		typeof window.globalShowToast === 'function'
+	) {
+		window.globalShowToast(message, type);
+		return;
+	}
+
+	// Simple fallback toast
+	const toast = document.createElement('div');
+	toast.className = `alert alert-${
+		type === 'error' ? 'danger' : type
+	} position-fixed`;
+	toast.style.cssText =
+		'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+	toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    `;
+
+	document.body.appendChild(toast);
+
+	setTimeout(() => {
+		if (toast.parentElement) {
+			toast.remove();
+		}
+	}, 5000);
 }
 
 function updateCartCounter() {

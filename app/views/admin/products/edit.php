@@ -182,13 +182,34 @@ $visibilityOptions = [
 
                         <!-- Variant Management (for products with variants) -->
                         <div id="variantManagement" class="variant-section" style="<?= empty($product['has_variants']) ? 'display:none' : '' ?>">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                <strong>Sản phẩm có biến thể:</strong>
-                                <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants" class="btn btn-sm btn-outline-primary ms-2" target="_blank">
-                                    <i class="fas fa-cog"></i> Quản lý biến thể & tồn kho
-                                </a>
-                            </div>
+                            <?php if (!empty($product['has_variants'])): ?>
+                                <!-- Product already has variants enabled -->
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i>
+                                    <strong>Sản phẩm đã bật chế độ biến thể:</strong>
+                                    <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants" class="btn btn-sm btn-success ms-2" target="_blank">
+                                        <i class="fas fa-cog"></i> Quản lý biến thể & tồn kho
+                                    </a>
+                                </div>
+                            <?php else: ?>
+                                <!-- Product doesn't have variants yet -->
+                                <div class="alert alert-warning" id="saveFirstAlert">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Lưu ý:</strong> Bạn cần <strong>lưu sản phẩm</strong> trước khi có thể quản lý biến thể.
+                                    <br>
+                                    <small>Nhấn nút "Cập nhật sản phẩm" bên dưới, sau đó quay lại để thiết lập biến thể.</small>
+                                </div>
+
+                                <div class="alert alert-info" id="afterSaveAlert" style="display:none;">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Sản phẩm có biến thể:</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2" disabled>
+                                        <i class="fas fa-cog"></i> Quản lý biến thể & tồn kho
+                                    </button>
+                                    <br>
+                                    <small class="text-muted">Tính năng này sẽ khả dụng sau khi lưu sản phẩm.</small>
+                                </div>
+                            <?php endif; ?>
 
                             <?php if (!empty($product['has_variants'])): ?>
                                 <!-- Display current variants summary -->
@@ -559,11 +580,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (hasVariantsCheckbox) {
         hasVariantsCheckbox.addEventListener('change', function() {
+            const saveFirstAlert = document.getElementById('saveFirstAlert');
+            const afterSaveAlert = document.getElementById('afterSaveAlert');
+
             if (this.checked) {
                 simpleInventory.style.display = 'none';
                 variantManagement.style.display = 'block';
+
+                // Show appropriate alert based on product state
+                const productHasVariants = <?= !empty($product['has_variants']) ? 'true' : 'false' ?>;
+                if (!productHasVariants) {
+                    if (saveFirstAlert) saveFirstAlert.style.display = 'block';
+                    if (afterSaveAlert) afterSaveAlert.style.display = 'none';
+                }
+
                 // Clear simple inventory values when switching to variants
-                document.getElementById('stockQuantity').value = '';
+                const stockQuantity = document.getElementById('stockQuantity');
+                if (stockQuantity) stockQuantity.value = '';
+
+                // Show save reminder notification
+                showNotification('warning', 'Nhớ lưu sản phẩm để kích hoạt tính năng biến thể!');
             } else {
                 simpleInventory.style.display = 'block';
                 variantManagement.style.display = 'none';

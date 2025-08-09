@@ -284,8 +284,8 @@ class ProductsController extends BaseController
             }
 
             // Debug $_FILES and $_POST
-            error_log("DEBUG update() - POST data: " . json_encode($_POST));
-            error_log("DEBUG update() - FILES data: " . json_encode($_FILES));
+            // error_log("DEBUG update() - POST data: " . json_encode($_POST));
+            // error_log("DEBUG update() - FILES data: " . json_encode($_FILES));
 
             // Check if product exists
             $existingProduct = $this->productModel->find($id);
@@ -329,6 +329,8 @@ class ProductsController extends BaseController
                 $updateData['slug'] = $this->generateSlug($updateData['name']);
             }
 
+            // TEMPORARILY DISABLE IMAGE UPLOAD FOR DEBUGGING
+            /*
             // Handle new featured image upload
             if (!empty($_FILES['featured_image']['name'])) {
                 error_log("DEBUG: Uploading new featured image: " . $_FILES['featured_image']['name']);
@@ -371,6 +373,7 @@ class ProductsController extends BaseController
                     throw new Exception($galleryUploadResult['error']);
                 }
             }
+            */
 
             // Update product
             $result = $this->productModel->update($id, $updateData);

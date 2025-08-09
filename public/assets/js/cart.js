@@ -1,54 +1,208 @@
 /**
- * Cart Manager - Database Only
- * Xử lý giỏ hàng hoàn toàn qua database
+ * Cart Page JavaScript - Following UI Guidelines
+ * Handles cart functionality, quantity updates, and checkout
  */
-class CartManager {
+
+// Cart Page Manager
+class CartPageManager {
 	constructor() {
-		this.baseUrl = '/5s-fashion';
+		this.cartItems = [];
+		this.subtotal = 0;
+		this.shippingFee = 0;
+		this.discount = 0;
+		this.total = 0;
+		this.baseUrl = '/5s-fashion/ajax'; // Add base URL for API calls
 		this.init();
 	}
 
 	init() {
-		this.updateCartCounter();
+		console.log('Cart page loaded, initializing...');
 		this.bindEvents();
+		this.loadCartData();
+	}
+
+	bindEvents() {
+		// Initialize checkout button with retry mechanism
+		this.initCheckoutButton();
+
+		// Initialize remove buttons
+		this.initRemoveButtons();
+
+		// Initialize quantity controls
+		this.initQuantityControls();
+
+		// Initialize promo code
+		this.initPromoCode();
+	}
+
+	initCheckoutButton() {
+		const initButton = () => {
+			const checkoutBtn = document.getElementById('checkout-btn');
+			if (checkoutBtn) {
+				checkoutBtn.removeEventListener(
+					'click',
+					this.proceedToCheckout.bind(this)
+				);
+				checkoutBtn.addEventListener(
+					'click',
+					this.proceedToCheckout.bind(this)
+				);
+				console.log('Checkout button listener attached');
+			} else {
+				// Retry if button not found yet
+				setTimeout(initButton, 100);
+			}
+		};
+		initButton();
+	}
+
+	initRemoveButtons() {
+		const removeButtons = document.querySelectorAll('.remove-cart-item');
+		removeButtons.forEach((button) => {
+			button.addEventListener('click', (e) => {
+				const cartId = e.currentTarget.getAttribute('data-cart-id');
+				if (cartId) {
+					this.removeCartItem(cartId);
+				}
+			});
+		});
+		console.log('Remove buttons listeners attached:', removeButtons.length);
+	}
+
+	initQuantityControls() {
+		// Quantity buttons
+		document.querySelectorAll('.quantity-btn').forEach((button) => {
+			button.addEventListener('click', (e) => {
+				const action = e.currentTarget.onclick
+					? e.currentTarget.onclick.toString().includes('increase')
+						? 'increase'
+						: 'decrease'
+					: 'change';
+				this.updateCartQuantity(e.currentTarget, action);
+			});
+		});
+
+		// Quantity inputs
+		document.querySelectorAll('.cart-quantity-input').forEach((input) => {
+			input.addEventListener('change', (e) => {
+				this.updateCartQuantity(e.currentTarget, 'change');
+			});
+		});
+	}
+
+	initPromoCode() {
+		const promoBtn = document.querySelector('.promo-btn');
+		const promoInput = document.getElementById('promo-code');
+
+		if (promoBtn) {
+			promoBtn.addEventListener('click', this.applyPromoCode.bind(this));
+		}
+
+		if (promoInput) {
+			promoInput.addEventListener('keypress', (e) => {
+				if (e.key === 'Enter') {
+					this.applyPromoCode();
+				}
+			});
+		}
 	}
 
 	/**
-	 * Bind các events
+	 * Load cart data from server
 	 */
-	bindEvents() {
-		// Add to cart buttons
-		document.addEventListener('click', (e) => {
-			if (e.target.matches('.add-to-cart-btn, .add-to-cart-btn *')) {
-				e.preventDefault();
-				const btn = e.target.closest('.add-to-cart-btn');
-				this.addToCart(btn);
-			}
-		});
+	async loadCartData() {
+		try {
+			const response = await fetch(`${this.baseUrl}/cart/list`);
+			const result = await response.json();
 
-		// Cart quantity update
-		document.addEventListener('change', (e) => {
-			if (e.target.matches('.cart-quantity-input')) {
-				this.updateCartQuantity(e.target);
+			if (result.success) {
+				this.cartItems = result.data || [];
+				this.updateCartDisplay();
 			}
-		});
+		} catch (error) {
+			console.error('Load cart data error:', error);
+		}
+	}
 
-		// Remove cart item
-		document.addEventListener('click', (e) => {
-			if (e.target.matches('.remove-cart-item, .remove-cart-item *')) {
-				e.preventDefault();
-				const btn = e.target.closest('.remove-cart-item');
-				this.removeCartItem(btn);
-			}
-		});
+	/**
+	 * Update cart display
+	 */
+	updateCartDisplay() {
+		// Update cart counter
+		this.updateCartCounter(this.cartItems.length);
 
-		// Clear cart
-		document.addEventListener('click', (e) => {
-			if (e.target.matches('.clear-cart-btn')) {
-				e.preventDefault();
-				this.clearCart();
+		// Update cart totals
+		this.calculateTotals();
+	}
+
+	/**
+	 * Calculate cart totals
+	 */
+	calculateTotals() {
+		this.subtotal = this.cartItems.reduce((total, item) => {
+			return total + item.price * item.quantity;
+		}, 0);
+
+		this.total = this.subtotal + this.shippingFee - this.discount;
+		this.updateCartTotal(this.total);
+	}
+
+	/**
+	 * Proceed to checkout
+	 */
+	proceedToCheckout(e) {
+		e.preventDefault();
+
+		// Check if cart is empty
+		if (this.cartItems.length === 0) {
+			this.showError(
+				'Giỏ hàng trống! Vui lòng thêm sản phẩm để tiếp tục.'
+			);
+			return;
+		}
+
+		// Redirect to checkout page
+		window.location.href = '/5s-fashion/checkout';
+	}
+
+	/**
+	 * Apply promo code
+	 */
+	async applyPromoCode() {
+		const promoInput = document.getElementById('promo-code');
+		const promoCode = promoInput?.value?.trim();
+
+		if (!promoCode) {
+			this.showError('Vui lòng nhập mã khuyến mãi');
+			return;
+		}
+
+		try {
+			const response = await fetch(`${this.baseUrl}/coupon/apply`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					coupon_code: promoCode,
+				}),
+			});
+
+			const result = await response.json();
+
+			if (result.success) {
+				this.discount = result.discount || 0;
+				this.showSuccess(
+					result.message || 'Áp dụng mã khuyến mãi thành công!'
+				);
+				this.calculateTotals();
+			} else {
+				throw new Error(result.message || 'Mã khuyến mãi không hợp lệ');
 			}
-		});
+		} catch (error) {
+			console.error('Apply promo code error:', error);
+			this.showError(error.message);
+		}
 	}
 
 	/**
@@ -117,10 +271,25 @@ class CartManager {
 	/**
 	 * Cập nhật số lượng sản phẩm trong giỏ hàng
 	 */
-	async updateCartQuantity(input) {
+	async updateCartQuantity(element, action = 'change') {
 		try {
-			const cartId = input.dataset.cartId;
-			const quantity = parseInt(input.value);
+			let cartId, quantity;
+
+			if (action === 'increase' || action === 'decrease') {
+				// Button was clicked
+				const input = element.parentNode.querySelector(
+					'.cart-quantity-input'
+				);
+				cartId = input.dataset.cartId;
+				quantity =
+					parseInt(input.value) + (action === 'increase' ? 1 : -1);
+				if (quantity < 1) quantity = 1;
+				input.value = quantity;
+			} else {
+				// Input was changed directly
+				cartId = element.dataset.cartId;
+				quantity = parseInt(element.value);
+			}
 
 			if (!cartId) {
 				throw new Error('Không tìm thấy ID giỏ hàng');
@@ -165,9 +334,19 @@ class CartManager {
 	/**
 	 * Xóa sản phẩm khỏi giỏ hàng
 	 */
-	async removeCartItem(btn) {
+	async removeCartItem(cartIdOrBtn) {
 		try {
-			const cartId = btn.dataset.cartId;
+			let cartId, btn;
+
+			if (typeof cartIdOrBtn === 'string') {
+				// Called with cartId directly
+				cartId = cartIdOrBtn;
+				btn = document.querySelector(`[data-cart-id="${cartId}"]`);
+			} else {
+				// Called with button element
+				btn = cartIdOrBtn;
+				cartId = btn.dataset.cartId;
+			}
 
 			if (!cartId) {
 				throw new Error('Không tìm thấy ID giỏ hàng');
@@ -190,7 +369,17 @@ class CartManager {
 			const result = await response.json();
 
 			if (result.success) {
-				btn.closest('.cart-item')?.remove();
+				// Remove item from DOM
+				if (btn) {
+					btn.closest('.cart-item')?.remove();
+				} else {
+					// Find and remove by cart ID
+					const itemElement = document.querySelector(
+						`[data-item-id="${cartId}"], .cart-item:has([data-cart-id="${cartId}"])`
+					);
+					itemElement?.remove();
+				}
+
 				this.updateCartCounter(result.cart_count);
 				this.updateCartTotal(result.cart_total);
 				this.showSuccess(result.message);
@@ -432,3 +621,20 @@ const toastCSS = `
 const style = document.createElement('style');
 style.textContent = toastCSS;
 document.head.appendChild(style);
+
+// Initialize cart page when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+	if (typeof window.cartPageManager === 'undefined') {
+		window.cartPageManager = new CartPageManager();
+	}
+});
+
+// Also initialize immediately if DOM is already loaded
+if (document.readyState === 'loading') {
+	// DOM is still loading, wait for DOMContentLoaded
+} else {
+	// DOM is already loaded, initialize immediately
+	if (typeof window.cartPageManager === 'undefined') {
+		window.cartPageManager = new CartPageManager();
+	}
+}

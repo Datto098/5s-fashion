@@ -48,6 +48,13 @@ class UnifiedCartManager {
 			variant,
 		});
 
+		// Validate productId
+		if (!productId || productId <= 0) {
+			console.error('Invalid productId:', productId);
+			this.showToast('ID sản phẩm không hợp lệ!', 'error');
+			return { success: false, error: 'Invalid product ID' };
+		}
+
 		// Prevent double execution
 		if (window.cartOperationInProgress) {
 			console.log('Cart operation already in progress');
@@ -132,7 +139,7 @@ class UnifiedCartManager {
 	 */
 	async updateCartItem(productId, quantity, variant = null) {
 		try {
-			const response = await fetch('/5s-fashion/cart/update', {
+			const response = await fetch('/5s-fashion/ajax/cart/update', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -166,7 +173,7 @@ class UnifiedCartManager {
 	 */
 	async removeFromCart(productId, variant = null) {
 		try {
-			const response = await fetch('/5s-fashion/cart/remove', {
+			const response = await fetch('/5s-fashion/ajax/cart/remove', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -199,7 +206,7 @@ class UnifiedCartManager {
 	 */
 	async getCartItems() {
 		try {
-			const response = await fetch('/5s-fashion/cart/data', {
+			const response = await fetch('/5s-fashion/ajax/cart/items', {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
@@ -331,10 +338,10 @@ class UnifiedCartManager {
                     <div class="cart-item-image">
                         <img src="${
 							item.product_image ||
-							'/5s-fashion/public/assets/images/placeholder.jpg'
+							'/assets/images/placeholder.jpg'
 						}"
                              alt="${item.product_name || 'Sản phẩm'}"
-                             onerror="this.src='/5s-fashion/public/assets/images/placeholder.jpg'">
+                             onerror="this.src='/assets/images/placeholder.jpg'">
                     </div>
                     <div class="cart-item-details">
                         <div class="cart-item-name">${
@@ -382,8 +389,8 @@ class UnifiedCartManager {
 					<span>${this.formatPrice(total)}</span>
 				</div>
 				<div class="cart-actions">
-					<a href="/5s-fashion/public/cart" class="btn btn-outline-secondary">Xem giỏ hàng</a>
-					<a href="/5s-fashion/public/checkout" class="btn btn-primary">Thanh toán</a>
+					<a href="/?route=cart" class="btn btn-outline-secondary">Xem giỏ hàng</a>
+					<a href="/5s-fashion/checkout" class="btn btn-primary">Thanh toán</a>
 				</div>
 			`;
 		}
@@ -563,9 +570,27 @@ class UnifiedCartManager {
 	 * Show toast notification
 	 */
 	showToast(message, type = 'info') {
-		// Use existing toast function if available
-		if (typeof showToast === 'function') {
-			showToast(message, type);
+		// Use unified notification system if available
+		if (
+			window.notifications &&
+			typeof window.notifications.show === 'function'
+		) {
+			window.notifications.show(message, type);
+			return;
+		}
+
+		// Try global notification functions
+		if (window.showSuccess && type === 'success') {
+			window.showSuccess(message);
+			return;
+		} else if (window.showError && type === 'error') {
+			window.showError(message);
+			return;
+		} else if (window.showWarning && type === 'warning') {
+			window.showWarning(message);
+			return;
+		} else if (window.showInfo && (type === 'info' || !type)) {
+			window.showInfo(message);
 			return;
 		}
 
@@ -634,6 +659,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// Make functions globally available for compatibility
 	window.addToCart = function (productId, quantity = 1, variant = null) {
+		console.log('Global addToCart called with:', {
+			productId,
+			quantity,
+			variant,
+			type: typeof productId,
+		});
+
+		// Additional validation
+		if (
+			productId === null ||
+			productId === undefined ||
+			productId === '' ||
+			productId === 0
+		) {
+			console.error('Invalid productId in global addToCart:', productId);
+			if (unifiedCartManager && unifiedCartManager.showToast) {
+				unifiedCartManager.showToast(
+					'ID sản phẩm không hợp lệ!',
+					'error'
+				);
+			}
+			return { success: false, error: 'Invalid product ID' };
+		}
+
 		return unifiedCartManager.addToCart(productId, quantity, variant);
 	};
 

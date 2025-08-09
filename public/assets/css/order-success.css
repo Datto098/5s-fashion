@@ -1,9 +1,26 @@
-/* Order Success Page Styles - Phase 3.4 */
+/**
+ * Order Success Page Styles
+ * Follows 5S Fashion UI Standards from UI.md
+ * Using brand colors and component guidelines
+ */
 
-/* Success Section */
+/* CSS Variables - Brand Colors */
+:root {
+    --primary-color: #dc3545;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+}
+
+/* Success Section - Standard Pattern */
 .success-section {
-    min-height: 70vh;
+    padding: 4rem 0;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 80vh;
 }
 
 /* Success Animation */
@@ -16,75 +33,338 @@
     height: 120px;
     margin: 0 auto 2rem;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.success-checkmark.animate .checkmark {
+    animation: checkmark-bounce 0.8s ease-in-out;
 }
 
 .checkmark {
     width: 120px;
     height: 120px;
-    border-radius: 50%;
-    display: block;
+    stroke: var(--success-color);
     stroke-width: 3;
-    stroke: #28a745;
-    stroke-miterlimit: 10;
-    box-shadow: inset 0px 0px 0px #28a745;
-    animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    display: block;
 }
 
 .checkmark-circle {
-    stroke-dasharray: 166;
-    stroke-dashoffset: 166;
-    stroke-width: 3;
-    stroke-miterlimit: 10;
-    stroke: #28a745;
-    fill: none;
-    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    stroke-dasharray: 157;
+    stroke-dashoffset: 157;
+    animation: checkmark-circle 1.2s ease-in-out forwards;
 }
 
 .checkmark-check {
-    transform-origin: 50% 50%;
     stroke-dasharray: 25;
     stroke-dashoffset: 25;
-    stroke-width: 3;
-    stroke: #28a745;
-    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+    animation: checkmark-check 0.6s ease-in-out 0.6s forwards;
 }
 
-@keyframes stroke {
+/* Checkmark Animations */
+@keyframes checkmark-circle {
+    0% {
+        stroke-dashoffset: 157;
+    }
+
     100% {
         stroke-dashoffset: 0;
     }
 }
 
-@keyframes scale {
+@keyframes checkmark-check {
+    0% {
+        stroke-dashoffset: 25;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes checkmark-bounce {
 
     0%,
+    20%,
+    53%,
+    80%,
     100% {
-        transform: none;
+        transform: translate3d(0, 0, 0);
     }
 
-    50% {
-        transform: scale3d(1.1, 1.1, 1);
+    40%,
+    43% {
+        transform: translate3d(0, -8px, 0);
+    }
+
+    70% {
+        transform: translate3d(0, -4px, 0);
+    }
+
+    90% {
+        transform: translate3d(0, -2px, 0);
     }
 }
 
-@keyframes fill {
-    100% {
-        box-shadow: inset 0px 0px 0px 60px #28a745;
-    }
-}
-
+/* Success Title & Subtitle */
 .success-title {
-    color: #28a745;
-    font-weight: 700;
     font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--dark-color);
     margin-bottom: 1rem;
-    animation: fadeInUp 0.6s ease-out 1.2s both;
+    animation: fadeInUp 0.8s ease-out 1.2s both;
 }
 
 .success-subtitle {
-    font-size: 1.2rem;
-    color: #6c757d;
-    animation: fadeInUp 0.6s ease-out 1.4s both;
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: var(--secondary-color);
+    opacity: 0.8;
+    animation: fadeInUp 0.8s ease-out 1.4s both;
+}
+
+/* Card Design System - Following UI.md Standards */
+/* Note: Basic card styles moved to components.css */
+
+/* Card Headers - Brand Gradient (specific to success page) */
+.card-header {
+    background: linear-gradient(135deg, var(--primary-color), #c82333) !important;
+    color: white !important;
+    border-bottom: none;
+    padding: 1.5rem 2rem;
+    font-weight: 600;
+}
+
+.card-header h4,
+.card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.card-header.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e0a800) !important;
+    color: #333 !important;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* Order Info Items */
+.order-info-item {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.order-info-item:hover {
+    background: rgba(220, 53, 69, 0.02);
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin: -0.5rem;
+}
+
+.order-info-item .label {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.order-info-item .value {
+    color: var(--secondary-color);
+}
+
+.order-info-item .value.text-primary {
+    color: var(--primary-color) !important;
+    font-weight: 700;
+}
+
+.order-info-item .value.text-danger {
+    color: var(--danger-color) !important;
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+/* Shipping Details */
+.shipping-detail {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.shipping-detail:hover {
+    background: rgba(220, 53, 69, 0.02);
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin: -0.5rem;
+}
+
+.shipping-detail strong {
+    color: var(--dark-color);
+    display: inline-block;
+    min-width: 140px;
+}
+
+/* Timeline Styles */
+.timeline {
+    position: relative;
+    padding: 1rem 0;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 3rem;
+    margin-bottom: 2rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 2rem;
+    bottom: -2rem;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2rem;
+    height: 2rem;
+    background: #e9ecef;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--secondary-color);
+    transition: all 0.3s ease;
+}
+
+.timeline-item.active .timeline-marker {
+    background: var(--success-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.timeline-content h6 {
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+/* Bank Info Styles */
+.bank-info .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.bank-info .info-item:hover {
+    background: rgba(220, 53, 69, 0.02);
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin: -0.5rem;
+}
+
+.bank-info .label {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.bank-info .value {
+    color: var(--secondary-color);
+}
+
+/* Button Styles - Following UI.md Standards */
+/* Note: Basic button styles moved to components.css */
+/* Only page-specific button overrides here */
+
+.action-buttons .btn i {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Ensure equal height columns */
+.action-buttons .col-md-3,
+.action-buttons .col-6 {
+    display: flex;
+    align-items: stretch;
+}
+
+.action-buttons .col-md-3 .btn,
+.action-buttons .col-6 .btn {
+    height: 100%;
+    min-height: 60px;
+}
+
+/* Badge Styles */
+.badge {
+    border-radius: 20px;
+    padding: 0.5em 1em;
+    font-size: 0.875em;
+    font-weight: 600;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e0a800) !important;
+    color: #333 !important;
+}
+
+/* Alert Styles */
+.alert {
+    border: none;
+    border-radius: 15px;
+    padding: 1.5rem;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+}
+
+/* Animation Effects */
+.card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.card:nth-child(4) {
+    animation-delay: 0.4s;
 }
 
 @keyframes fadeInUp {
@@ -99,404 +379,7 @@
     }
 }
 
-/* Cards */
-.order-details-card .card,
-.order-items-card .card,
-.shipping-info-card .card,
-.next-steps-card .card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    animation: slideInUp 0.6s ease-out both;
-}
-
-.order-details-card {
-    animation-delay: 0.2s;
-}
-
-.order-items-card {
-    animation-delay: 0.4s;
-}
-
-.shipping-info-card {
-    animation-delay: 0.6s;
-}
-
-.next-steps-card {
-    animation-delay: 0.8s;
-}
-
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.card-header {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white;
-    padding: 1.25rem;
-    border: none;
-}
-
-.card-header h4,
-.card-header h5 {
-    margin: 0;
-    font-weight: 600;
-}
-
-.card-body {
-    padding: 2rem;
-}
-
-/* Order Info */
-.order-info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.order-info-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.order-info-item .label {
-    font-weight: 500;
-    color: #6c757d;
-}
-
-.order-info-item .value {
-    font-weight: 600;
-    color: #333;
-}
-
-.total-amount {
-    font-size: 1.25rem;
-    color: #28a745 !important;
-}
-
-/* Order Items */
-.order-items-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.order-item {
-    display: flex;
-    align-items: center;
-    padding: 1rem 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.order-item:last-child {
-    border-bottom: none;
-}
-
-.item-image {
-    width: 80px;
-    height: 80px;
-    margin-right: 1rem;
-    flex-shrink: 0;
-}
-
-.item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 1px solid #eee;
-}
-
-.item-details {
-    flex: 1;
-    margin-right: 1rem;
-}
-
-.item-name {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.5rem;
-    line-height: 1.4;
-}
-
-.item-variant {
-    font-size: 0.875rem;
-    color: #6c757d;
-    margin-bottom: 0.25rem;
-}
-
-.item-quantity {
-    font-size: 0.875rem;
-    color: #6c757d;
-}
-
-.item-price {
-    text-align: right;
-    min-width: 120px;
-}
-
-.item-price .price {
-    font-size: 0.9rem;
-    color: #6c757d;
-    display: block;
-}
-
-.item-price .total {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #28a745;
-}
-
-/* Shipping Info */
-.shipping-detail {
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-}
-
-.shipping-detail strong {
-    min-width: 140px;
-    color: #495057;
-}
-
-.shipping-detail span {
-    color: #6c757d;
-    line-height: 1.4;
-}
-
-/* Timeline */
-.timeline {
-    position: relative;
-    padding-left: 2rem;
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: #e9ecef;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 2rem;
-    padding-left: 2rem;
-}
-
-.timeline-item:last-child {
-    margin-bottom: 0;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -2rem;
-    top: 0;
-    width: 30px;
-    height: 30px;
-    background: #e9ecef;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
-    color: #6c757d;
-    z-index: 1;
-}
-
-.timeline-item.active .timeline-marker {
-    background: #28a745;
-    color: white;
-}
-
-.timeline-content h6 {
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.timeline-content p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #6c757d;
-}
-
-.timeline-item.active .timeline-content h6 {
-    color: #28a745;
-}
-
-/* Action Buttons */
-.action-buttons {
-    animation: fadeIn 0.6s ease-out 1s both;
-}
-
-.action-buttons .btn {
-    border-radius: 12px;
-    padding: 1rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.action-buttons .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border: none;
-}
-
-.btn-success {
-    background: linear-gradient(135deg, #28a745, #1e7e34);
-    border: none;
-}
-
-.btn-outline-primary:hover {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border-color: #007bff;
-}
-
-.btn-outline-secondary:hover {
-    background: linear-gradient(135deg, #6c757d, #495057);
-    border-color: #6c757d;
-}
-
-/* Email Notification */
-.email-notification {
-    background: #f8f9fa !important;
-    animation: fadeIn 0.6s ease-out 1.2s both;
-}
-
-.alert-info {
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
-    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
-    border-left: 4px solid #0dcaf0;
-}
-
-/* Related Products */
-.related-products {
-    animation: fadeIn 0.6s ease-out 1.4s both;
-}
-
-.section-title {
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 2rem;
-    position: relative;
-}
-
-.section-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 50px;
-    height: 3px;
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border-radius: 2px;
-}
-
-.product-card {
-    border: none;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    height: 100%;
-}
-
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.product-image {
-    height: 200px;
-    overflow: hidden;
-}
-
-.product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.product-card:hover .product-image img {
-    transform: scale(1.05);
-}
-
-.product-info {
-    padding: 1rem;
-}
-
-.product-name {
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    line-height: 1.4;
-    color: #333;
-}
-
-.product-price {
-    font-weight: 600;
-    color: #28a745;
-    font-size: 1.1rem;
-}
-
-/* Loading State */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.loading-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 15px;
-    text-align: center;
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
-}
-
-/* Responsive Design */
+/* Mobile Responsive */
 @media (max-width: 768px) {
     .success-section {
         padding: 2rem 0;
@@ -507,18 +390,17 @@
     }
 
     .success-subtitle {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
     .success-checkmark {
-        width: 80px;
-        height: 80px;
-        margin-bottom: 1.5rem;
+        width: 100px;
+        height: 100px;
     }
 
     .checkmark {
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
     }
 
     .card-body {
@@ -528,135 +410,133 @@
     .order-info-item {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.25rem;
-    }
-
-    .order-item {
-        flex-direction: column;
-        align-items: flex-start;
-        text-align: left;
-    }
-
-    .item-image {
-        width: 60px;
-        height: 60px;
-        margin-right: 0;
-        margin-bottom: 0.5rem;
-    }
-
-    .item-details {
-        margin-right: 0;
-        margin-bottom: 0.5rem;
-        width: 100%;
-    }
-
-    .item-price {
-        text-align: left;
-        min-width: auto;
-        width: 100%;
-    }
-
-    .shipping-detail {
-        flex-direction: column;
-        gap: 0.25rem;
+        gap: 0.5rem;
     }
 
     .shipping-detail strong {
         min-width: auto;
-    }
-
-    .timeline {
-        padding-left: 1.5rem;
-    }
-
-    .timeline-item {
-        padding-left: 1.5rem;
-    }
-
-    .timeline-marker {
-        left: -1.5rem;
-        width: 25px;
-        height: 25px;
-        font-size: 0.75rem;
-    }
-
-    .action-buttons .btn {
-        padding: 0.875rem;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .product-image {
-        height: 150px;
+        display: block;
+        margin-bottom: 0.25rem;
     }
 }
 
 @media (max-width: 576px) {
     .success-title {
-        font-size: 1.75rem;
+        font-size: 1.8rem;
     }
 
-    .card-header {
-        padding: 1rem;
+    .success-checkmark {
+        width: 80px;
+        height: 80px;
     }
 
-    .card-body {
-        padding: 1rem;
+    .checkmark {
+        width: 80px;
+        height: 80px;
     }
 
-    .order-info-item .value {
+    .btn {
+        padding: 10px 20px !important;
         font-size: 0.9rem;
-    }
-
-    .total-amount {
-        font-size: 1.1rem !important;
-    }
-
-    .item-name {
-        font-size: 0.9rem;
-    }
-
-    .timeline-content h6 {
-        font-size: 0.9rem;
-    }
-
-    .timeline-content p {
-        font-size: 0.8rem;
     }
 
     .action-buttons .btn {
-        padding: 0.75rem;
-        font-size: 0.875rem;
+        min-height: 50px;
+        font-size: 0.85rem;
+        padding: 0.6rem 0.8rem;
+        border-radius: 40px;
     }
 
-    .section-title {
-        font-size: 1.25rem;
-    }
-
-    .product-info {
-        padding: 0.75rem;
-    }
-
-    .product-name {
+    .action-buttons .btn i {
+        margin-right: 0.4rem;
         font-size: 0.9rem;
     }
 
-    .product-price {
-        font-size: 1rem;
+    /* Stack buttons vertically on very small screens */
+    .action-buttons .col-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 0.5rem;
     }
+
+    .timeline-item {
+        padding-left: 2.5rem;
+    }
+
+    .timeline-marker {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+}
+
+/* Order Items Styles */
+.order-item {
+    background: #fff;
+    border: 1px solid #e9ecef !important;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.order-item:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.item-image img,
+.placeholder-image {
+    border-radius: 10px;
+    border: 2px solid #f8f9fa;
+}
+
+.placeholder-image {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.item-name {
+    color: var(--dark-color);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.item-quantity-price {
+    font-size: 0.9rem;
+}
+
+.item-quantity-price .quantity {
+    color: var(--secondary-color);
+}
+
+.item-quantity-price .price {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.item-total {
+    font-size: 1.1rem;
+}
+
+.item-total strong {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* Order Items List Empty State */
+.order-items-list .text-center {
+    padding: 3rem 1rem;
+}
+
+.order-items-list .text-center i {
+    color: #dee2e6;
+    margin-bottom: 1rem;
 }
 
 /* Print Styles */
 @media print {
 
     .action-buttons,
-    .email-notification,
-    .related-products {
+    .btn {
         display: none !important;
-    }
-
-    .success-section {
-        background: white !important;
     }
 
     .card {
@@ -668,14 +548,10 @@
         background: #f8f9fa !important;
         color: #333 !important;
     }
-}
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
+    .order-item {
+        break-inside: avoid;
+        box-shadow: none !important;
+        transform: none !important;
     }
 }

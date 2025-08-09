@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded", function() { setTimeout(() => { const checkmark = document.querySelector(".success-checkmark"); if (checkmark) { checkmark.classList.add("animate"); console.log("Checkmark animation triggered!"); } }, 500); });
