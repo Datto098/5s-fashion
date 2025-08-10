@@ -38,7 +38,7 @@ ob_start();
                             <!-- Cart has items -->
                             <?php foreach ($cartItems as $item): ?>
                                 <div class="cart-item" data-item-id="<?= $item['id'] ?>">
-                                    <div class="row align-items-center">
+                                    <div class="row align-items-center justify-content-between">
                                         <div class="col-md-2">
                                             <?php
                                             $imagePath = $item['product_image'] ?? 'placeholder.jpg';
@@ -97,15 +97,31 @@ ob_start();
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <!-- Empty cart -->
+                            <!-- Empty cart or error -->
                             <div class="empty-cart">
-                                <i class="fas fa-shopping-cart"></i>
-                                <h5>Giỏ hàng trống</h5>
-                                <p>Bạn chưa thêm sản phẩm nào vào giỏ hàng</p>
-                                <a href="<?= url('') ?>" class="btn btn-primary mt-3">
-                                    <i class="fas fa-shopping-bag me-2"></i>
-                                    Mua sắm ngay
-                                </a>
+                                <?php if (isset($error_message)): ?>
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                    <h5>Không thể truy cập giỏ hàng</h5>
+                                    <p><?= htmlspecialchars($error_message) ?></p>
+                                    <div class="mt-3">
+                                        <a href="<?= url('logout') ?>" class="btn btn-warning me-2">
+                                            <i class="fas fa-sign-out-alt me-2"></i>
+                                            Đăng xuất
+                                        </a>
+                                        <a href="<?= url('') ?>" class="btn btn-primary">
+                                            <i class="fas fa-home me-2"></i>
+                                            Về trang chủ
+                                        </a>
+                                    </div>
+                                <?php else: ?>
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <h5>Giỏ hàng trống</h5>
+                                    <p>Bạn chưa thêm sản phẩm nào vào giỏ hàng</p>
+                                    <a href="<?= url('') ?>" class="btn btn-primary mt-3">
+                                        <i class="fas fa-shopping-bag me-2"></i>
+                                        Mua sắm ngay
+                                    </a>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -121,6 +137,7 @@ ob_start();
             </div>
 
             <!-- Cart Summary -->
+            <?php if (!isset($error_message) && !empty($cartItems)): ?>
             <div class="col-lg-4">
                 <!-- Promo Code Section -->
                 <div class="promo-section">
@@ -179,12 +196,53 @@ ob_start();
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
     </div>
     </div>
 
     <!-- Toast Container -->
     <div class="toast-container"></div>
+
+    <!-- Login Prompt Modal -->
+    <div class="modal fade" id="loginPromptModal" tabindex="-1" aria-labelledby="loginPromptModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--border-radius-standard);">
+                <div class="modal-header border-0" style="background: var(--primary-gradient); color: white; border-radius: var(--border-radius-standard) var(--border-radius-standard) 0 0;">
+                    <h5 class="modal-title fw-bold" id="loginPromptModalLabel">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Yêu cầu đăng nhập
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="login-icon mb-3">
+                        <i class="fas fa-shopping-cart text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h6 class="login-prompt-message mb-4 text-muted">
+                        Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng
+                    </h6>
+                    <p class="text-sm text-muted">
+                        Đăng nhập để lưu giỏ hàng và đồng bộ trên tất cả thiết bị
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pb-4">
+                    <a href="<?= url('login') ?>" class="btn btn-primary px-4 me-2">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Đăng nhập ngay
+                    </a>
+                    <a href="<?= url('register') ?>" class="btn btn-outline-primary px-4 me-2">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Đăng ký
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Hủy bỏ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Templates -->
     <template id="cart-item-template">

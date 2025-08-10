@@ -31,6 +31,26 @@ class AjaxController extends Controller
     }
 
     /**
+     * Check if user is authenticated
+     * @return bool
+     */
+    private function isUserAuthenticated()
+    {
+        // Use helper function for consistency
+        if (!isLoggedIn()) {
+            return false;
+        }
+
+        // Also check if user is not admin (admins shouldn't use client cart)
+        $user = getUser();
+        if ($user && $user['role'] === 'admin') {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Initialize session for AJAX operations
      */
     public function initSession()
@@ -43,11 +63,35 @@ class AjaxController extends Controller
     }
 
     /**
-     * Add product to cart
+     * Add product to cart - Requires user authentication
      */
     public function addToCart()
     {
         try {
+            // Check user authentication first
+            if (!$this->isUserAuthenticated()) {
+                // Check if user is admin
+                $user = getUser();
+                if ($user && $user['role'] === 'admin') {
+                    http_response_code(403);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
+                        'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
+                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                    ]);
+                } else {
+                    http_response_code(401);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng',
+                        'error_code' => 'AUTHENTICATION_REQUIRED',
+                        'redirect_url' => '/5s-fashion/login'
+                    ]);
+                }
+                return;
+            }
+
             // Get JSON input
             $input = json_decode(file_get_contents('php://input'), true);
 
@@ -195,11 +239,35 @@ class AjaxController extends Controller
     }
 
     /**
-     * Update cart item quantity
+     * Update cart item quantity - Requires user authentication
      */
     public function updateCart()
     {
         try {
+            // Check user authentication first
+            if (!$this->isUserAuthenticated()) {
+                // Check if user is admin
+                $user = getUser();
+                if ($user && $user['role'] === 'admin') {
+                    http_response_code(403);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
+                        'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
+                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                    ]);
+                } else {
+                    http_response_code(401);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Bạn cần đăng nhập để cập nhật giỏ hàng',
+                        'error_code' => 'AUTHENTICATION_REQUIRED',
+                        'redirect_url' => '/5s-fashion/login'
+                    ]);
+                }
+                return;
+            }
+
             $input = json_decode(file_get_contents('php://input'), true);
 
             if (!$input) {
@@ -247,11 +315,35 @@ class AjaxController extends Controller
     }
 
     /**
-     * Remove item from cart
+     * Remove item from cart - Requires user authentication
      */
     public function removeFromCart()
     {
         try {
+            // Check user authentication first
+            if (!$this->isUserAuthenticated()) {
+                // Check if user is admin
+                $user = getUser();
+                if ($user && $user['role'] === 'admin') {
+                    http_response_code(403);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
+                        'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
+                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                    ]);
+                } else {
+                    http_response_code(401);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Bạn cần đăng nhập để xóa sản phẩm khỏi giỏ hàng',
+                        'error_code' => 'AUTHENTICATION_REQUIRED',
+                        'redirect_url' => '/5s-fashion/login'
+                    ]);
+                }
+                return;
+            }
+
             $input = json_decode(file_get_contents('php://input'), true);
 
             if (!$input) {

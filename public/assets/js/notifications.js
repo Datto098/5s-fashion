@@ -60,9 +60,24 @@ class NotificationManager {
                 color: white;
                 font-weight: 600;
                 font-size: 14px;
-                display: flex;
+                display: flex !important;
                 align-items: center;
                 justify-content: space-between;
+                min-height: 44px;
+            }
+
+            .notification-content {
+                display: flex !important;
+                align-items: center;
+                gap: 8px;
+                flex: 1;
+            }
+
+            .notification-content span {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                font-weight: 600;
             }
 
             .notification-success .notification-header {
@@ -80,12 +95,6 @@ class NotificationManager {
 
             .notification-info .notification-header {
                 background: linear-gradient(135deg, #17a2b8, #007bff);
-            }
-
-            .notification-content {
-                display: flex;
-                align-items: center;
-                gap: 8px;
             }
 
             .notification-icon {

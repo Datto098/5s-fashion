@@ -24,7 +24,24 @@ class OrdersController extends BaseController
 
         $this->orderModel = new Order();
         $this->customerModel = new Customer();
-    }    public function index()
+
+        // Handle hyphenated URLs
+        $this->handleSpecialRoutes();
+    }
+
+    private function handleSpecialRoutes()
+    {
+        $uri = $_SERVER['REQUEST_URI'];
+
+        // Handle /admin/orders/update-status/{id}
+        if (preg_match('/\/admin\/orders\/update-status\/(\d+)/', $uri, $matches)) {
+            $orderId = $matches[1];
+            $this->updateStatus();
+            exit;
+        }
+    }
+
+    public function index()
     {
         try {
             // Get search and filter parameters
@@ -147,75 +164,83 @@ class OrdersController extends BaseController
     public function updateStatus()
     {
         try {
-            error_log("updateStatus called");
-            error_log("POST data: " . print_r($_POST, true));
-            error_log("GET data: " . print_r($_GET, true));
-            error_log("REQUEST_URI: " . $_SERVER['REQUEST_URI']);
-
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                error_log("Not POST request - method: " . $_SERVER['REQUEST_METHOD']);
+            // Allow both GET and POST for admin interface
+            if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'GET'])) {
                 header('Location: /5s-fashion/admin/orders');
                 exit;
             }
 
-            // Try to get order ID from POST data or URL
-            $orderId = $_POST['order_id'] ?? null;
-
-            // If not in POST, try to extract from current URL or params
-            if (!$orderId && isset($_GET['url'])) {
-                $urlParts = explode('/', $_GET['url']);
-                if (count($urlParts) >= 4 && $urlParts[1] === 'orders' && $urlParts[2] === 'update-status') {
-                    $orderId = trim($urlParts[3]); // Trim whitespace
-                }
+            // Extract order ID from URL
+            $orderId = null;
+            if (preg_match('/\/admin\/orders\/update-status\/(\d+)/', $_SERVER['REQUEST_URI'], $matches)) {
+                $orderId = $matches[1];
             }
 
-            // Handle both JSON and form data
+            // Fallback to GET/POST data
+            if (!$orderId) {
+                $orderId = $_POST['order_id'] ?? $_GET['order_id'] ?? null;
+            }
+
+            // For GET requests, show update form
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                if (!$orderId) {
+                    header('Location: /5s-fashion/admin/orders');
+                    exit;
+                }
+
+                $order = $this->orderModel->find($orderId);
+                if (!$order) {
+                    header('Location: /5s-fashion/admin/orders');
+                    exit;
+                }
+
+                // Show form to update status
+                $data = [
+                    'title' => 'Cập nhật trạng thái đơn hàng',
+                    'order' => $order,
+                    'validStatuses' => ['pending', 'processing', 'shipping', 'delivered', 'cancelled']
+                ];
+
+                require VIEW_PATH . '/admin/orders/update-status.php';
+                return;
+            }
+
+            // Handle JSON and form data for POST requests
             $jsonInput = json_decode(file_get_contents('php://input'), true);
             $status = null;
             $adminNotes = null;
-            $ajaxFlag = null;
+            $isAjax = false;
 
-            // Check if it's JSON request
             if ($jsonInput && is_array($jsonInput)) {
-                error_log("JSON input detected: " . print_r($jsonInput, true));
-                $orderId = $orderId ?: ($jsonInput['order_id'] ?? null); // Use JSON order_id if not already set
+                // JSON request
                 $status = trim($jsonInput['status'] ?? '');
                 $adminNotes = $jsonInput['admin_notes'] ?? 'Cập nhật từ admin interface';
-                $ajaxFlag = '1'; // JSON requests are always AJAX
+                $isAjax = true;
             } else {
                 // Form data
                 $status = trim($_POST['status'] ?? '');
                 $adminNotes = $_POST['admin_notes'] ?? null;
-                $ajaxFlag = $_POST['ajax'] ?? null;
+                $isAjax = !empty($_POST['ajax']);
             }
 
-            error_log("Order ID: '$orderId', Status: '$status', Notes: '$adminNotes', Ajax: '$ajaxFlag'");
-
             if (!$orderId || !$status) {
-                error_log("Missing required data - orderId: " . ($orderId ? 'exists' : 'missing') . ", status: " . ($status ? 'exists' : 'missing'));
                 throw new Exception('Thiếu thông tin cần thiết');
             }
 
-            // Validate status values
-            $validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'confirmed'];
+            // Validate status
+            $validStatuses = ['pending', 'processing', 'shipping', 'delivered', 'cancelled'];
             if (!in_array($status, $validStatuses)) {
-                error_log("Invalid status: '$status'. Valid statuses: " . implode(', ', $validStatuses));
                 throw new Exception('Trạng thái không hợp lệ');
             }
 
             // Check if order exists
             $order = $this->orderModel->find($orderId);
             if (!$order) {
-                error_log("Order not found");
                 throw new Exception('Không tìm thấy đơn hàng');
             }
 
-            error_log("Order found, current status: " . $order['status']);
-
             // Update order status
             $result = $this->orderModel->updateStatus($orderId, $status, $adminNotes);
-
-            error_log("Update result: " . ($result ? 'success' : 'failed'));
 
             if (!$result) {
                 throw new Exception('Không thể cập nhật trạng thái đơn hàng');
@@ -227,31 +252,33 @@ class OrdersController extends BaseController
                 // $this->sendOrderStatusNotification($order, $status);
             }
 
-            if ($ajaxFlag) {
+            if ($isAjax) {
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => true,
                     'message' => 'Cập nhật trạng thái đơn hàng thành công'
                 ]);
+                exit; // Make sure we don't continue execution
             } else {
-                error_log("Redirecting to success page");
                 header('Location: /5s-fashion/admin/orders/show/' . $orderId . '?success=' . urlencode('Cập nhật trạng thái đơn hàng thành công'));
+                exit;
             }
 
         } catch (Exception $e) {
-            error_log("Exception: " . $e->getMessage());
-            if ($ajaxFlag) {
+            if ($isAjax) {
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => false,
                     'error' => $e->getMessage()
                 ]);
+                exit;
             } else {
                 // Use orderId if available, otherwise redirect to orders list
                 $redirectUrl = ($orderId)
                     ? "/5s-fashion/admin/orders/show/$orderId?error=" . urlencode($e->getMessage())
                     : "/5s-fashion/admin/orders?error=" . urlencode($e->getMessage());
                 header('Location: ' . $redirectUrl);
+                exit;
             }
         }
     }
@@ -272,7 +299,6 @@ class OrdersController extends BaseController
 
             // Check if it's JSON request
             if ($jsonInput && is_array($jsonInput)) {
-                error_log("JSON input detected for payment status: " . print_r($jsonInput, true));
                 $paymentStatus = trim($jsonInput['payment_status'] ?? '');
                 $ajaxFlag = '1'; // JSON requests are always AJAX
 
@@ -289,8 +315,6 @@ class OrdersController extends BaseController
                 $paymentStatus = $_POST['payment_status'] ?? null;
                 $ajaxFlag = $_POST['ajax'] ?? null;
             }
-
-            error_log("Payment Status Update - Order ID: '$orderId', Payment Status: '$paymentStatus', Ajax: '$ajaxFlag'");
 
             if (!$orderId || !$paymentStatus) {
                 throw new Exception('Thiếu thông tin cần thiết');
@@ -320,7 +344,6 @@ class OrdersController extends BaseController
             }
 
         } catch (Exception $e) {
-            error_log("Payment Status Exception: " . $e->getMessage());
             if ($ajaxFlag) {
                 header('Content-Type: application/json');
                 echo json_encode([
@@ -485,7 +508,9 @@ class OrdersController extends BaseController
             if ($format === 'csv') {
                 $this->exportToCsv($exportData, 'orders_' . date('Y-m-d_H-i-s') . '.csv');
             } else {
-                $this->exportToExcel($exportData, 'orders_' . date('Y-m-d_H-i-s') . '.xlsx');
+                // Excel export not implemented yet
+                header('Location: /5s-fashion/admin/orders?error=' . urlencode('Excel export not implemented'));
+                exit;
             }
 
         } catch (Exception $e) {

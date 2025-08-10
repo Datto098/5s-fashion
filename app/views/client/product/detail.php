@@ -368,9 +368,10 @@ function addToCartFallback(productId, quantity = 1) {
         if (data.success) {
             showProductNotification('Đã thêm sản phẩm vào giỏ hàng!', 'success');
             // Update cart counter if exists
-            if (typeof updateCartCounter === 'function') {
-                updateCartCounter(data.cart_count);
-            }
+            // DISABLED - preventing counter jumping
+            // if (typeof updateCartCounter === 'function') {
+            //     updateCartCounter(data.cart_count);
+            // }
         } else {
             showProductNotification(data.message || 'Có lỗi xảy ra', 'error');
         }

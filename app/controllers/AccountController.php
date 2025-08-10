@@ -50,7 +50,7 @@ class AccountController extends Controller
             'title' => 'Thông Tin Cá Nhân - 5S Fashion',
             'user' => $user
         ];
-      
+
         $this->view('client/account/profile', $data);
     }
 
@@ -106,7 +106,7 @@ class AccountController extends Controller
             $_SESSION['user'] = $updatedUser;
             print_r($updatedUser); // Debugging line to check updated user data
             error_log("DEBUG AccountController - Updated User: " . json_encode($updatedUser));
-            
+
 
             setFlash('success', 'Cập nhật thông tin thành công!');
         } else {
@@ -187,9 +187,10 @@ class AccountController extends Controller
     {
         $user = getUser();
 
-        // Get user orders (if Order model exists)
-        $orders = [];
-        // $orders = $this->model('Order')->getUserOrders($user['id']);
+        // Get user orders with items
+        require_once dirname(__DIR__) . '/models/Order.php';
+        $orderModel = new Order();
+        $orders = $orderModel->getByUserWithItems($user['id']);
 
         $data = [
             'title' => 'Đơn Hàng - 5S Fashion',
@@ -206,17 +207,19 @@ class AccountController extends Controller
     {
         $user = getUser();
 
-        // Get order detail (if Order model exists)
-        $order = null;
-        // $order = $this->model('Order')->getUserOrder($user['id'], $id);
+        // Get order detail
+        require_once dirname(__DIR__) . '/models/Order.php';
+        $orderModel = new Order();
+        $order = $orderModel->getFullDetails($id);
 
-        if (!$order) {
+        // Verify order belongs to current user
+        if (!$order || $order['user_id'] != $user['id']) {
             setFlash('error', 'Đơn hàng không tồn tại');
             redirect('orders');
         }
 
         $data = [
-            'title' => 'Chi Tiết Đơn Hàng #' . $id . ' - 5S Fashion',
+            'title' => 'Chi Tiết Đơn Hàng #' . $order['order_code'] . ' - 5S Fashion',
             'order' => $order
         ];
 
@@ -249,7 +252,7 @@ class AccountController extends Controller
         // error_log('addAddress() called - Method: ' . $_SERVER['REQUEST_METHOD']);
         // error_log('POST data: ' . print_r($_POST, true));
         // error_log('AJAX check: ' . (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : 'NO'));
-        
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
                 header('Content-Type: application/json');
@@ -279,7 +282,7 @@ class AccountController extends Controller
         }
 
         $addressData = [
-            'user_id' => $user['id'], 
+            'user_id' => $user['id'],
             'name' => $name,
             'phone' => $phone,
             'address' => $address,
@@ -289,9 +292,9 @@ class AccountController extends Controller
 
         // Debug để xem dữ liệu truyền vào
         error_log('AddAddress Data: ' . print_r($addressData, true));
-        
+
         $result = $customerModel->addCustomerAddress($addressData);
-        
+
         // Debug để xem kết quả
         error_log('AddAddress Result: ' . ($result ? 'TRUE' : 'FALSE'));
 
@@ -301,7 +304,7 @@ class AccountController extends Controller
                 echo json_encode(['success' => true, 'message' => 'Thêm địa chỉ thành công!']);
             } else {
                 echo json_encode([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'Có lỗi xảy ra khi thêm địa chỉ',
                     'debug' => [
                         'addressData' => $addressData,

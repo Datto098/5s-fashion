@@ -309,30 +309,36 @@ class ProductDetailManager {
 	}
 
 	toggleWishlist(productId) {
-		const wishlistBtn = document.querySelector('.wishlist-btn');
-		const heartIcon = wishlistBtn.querySelector('i');
+		console.log(
+			'🚫 Product-detail: toggleWishlist disabled - using unified system only'
+		);
+		return; // Let unified wishlist manager handle everything
 
-		// Get current wishlist
-		let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-		const isInWishlist = wishlist.includes(productId);
-
-		if (isInWishlist) {
-			// Remove from wishlist
-			wishlist = wishlist.filter((id) => id !== productId);
-			heartIcon.classList.remove('fas');
-			heartIcon.classList.add('far');
-			wishlistBtn.classList.remove('active');
-			showToast('Đã xóa khỏi danh sách yêu thích', 'info');
-		} else {
-			// Add to wishlist
-			wishlist.push(productId);
-			heartIcon.classList.remove('far');
-			heartIcon.classList.add('fas');
-			wishlistBtn.classList.add('active');
-			showToast('Đã thêm vào danh sách yêu thích', 'success');
-		}
-
-		localStorage.setItem('wishlist', JSON.stringify(wishlist));
+		// OLD CODE DISABLED TO PREVENT CONFLICTS:
+		// const wishlistBtn = document.querySelector('.wishlist-btn');
+		// const heartIcon = wishlistBtn.querySelector('i');
+		//
+		// // Get current wishlist
+		// let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+		// const isInWishlist = wishlist.includes(productId);
+		//
+		// if (isInWishlist) {
+		// 	// Remove from wishlist
+		// 	wishlist = wishlist.filter((id) => id !== productId);
+		// 	heartIcon.classList.remove('fas');
+		// 	heartIcon.classList.add('far');
+		// 	wishlistBtn.classList.remove('active');
+		// 	showToast('Đã xóa khỏi danh sách yêu thích', 'info');
+		// } else {
+		// 	// Add to wishlist
+		// 	wishlist.push(productId);
+		// 	heartIcon.classList.remove('far');
+		// 	heartIcon.classList.add('fas');
+		// 	wishlistBtn.classList.add('active');
+		// 	showToast('Đã thêm vào danh sách yêu thích', 'success');
+		// }
+		//
+		// localStorage.setItem('wishlist', JSON.stringify(wishlist));
 
 		// Animation
 		wishlistBtn.style.transform = 'scale(0.8)';
@@ -575,43 +581,36 @@ function showToast(message, type = 'info') {
 }
 
 function updateCartCounter() {
-	// Use existing cart counter function from client.js
-	if (typeof window.updateCartCounterGlobal === 'function') {
-		window.updateCartCounterGlobal();
-	} else {
-		// Simple fallback
-		const cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
-		const totalItems = cartItems.reduce(
-			(sum, item) => sum + item.quantity,
-			0
-		);
-
-		const counters = document.querySelectorAll('.cart-counter');
-		counters.forEach((counter) => {
-			counter.textContent = totalItems;
-			counter.style.display = totalItems > 0 ? 'inline' : 'none';
-		});
-	}
+	// ALWAYS use unified cart manager - no fallbacks to prevent conflicts
+	console.log(
+		'📦 Product-detail: updateCartCounter called - doing nothing to prevent conflicts'
+	);
+	return; // Let unified manager handle everything automatically
 }
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
 	window.productDetailManager = new ProductDetailManager();
 
+	console.log(
+		'🚫 Product-detail: localStorage wishlist loading disabled - using unified system only'
+	);
+
+	// OLD DISABLED CODE TO PREVENT CONFLICTS:
 	// Load wishlist state
-	const productId = window.productData?.id;
-	if (productId) {
-		const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-		if (wishlist.includes(productId)) {
-			const wishlistBtn = document.querySelector('.wishlist-btn');
-			const heartIcon = wishlistBtn?.querySelector('i');
-			if (heartIcon) {
-				heartIcon.classList.remove('far');
-				heartIcon.classList.add('fas');
-				wishlistBtn.classList.add('active');
-			}
-		}
-	}
+	// const productId = window.productData?.id;
+	// if (productId) {
+	// 	const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+	// 	if (wishlist.includes(productId)) {
+	// 		const wishlistBtn = document.querySelector('.wishlist-btn');
+	// 		const heartIcon = wishlistBtn?.querySelector('i');
+	// 		if (heartIcon) {
+	// 			heartIcon.classList.remove('far');
+	// 			heartIcon.classList.add('fas');
+	// 			wishlistBtn.classList.add('active');
+	// 		}
+	// 	}
+	// }
 
 	// Smooth scroll for tab links
 	document.querySelectorAll('a[href^="#"]').forEach((anchor) => {

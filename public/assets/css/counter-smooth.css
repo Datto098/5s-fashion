@@ -1,0 +1,53 @@
+/* HIDE ALL COUNTERS COMPLETELY */
+.counter-badge,
+#wishlist-count,
+#cart-count,
+.cart-count,
+.wishlist-count,
+.wishlist-counter,
+.cart-counter {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Old smooth counter transitions - now disabled */
+/*
+.counter-badge {
+    opacity: 0 !important;
+    transition: all 0.4s ease-in-out !important;
+    transform: scale(0.8) !important;
+}
+
+.counter-badge.loaded {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+
+.counter-badge.updated {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+}
+
+.counter-badge:not(:empty) {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+
+body.page-loaded .counter-badge {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+
+#wishlist-count[data-count]:not([data-count="0"]),
+#cart-count[data-count]:not([data-count="0"]) {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+
+#wishlist-count:not(:empty):not([data-count="0"]),
+#cart-count:not(:empty):not([data-count="0"]) {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+*/

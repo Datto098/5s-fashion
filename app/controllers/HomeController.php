@@ -183,7 +183,32 @@ class HomeController extends Controller
 
     public function cart()
     {
-        // Initialize Cart model
+        // Check if user is authenticated (using helper function)
+        if (!isLoggedIn()) {
+            // Store intended URL for redirect after login
+            $_SESSION['redirect_after_login'] = '/5s-fashion/cart';
+
+            // Redirect to login with message
+            $_SESSION['info_message'] = 'Bạn cần đăng nhập để xem giỏ hàng';
+            header('Location: /5s-fashion/login');
+            exit;
+        }
+
+        // Check if user is admin - admins shouldn't use client cart
+        $user = getUser();
+        if ($user && $user['role'] === 'admin') {
+            // Show a proper message instead of redirecting to dashboard
+            $data = [
+                'title' => 'Giỏ hàng - 5S Fashion',
+                'error_message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng. Để mua hàng, vui lòng đăng xuất và đăng nhập bằng tài khoản khách hàng.',
+                'cartItems' => [],
+                'cartTotal' => 0,
+                'cartCount' => 0
+            ];
+
+            $this->view('client/cart/index', $data);
+            return;
+        }        // Initialize Cart model
         $cartModel = $this->model('Cart');
 
         $cartItems = $cartModel->getCartItems();

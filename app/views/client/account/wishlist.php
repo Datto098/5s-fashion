@@ -71,12 +71,10 @@ ob_start();
                     <div class="wishlist-controls mb-4">
                         <div class="row align-items-center">
                             <div class="col-md-6">
-                                <p class="wishlist-count mb-0">
-                                    <span class="fw-bold"><?= count($wishlist ?? []) ?></span> sản phẩm
-                                </p>
+
                             </div>
                             <div class="col-md-6 text-md-end">
-                                <div class="btn-group" role="group">
+                                <div class="btn-group gap-2" role="group">
                                     <button type="button" class="btn btn-outline-secondary active" id="gridView">
                                         <i class="fas fa-th-large"></i>
                                     </button>
@@ -95,7 +93,7 @@ ob_start();
                             <h4>Chưa có sản phẩm yêu thích</h4>
                             <p class="text-muted mb-4">Khám phá và lưu những sản phẩm bạn yêu thích!</p>
                             <a href="<?= url('shop') ?>" class="btn btn-primary btn-lg">
-                                <i class="fas fa-shopping-bag me-2"></i>Khám phá sản phẩm
+                                Khám phá sản phẩm
                             </a>
                         </div>
                     <?php else: ?>
@@ -168,7 +166,7 @@ ob_start();
                                                 <div class="product-actions">
                                                     <button class="btn btn-primary btn-sm w-100"
                                                             onclick="addToCart(<?= $item['product_id'] ?>)">
-                                                        <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ
+                                                       Thêm vào giỏ
                                                     </button>
                                                 </div>
                                             </div>
@@ -221,7 +219,7 @@ ob_start();
                                                 <small class="text-muted ms-1">(<?= $item['reviews_count'] ?? 0 ?>)</small>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <div class="product-price">
                                                 <?php if (!empty($item['sale_price'])): ?>
                                                     <span class="current-price fw-bold text-danger">
@@ -506,11 +504,12 @@ function removeFromWishlist(productId) {
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Response data:', data); // Debug log
             if (data.success) {
                 // Xóa item ngay khỏi DOM
                 const gridCard = button.closest('.col-lg-4');
                 const listRow = button.closest('.wishlist-item-row');
-                
+
                 if (gridCard) {
                     gridCard.style.transition = 'all 0.3s ease';
                     gridCard.style.opacity = '0';
@@ -523,40 +522,23 @@ function removeFromWishlist(productId) {
                     listRow.style.transform = 'scale(0.98)';
                     setTimeout(() => listRow.remove(), 300);
                 }
-                
+
                 // Update wishlist count
                 const countElement = document.querySelector('.wishlist-count .fw-bold');
                 if (countElement) {
                     const currentCount = parseInt(countElement.textContent);
                     countElement.textContent = Math.max(currentCount - 1, 0);
                 }
-                
+
                 showToast('Đã xóa sản phẩm khỏi danh sách yêu thích', 'success');
-                
-                // Check if wishlist is empty after animation and show empty state
+
+                // Reload ngay sau khi alert
                 setTimeout(() => {
-                    const remainingGrid = document.querySelectorAll('#wishlistGrid .wishlist-item-card');
-                    const remainingList = document.querySelectorAll('#wishlistList .wishlist-item-row');
-                    if (remainingGrid.length === 0 && remainingList.length === 0) {
-                        // Hide both views and show empty state
-                        document.getElementById('wishlistGrid').classList.add('d-none');
-                        document.getElementById('wishlistList').classList.add('d-none');
-                        
-                        // Show empty state
-                        const emptyHtml = `
-                            <div class="empty-wishlist text-center py-5">
-                                <i class="fas fa-heart fa-4x text-muted mb-3"></i>
-                                <h4>Chưa có sản phẩm yêu thích</h4>
-                                <p class="text-muted mb-4">Khám phá và lưu những sản phẩm bạn yêu thích!</p>
-                                <a href="<?= url('shop') ?>" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-shopping-bag me-2"></i>Khám phá sản phẩm
-                                </a>
-                            </div>
-                        `;
-                        document.querySelector('.account-content').insertAdjacentHTML('beforeend', emptyHtml);
-                    }
-                }, 400);
+                    location.reload();
+                }, 1500); // Chỉ đợi 1.5 giây
+
             } else {
+                console.log('Request failed - data.success is false:', data);
                 button.innerHTML = originalContent;
                 button.disabled = false;
                 showToast(data.message || 'Có lỗi xảy ra, vui lòng thử lại', 'error');
@@ -569,19 +551,11 @@ function removeFromWishlist(productId) {
             showToast('Có lỗi xảy ra, vui lòng thử lại', 'error');
         });
     }
-    // Helper: check if wishlist is empty and reload page if so
-    function checkWishlistEmpty() {
-        const remainingGrid = document.querySelectorAll('#wishlistGrid .wishlist-item-card');
-        const remainingList = document.querySelectorAll('#wishlistList .wishlist-item-row');
-        if (remainingGrid.length === 0 && remainingList.length === 0) {
-            location.reload();
-        }
-    }
 }
 
 function quickView(productId) {
     // Implementation for quick view
-    alert('Chức năng xem nhanh đang được phát triển. Product ID: ' + productId);
+    showInfo('Chức năng xem nhanh đang được phát triển. Product ID: ' + productId);
 }
 
 function addToCart(productId) {
@@ -589,7 +563,7 @@ function addToCart(productId) {
     if (typeof window.addToCart === 'function') {
         window.addToCart(productId);
     } else {
-        alert('Chức năng thêm vào giỏ hàng đang được phát triển. Product ID: ' + productId);
+        showInfo('Chức năng thêm vào giỏ hàng đang được phát triển. Product ID: ' + productId);
     }
 }
 </script>

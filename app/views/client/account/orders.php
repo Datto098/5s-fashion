@@ -11,7 +11,7 @@ ob_start();
                 <div class="account-sidebar">
                     <div class="user-info text-center mb-4">
                         <div class="user-avatar">
-                            <i class="fas fa-user-circle fa-4x text-danger"></i>
+                            <i class="fas fa-user-circle fa-4x text-primary"></i>
                         </div>
                         <h5 class="mt-2"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></h5>
                         <p class="text-muted"><?= htmlspecialchars(getUser()['email'] ?? '') ?></p>
@@ -69,13 +69,14 @@ ob_start();
 
                     <!-- Order Filters -->
                     <div class="order-filters mb-4">
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-outline-primary active">Tất cả</button>
-                            <button type="button" class="btn btn-outline-primary">Chờ xác nhận</button>
-                            <button type="button" class="btn btn-outline-primary">Đang xử lý</button>
-                            <button type="button" class="btn btn-outline-primary">Đang giao</button>
-                            <button type="button" class="btn btn-outline-primary">Hoàn thành</button>
-                            <button type="button" class="btn btn-outline-primary">Đã hủy</button>
+                        <div class="btn-group gap-2" role="group">
+                            <button type="button" class="btn btn-primary order-filter-btn" data-status="all">Tất cả</button>
+                            <button type="button" class="btn btn-outline-primary order-filter-btn" data-status="confirmed">Đã xác nhận</button>
+                            <button type="button" class="btn btn-outline-primary order-filter-btn" data-status="pending">Chờ xác nhận</button>
+                            <button type="button" class="btn btn-outline-primary order-filter-btn" data-status="processing">Đang xử lý</button>
+                            <button type="button" class="btn btn-outline-primary order-filter-btn" data-status="shipped">Đang giao</button>
+                            <button type="button" class="btn btn-outline-primary order-filter-btn" data-status="delivered,completed">Hoàn thành</button>
+                            <button type="button" class="btn btn-outline-primary order-filter-btn" data-status="cancelled">Hủy</button>
                         </div>
                     </div>
 
@@ -86,42 +87,115 @@ ob_start();
                             <h4>Chưa có đơn hàng nào</h4>
                             <p class="text-muted mb-4">Bạn chưa thực hiện đơn hàng nào. Hãy khám phá các sản phẩm tuyệt vời của chúng tôi!</p>
                             <a href="<?= url('shop') ?>" class="btn btn-primary btn-lg">
-                                <i class="fas fa-shopping-cart me-2"></i>Mua sắm ngay
+                               Mua sắm ngay
                             </a>
                         </div>
                     <?php else: ?>
                         <div class="orders-list">
                             <?php foreach ($orders as $order): ?>
-                                <div class="order-card">
+                                <div class="order-card" data-status="<?= $order['status'] ?? 'pending' ?>">
                                     <div class="order-header">
                                         <div class="order-info">
-                                            <h6 class="order-id">Đơn hàng #<?= $order['id'] ?></h6>
+                                            <h6 class="order-id">Đơn hàng #<?= $order['order_code'] ?></h6>
                                             <p class="order-date">Đặt ngày: <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></p>
                                         </div>
                                         <div class="order-status">
-                                            <span class="badge bg-<?= $order['status'] === 'completed' ? 'success' : ($order['status'] === 'cancelled' ? 'danger' : 'warning') ?>">
-                                                <?= ucfirst($order['status']) ?>
+                                            <?php
+                                            $status = $order['status'] ?? 'pending';
+                                            $statusClass = 'bg-warning';
+                                            $statusText = 'Đang xử lý';
+
+                                            switch($status) {
+                                                case 'pending':
+                                                    $statusClass = 'bg-warning';
+                                                    $statusText = 'Chờ xác nhận';
+                                                    break;
+                                                case 'processing':
+                                                    $statusClass = 'bg-info';
+                                                    $statusText = 'Đang xử lý';
+                                                    break;
+                                                case 'confirmed':
+                                                    $statusClass = 'bg-primary';
+                                                    $statusText = 'Đã xác nhận';
+                                                    break;
+                                                case 'shipped':
+                                                    $statusClass = 'bg-info';
+                                                    $statusText = 'Đang giao hàng';
+                                                    break;
+                                                case 'delivered':
+                                                case 'completed':
+                                                    $statusClass = 'bg-success';
+                                                    $statusText = 'Hoàn thành';
+                                                    break;
+                                                case 'cancelled':
+                                                    $statusClass = 'bg-danger';
+                                                    $statusText = 'Đã hủy';
+                                                    break;
+                                                case 'refunded':
+                                                    $statusClass = 'bg-secondary';
+                                                    $statusText = 'Đã hoàn tiền';
+                                                    break;
+                                                default:
+                                                    $statusClass = 'bg-warning';
+                                                    $statusText = 'Chờ xác nhận';
+                                            }
+                                            ?>
+                                            <span class="badge <?= $statusClass ?>">
+                                                <?= $statusText ?>
                                             </span>
                                         </div>
                                     </div>
 
                                     <div class="order-body">
                                         <div class="order-items">
-                                            <!-- Order items would be listed here -->
-                                            <p class="text-muted">Chi tiết sản phẩm sẽ được hiển thị khi Order model được tạo</p>
+                                            <?php if (!empty($order['items'])): ?>
+                                                <?php foreach ($order['items'] as $item): ?>
+                                                    <div class="order-item d-flex align-items-center mb-2 p-2 border-bottom">
+                                                        <div class="item-image me-3">
+                                                            <?php if (!empty($item['featured_image'])): ?>
+                                                                <img src="/5s-fashion/serve-file.php?file=<?php echo rawurlencode($item['featured_image']); ?>"
+                                                                     alt="<?php echo htmlspecialchars($item['product_name']); ?>"
+                                                                     class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                                                            <?php else: ?>
+                                                                <div class="placeholder-image d-flex align-items-center justify-content-center rounded bg-light"
+                                                                     style="width: 50px; height: 50px;">
+                                                                    <i class="fas fa-image text-muted"></i>
+                                                                </div>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <div class="item-details flex-grow-1">
+                                                            <h6 class="item-name mb-0 small"><?php echo htmlspecialchars($item['product_name']); ?></h6>
+                                                            <small class="text-muted">
+                                                                Số lượng: <?php echo (int)$item['quantity']; ?> -
+                                                                Giá: <?php echo number_format($item['price'], 0, ',', '.'); ?>đ
+                                                            </small>
+                                                        </div>
+                                                        <div class="item-total">
+                                                            <small class="text-primary fw-bold"><?php echo number_format($item['total'], 0, ',', '.'); ?>đ</small>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <p class="text-muted mb-0">Không có thông tin sản phẩm</p>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
 
                                     <div class="order-footer">
                                         <div class="order-total">
-                                            <strong>Tổng: <?= number_format($order['total']) ?>đ</strong>
+                                            <strong>Tổng: <?= number_format($order['total_amount']) ?>đ</strong>
                                         </div>
                                         <div class="order-actions">
                                             <a href="<?= url('orders/' . $order['id']) ?>" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye me-1"></i>Xem chi tiết
                                             </a>
-                                            <?php if ($order['status'] === 'pending'): ?>
-                                                <button class="btn btn-outline-danger btn-sm">
+                                            <?php
+                                            // Show cancel button only for COD orders that are not yet shipping/delivered/cancelled
+                                            $canCancel = $order['payment_method'] === 'cod' &&
+                                                        !in_array($order['status'], ['shipping', 'delivered', 'cancelled']);
+                                            if ($canCancel):
+                                            ?>
+                                                <button class="btn btn-outline-danger btn-sm" onclick="cancelOrder('<?= $order['id'] ?>')">
                                                     <i class="fas fa-times me-1"></i>Hủy đơn
                                                 </button>
                                             <?php endif; ?>
@@ -162,6 +236,63 @@ ob_start();
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Order filter functionality
+    const filterBtns = document.querySelectorAll('.order-filter-btn');
+    const orderCards = document.querySelectorAll('.order-card');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filterStatus = this.getAttribute('data-status');
+
+            // Update button states
+            filterBtns.forEach(b => {
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-outline-primary');
+            });
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-primary');
+
+            // Filter orders
+            if (filterStatus === 'all') {
+                // Show all orders
+                orderCards.forEach(card => {
+                    card.style.display = 'block';
+                });
+            } else {
+                // Show/hide orders based on status
+                const statusArray = filterStatus.split(',');
+                orderCards.forEach(card => {
+                    const cardStatus = card.getAttribute('data-status');
+                    if (statusArray.includes(cardStatus)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }            // Update counter if needed
+            updateOrderCounter();
+        });
+    });
+
+    function updateOrderCounter() {
+        const visibleOrders = document.querySelectorAll('.order-card:not([style*="display: none"])').length;
+        const totalOrders = orderCards.length;
+
+        // Update the subtitle if it exists
+        const subtitle = document.querySelector('.content-subtitle');
+        if (subtitle) {
+            if (visibleOrders === totalOrders) {
+                subtitle.textContent = 'Theo dõi tình trạng đơn hàng của bạn';
+            } else {
+                subtitle.textContent = `Hiển thị ${visibleOrders} trên ${totalOrders} đơn hàng`;
+            }
+        }
+    }
+});
+</script>
 
 <style>
 .account-container {
@@ -290,6 +421,22 @@ ob_start();
     margin: 20px 0;
 }
 
+.order-filters .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.order-filter-btn {
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 13px;
+    min-width: auto;
+    flex: 0 0 auto;
+    border-radius: 20px;
+}
+
 @media (max-width: 768px) {
     .account-container {
         padding: 20px 0;
@@ -318,6 +465,34 @@ ob_start();
     }
 }
 </style>
+
+<script>
+function cancelOrder(orderId) {
+    if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) {
+        fetch('<?= url('api/orders') ?>/' + orderId + '/cancel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Đơn hàng đã được hủy thành công');
+                location.reload(); // Reload page to show updated status
+            } else {
+                alert('Có lỗi xảy ra: ' + (data.message || 'Không thể hủy đơn hàng'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi hủy đơn hàng');
+        });
+    }
+}
+</script>
 
 <?php
 // Get the content and assign to layout

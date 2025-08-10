@@ -388,21 +388,54 @@ class CheckoutManager {
                         </div>
 
                         <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
-                            <label class="form-check-label d-flex align-items-center" for="bank_transfer">
-                                <i class="fas fa-university text-primary me-2"></i>
-                                Chuyển khoản ngân hàng
+                            <input class="form-check-input" type="radio" name="payment_method" id="vnpay" value="vnpay">
+                            <label class="form-check-label d-flex align-items-center" for="vnpay">
+                                <i class="fas fa-credit-card text-primary me-2"></i>
+                                Thanh toán VNPay
                             </label>
-                            <div class="text-muted small mt-1">Chuyển khoản trước khi giao hàng</div>
+                            <div class="text-muted small mt-1">Thanh toán trực tuyến qua VNPay (ATM, Internet Banking, Visa, MasterCard)</div>
                         </div>
 
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="payment_method" id="momo" value="momo">
-                            <label class="form-check-label d-flex align-items-center" for="momo">
-                                <i class="fab fa-cc-visa text-info me-2"></i>
-                                Ví điện tử MoMo
-                            </label>
-                            <div class="text-muted small mt-1">Thanh toán qua ví MoMo</div>
+                        <!-- VNPay Bank Selection (ẩn mặc định) -->
+                        <div id="vnpay-banks" class="mt-3" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="bank_code" id="vnpayqr" value="VNPAYQR">
+                                        <label class="form-check-label" for="vnpayqr">
+                                            <img src="https://sandbox.vnpayment.vn/paymentv2/images/brands/vnpayqr.jpg" alt="VNPay QR" style="height: 24px;" class="me-2">
+                                            VNPay QR
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="bank_code" id="vnbank" value="VNBANK">
+                                        <label class="form-check-label" for="vnbank">
+                                            <i class="fas fa-university text-primary me-2"></i>
+                                            ATM/Internet Banking
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="bank_code" id="intcard" value="INTCARD">
+                                        <label class="form-check-label" for="intcard">
+                                            <i class="fab fa-cc-visa text-info me-2"></i>
+                                            Thẻ quốc tế
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="bank_code" id="vietcombank" value="VIETCOMBANK">
+                                        <label class="form-check-label" for="vietcombank">
+                                            <img src="https://sandbox.vnpayment.vn/paymentv2/images/brands/vcb.jpg" alt="Vietcombank" style="height: 24px;" class="me-2">
+                                            Vietcombank
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -484,7 +517,7 @@ class CheckoutManager {
 									}
                                 </div>
                                 <div class="address-actions">
-                                    <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1 mb-1"
                                             onclick="event.stopPropagation(); addressManager.editAddress(${
 												addr.id
 											})">
@@ -537,14 +570,36 @@ class CheckoutManager {
 	async handleSubmit(event) {
 		event.preventDefault();
 
+		// Prevent double submission
+		const submitBtn = event.target.querySelector('button[type="submit"]');
+		let originalText = '';
+
+		if (submitBtn) {
+			if (submitBtn.disabled) {
+				console.log(
+					'Form already being submitted, ignoring duplicate request'
+				);
+				return;
+			}
+			submitBtn.disabled = true;
+			originalText = submitBtn.innerHTML;
+			submitBtn.innerHTML =
+				'<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+		}
+
 		if (!this.selectedAddress) {
 			this.showError('Vui lòng chọn địa chỉ giao hàng');
+			if (submitBtn) {
+				submitBtn.disabled = false;
+				submitBtn.innerHTML = originalText;
+			}
 			return;
 		}
 
 		const formData = new FormData(event.target);
+		const paymentMethod = formData.get('payment_method');
 
-		// Restructure data to match backend expectations
+		// First create the order
 		const orderData = {
 			customer: {
 				name:
@@ -557,7 +612,7 @@ class CheckoutManager {
 				address: this.selectedAddress.address || '',
 			},
 			payment: {
-				method: formData.get('payment_method'),
+				method: paymentMethod,
 			},
 			order_notes: formData.get('order_notes') || '',
 			items: this.cart,
@@ -565,6 +620,7 @@ class CheckoutManager {
 		};
 
 		try {
+			// Create order first
 			const response = await fetch('/5s-fashion/order/place', {
 				method: 'POST',
 				headers: {
@@ -576,23 +632,178 @@ class CheckoutManager {
 			if (response.ok) {
 				const result = await response.json();
 				if (result.success) {
-					// Redirect to success page
-					if (result.redirect_url) {
-						window.location.href = result.redirect_url;
-					} else {
-						// Fallback redirect
-						window.location.href =
-							'/5s-fashion/order/success/' + result.order_id;
+					const orderCode = result.order_code;
+
+					// Process payment based on method
+					if (paymentMethod === 'vnpay') {
+						await this.processVNPayPayment(orderCode, formData);
+					} else if (paymentMethod === 'cod') {
+						await this.processCODPayment(orderCode);
 					}
 				} else {
 					this.showError(result.message || 'Không thể tạo đơn hàng');
+					// Re-enable submit button on error
+					if (submitBtn) {
+						submitBtn.disabled = false;
+						submitBtn.innerHTML = originalText;
+					}
 				}
 			} else {
 				this.showError('Có lỗi xảy ra khi tạo đơn hàng');
+				// Re-enable submit button on error
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.innerHTML = originalText;
+				}
 			}
 		} catch (error) {
 			console.error('Error creating order:', error);
 			this.showError('Có lỗi xảy ra khi tạo đơn hàng');
+			// Re-enable submit button on error
+			if (submitBtn) {
+				submitBtn.disabled = false;
+				submitBtn.innerHTML = originalText;
+			}
+		}
+	}
+
+	async processVNPayPayment(orderCode, formData) {
+		try {
+			// Show processing overlay
+			this.showPaymentProcessing();
+
+			const bankCode = formData.get('bank_code') || '';
+
+			const paymentData = {
+				order_code: orderCode,
+				bank_code: bankCode,
+			};
+
+			const response = await fetch('/5s-fashion/payment/vnpay', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(paymentData),
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				if (result.success) {
+					// Redirect to VNPay payment page
+					window.location.href = result.payment_url;
+				} else {
+					this.hidePaymentProcessing();
+					this.showError(
+						result.message || 'Không thể tạo thanh toán VNPay'
+					);
+				}
+			} else {
+				this.hidePaymentProcessing();
+				this.showError('Có lỗi xảy ra khi tạo thanh toán VNPay');
+			}
+		} catch (error) {
+			this.hidePaymentProcessing();
+			console.error('Error processing VNPay payment:', error);
+			this.showError('Có lỗi xảy ra khi tạo thanh toán VNPay');
+		}
+	}
+
+	async processCODPayment(orderCode) {
+		try {
+			console.log('[COD JS] Starting COD payment for order:', orderCode);
+
+			// Show processing overlay
+			this.showPaymentProcessing();
+
+			const paymentData = {
+				order_code: orderCode,
+			};
+
+			console.log('[COD JS] Sending payment data:', paymentData);
+
+			const response = await fetch('/5s-fashion/payment/cod', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(paymentData),
+			});
+
+			console.log('[COD JS] Response received:', {
+				ok: response.ok,
+				status: response.status,
+				statusText: response.statusText,
+				headers: Object.fromEntries(response.headers.entries()),
+			});
+
+			if (response.ok) {
+				const responseText = await response.text();
+				console.log('[COD JS] Raw response text:', responseText);
+
+				try {
+					const result = JSON.parse(responseText);
+					console.log('[COD JS] Parsed result:', result);
+
+					if (result.success) {
+						console.log(
+							'[COD JS] Success! Redirecting to:',
+							result.redirect_url
+						);
+						// Redirect to success page
+						window.location.href = result.redirect_url;
+					} else {
+						console.error(
+							'[COD JS] Payment failed:',
+							result.message
+						);
+						this.hidePaymentProcessing();
+						this.showError(
+							result.message || 'Không thể tạo đơn hàng COD'
+						);
+					}
+				} catch (parseError) {
+					console.error('[COD JS] JSON parse error:', parseError);
+					console.error(
+						'[COD JS] Response was not valid JSON:',
+						responseText
+					);
+					this.hidePaymentProcessing();
+					this.showError('Server trả về dữ liệu không hợp lệ');
+				}
+			} else {
+				console.error(
+					'[COD JS] HTTP error:',
+					response.status,
+					response.statusText
+				);
+				const errorText = await response.text();
+				console.error('[COD JS] Error response:', errorText);
+				this.hidePaymentProcessing();
+				this.showError(
+					'Có lỗi xảy ra khi tạo đơn hàng COD (HTTP ' +
+						response.status +
+						')'
+				);
+			}
+		} catch (error) {
+			this.hidePaymentProcessing();
+			console.error('[COD JS] Network/fetch error:', error);
+			this.showError('Có lỗi mạng xảy ra khi tạo đơn hàng COD');
+		}
+	}
+
+	showPaymentProcessing() {
+		const overlay = document.getElementById('paymentProcessing');
+		if (overlay) {
+			overlay.classList.add('show');
+		}
+	}
+
+	hidePaymentProcessing() {
+		const overlay = document.getElementById('paymentProcessing');
+		if (overlay) {
+			overlay.classList.remove('show');
 		}
 	}
 
@@ -1036,6 +1247,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	console.log('About to initialize form...');
 	checkoutManager.initializeForm();
+
+	// Initialize payment method handlers
+	initializePaymentHandlers();
 });
+
+// Payment method handlers
+function initializePaymentHandlers() {
+	const vnpayRadio = document.getElementById('vnpay');
+	const codRadio = document.getElementById('cod');
+	const vnpayBanks = document.getElementById('vnpay-banks');
+
+	if (vnpayRadio && codRadio && vnpayBanks) {
+		// Show/hide VNPay bank options
+		vnpayRadio.addEventListener('change', function () {
+			if (this.checked) {
+				vnpayBanks.style.display = 'block';
+				// Auto-select first bank option
+				const firstBank = vnpayBanks.querySelector(
+					'input[type="radio"]'
+				);
+				if (firstBank) firstBank.checked = true;
+			}
+		});
+
+		codRadio.addEventListener('change', function () {
+			if (this.checked) {
+				vnpayBanks.style.display = 'none';
+				// Uncheck all bank options
+				vnpayBanks
+					.querySelectorAll('input[type="radio"]')
+					.forEach((radio) => {
+						radio.checked = false;
+					});
+			}
+		});
+	}
+}
 
 console.log('Checkout.js fully loaded and ready');

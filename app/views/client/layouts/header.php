@@ -84,13 +84,13 @@
                     <!-- Wishlist -->
                     <a href="<?= url('wishlist') ?>" class="btn btn-link text-dark me-2 position-relative">
                         <i class="fas fa-heart"></i>
-                        <span class="badge bg-danger badge-sm position-absolute" id="wishlist-count">0</span>
+                        <span class="badge bg-danger badge-sm position-absolute counter-badge" id="wishlist-count" style="display: none !important;">0</span>
                     </a>
 
                     <!-- Cart -->
                     <a href="<?= url('cart') ?>" class="btn btn-link text-dark me-3 position-relative">
                         <i class="fas fa-shopping-cart"></i>
-                        <span class="badge bg-primary badge-sm position-absolute cart-count" id="cart-count"><?= getCartCount() ?></span>
+                        <span class="badge bg-primary badge-sm position-absolute counter-badge cart-count" id="cart-count" style="display: none !important;"><?= getCartCount() ?></span>
                     </a>
 
                     <!-- Mobile Menu Toggle -->

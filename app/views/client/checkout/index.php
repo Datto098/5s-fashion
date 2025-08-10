@@ -6,7 +6,8 @@ $meta_description = 'Hoàn tất đơn hàng tại 5S Fashion - Thanh toán an t
 // Custom CSS for checkout page
 $custom_css = [
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    'css/checkout.css'
+    'css/checkout.css',
+    'css/vnpay.css'
 ];
 
 // Custom JavaScript for checkout page
@@ -18,6 +19,13 @@ $custom_js = [
 // Start output buffering for content
 ob_start();
 ?>
+
+
+<style>
+    .payment-icons{
+        display: flex;
+    }
+</style>
 
 <!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="breadcrumb-section">
@@ -215,6 +223,15 @@ ob_start();
                 </button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Payment Processing Overlay -->
+<div class="payment-processing" id="paymentProcessing">
+    <div class="processing-content">
+        <div class="processing-spinner"></div>
+        <h5>Đang xử lý thanh toán...</h5>
+        <p class="text-muted">Vui lòng đợi, đừng tắt trình duyệt</p>
     </div>
 </div>
 

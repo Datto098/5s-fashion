@@ -364,8 +364,8 @@ if (!empty($product['featured_image'])) {
         function addToCart(productId) {
             console.log('Adding product', productId, 'to cart');
 
-            // Simple alert for now
-            alert('Đã thêm sản phẩm vào giỏ hàng!\n\n' +
+            // Sử dụng hệ thống notification thống nhất
+            showSuccess('Đã thêm sản phẩm vào giỏ hàng!\n\n' +
                   'Sản phẩm: <?= htmlspecialchars($product['name']) ?>\n' +
                   'Giá: <?= number_format($product['sale_price'] ?? $product['price'], 0, ',', '.') ?>₫');
 
@@ -375,8 +375,8 @@ if (!empty($product['featured_image'])) {
         function buyNow(productId) {
             console.log('Buy now product', productId);
 
-            // Simple alert for now
-            alert('Chức năng mua ngay!\n\n' +
+            // Sử dụng hệ thống notification thống nhất
+            showInfo('Chức năng mua ngay!\n\n' +
                   'Sản phẩm: <?= htmlspecialchars($product['name']) ?>\n' +
                   'Giá: <?= number_format($product['sale_price'] ?? $product['price'], 0, ',', '.') ?>₫\n\n' +
                   'Đang chuyển đến trang thanh toán...');
