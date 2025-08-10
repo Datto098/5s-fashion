@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Máy chủ: 127.0.0.1:3306
--- Thời gian đã tạo: Th8 07, 2025 lúc 02:44 PM
--- Phiên bản máy phục vụ: 8.2.0
--- Phiên bản PHP: 8.2.13
+-- Host: 127.0.0.1:3306
+-- Generation Time: Aug 10, 2025 at 02:16 PM
+-- Server version: 9.1.0
+-- PHP Version: 8.3.14
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Cơ sở dữ liệu: `5s_fashion`
+-- Database: `5s_fashion`
 --
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `banners`
+-- Table structure for table `banners`
 --
 
 DROP TABLE IF EXISTS `banners`;
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `banners` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `banners`
+-- Dumping data for table `banners`
 --
 
 INSERT INTO `banners` (`id`, `title`, `subtitle`, `image`, `mobile_image`, `link_url`, `link_text`, `position`, `sort_order`, `status`, `start_date`, `end_date`, `created_at`, `updated_at`) VALUES
@@ -61,7 +61,7 @@ INSERT INTO `banners` (`id`, `title`, `subtitle`, `image`, `mobile_image`, `link
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `brands`
+-- Table structure for table `brands`
 --
 
 DROP TABLE IF EXISTS `brands`;
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `brands` (
 ) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `brands`
+-- Dumping data for table `brands`
 --
 
 INSERT INTO `brands` (`id`, `name`, `slug`, `description`, `logo`, `website`, `status`, `created_at`, `updated_at`) VALUES
@@ -99,7 +99,7 @@ INSERT INTO `brands` (`id`, `name`, `slug`, `description`, `logo`, `website`, `s
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `carts`
+-- Table structure for table `carts`
 --
 
 DROP TABLE IF EXISTS `carts`;
@@ -118,12 +118,12 @@ CREATE TABLE IF NOT EXISTS `carts` (
   KEY `idx_session_id` (`session_id`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_variant_id` (`variant_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `categories`
+-- Table structure for table `categories`
 --
 
 DROP TABLE IF EXISTS `categories`;
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
 ) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `categories`
+-- Dumping data for table `categories`
 --
 
 INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `image`, `parent_id`, `sort_order`, `status`, `meta_title`, `meta_description`, `created_at`, `updated_at`) VALUES
@@ -175,7 +175,7 @@ INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `image`, `parent_
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `coupons`
+-- Table structure for table `coupons`
 --
 
 DROP TABLE IF EXISTS `coupons`;
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS `coupons` (
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `coupons`
+-- Dumping data for table `coupons`
 --
 
 INSERT INTO `coupons` (`id`, `code`, `name`, `description`, `type`, `value`, `minimum_amount`, `maximum_discount`, `usage_limit`, `used_count`, `user_limit`, `valid_from`, `valid_until`, `status`, `is_featured`, `created_at`, `updated_at`) VALUES
@@ -220,7 +220,7 @@ INSERT INTO `coupons` (`id`, `code`, `name`, `description`, `type`, `value`, `mi
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `coupon_usage`
+-- Table structure for table `coupon_usage`
 --
 
 DROP TABLE IF EXISTS `coupon_usage`;
@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS `coupon_usage` (
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `customer_addresses`
+-- Table structure for table `customer_addresses`
 --
 
 DROP TABLE IF EXISTS `customer_addresses`;
@@ -257,10 +257,10 @@ CREATE TABLE IF NOT EXISTS `customer_addresses` (
   PRIMARY KEY (`id`),
   KEY `customer_addresses_user_id_foreign` (`user_id`),
   KEY `customer_addresses_is_default_index` (`is_default`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `customer_addresses`
+-- Dumping data for table `customer_addresses`
 --
 
 INSERT INTO `customer_addresses` (`id`, `user_id`, `name`, `phone`, `address`, `is_default`, `created_at`, `updated_at`, `note`) VALUES
@@ -269,12 +269,14 @@ INSERT INTO `customer_addresses` (`id`, `user_id`, `name`, `phone`, `address`, `
 (4, 1004, 'Lê Văn C', '0923456789', '321 Nguyễn Trãi, Quận 5', 1, '2025-07-25 13:10:32', '2025-07-25 13:10:32', ''),
 (9, 1002, 'Do Ngoc Hieu', '00000000003', '80, Phố Trần Phú, Điện Biên, Phường Ba Đình, Hà Nội, 10160, Việt Nam', 1, '2025-08-03 07:40:47', '2025-08-03 21:28:06', 'ljasdfb'),
 (11, 1018, 'Do Ngoc', '03748646524', 'Bệnh viện Nhi Trung ương, 18, Ngõ 879 La Thành, Láng Thượng, Phường Láng, Hà Nội, 10080, Việt Nam', 1, '2025-08-04 19:03:00', '2025-08-04 20:18:02', 'd'),
-(14, 1018, 'Do Ngoc', '03748646524', 'Ngõ 34 Phố Hào Nam, Ô Chợ Dừa, Quận Đống Đa, Hà Nội, 10178, Việt Nam', 0, '2025-08-04 20:05:05', '2025-08-04 20:18:02', '');
+(14, 1018, 'Do Ngoc', '03748646524', 'Ngõ 34 Phố Hào Nam, Ô Chợ Dừa, Quận Đống Đa, Hà Nội, 10178, Việt Nam', 0, '2025-08-04 20:05:05', '2025-08-04 20:18:02', ''),
+(18, 1, 'Nguyễn Tiến Đạt', '0375099213', 'Địa chỉ cụ thể 1, Phường 2, Quận Hoàn Kiếm, Thành phố Hà Nội', 1, '2025-08-09 13:40:15', '2025-08-09 13:40:15', ''),
+(19, 1019, 'Nguyen Tien Dat', '0375099213', 'Discovery Central, 67, Tran Phu Street, Điện Biên, Ba Đình District, Hà Nội, 10160, Vietnam', 1, '2025-08-10 07:57:55', '2025-08-10 07:57:55', '');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `newsletter_subscriptions`
+-- Table structure for table `newsletter_subscriptions`
 --
 
 DROP TABLE IF EXISTS `newsletter_subscriptions`;
@@ -291,7 +293,7 @@ CREATE TABLE IF NOT EXISTS `newsletter_subscriptions` (
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `newsletter_subscriptions`
+-- Dumping data for table `newsletter_subscriptions`
 --
 
 INSERT INTO `newsletter_subscriptions` (`id`, `email`, `name`, `status`, `subscribed_at`, `unsubscribed_at`) VALUES
@@ -303,7 +305,7 @@ INSERT INTO `newsletter_subscriptions` (`id`, `email`, `name`, `status`, `subscr
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `orders`
+-- Table structure for table `orders`
 --
 
 DROP TABLE IF EXISTS `orders`;
@@ -319,7 +321,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `shipping_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
   `discount_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
   `total_amount` decimal(10,2) NOT NULL,
-  `status` enum('pending','processing','shipped','delivered','cancelled','refunded') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
+  `status` enum('pending','processing','shipped','delivered','cancelled','refunded') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
   `payment_method` enum('cod','bank_transfer','vnpay','momo','zalopay','credit_card') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'cod',
   `payment_status` enum('pending','paid','failed','refunded') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
   `shipping_address` json NOT NULL,
@@ -338,21 +340,24 @@ CREATE TABLE IF NOT EXISTS `orders` (
   KEY `orders_created_at_index` (`created_at`),
   KEY `orders_user_status_date` (`user_id`,`status`,`created_at`),
   KEY `orders_status_payment_date` (`status`,`payment_status`,`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=100003 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=100101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `orders`
+-- Dumping data for table `orders`
 --
 
 INSERT INTO `orders` (`id`, `user_id`, `order_code`, `customer_name`, `customer_email`, `customer_phone`, `subtotal`, `tax_amount`, `shipping_amount`, `discount_amount`, `total_amount`, `status`, `payment_method`, `payment_status`, `shipping_address`, `billing_address`, `notes`, `admin_notes`, `shipped_at`, `delivered_at`, `created_at`, `updated_at`) VALUES
-(100000, 1002, 'ORD-001', 'Nguyễn Văn A', 'nguyenvana@email.com', '0901234567', 358000.00, 0.00, 30000.00, 0.00, 388000.00, 'processing', 'cod', 'pending', '{\"city\": \"TP.HCM\", \"name\": \"Nguyễn Văn A\", \"ward\": \"Phường Bến Nghé\", \"phone\": \"0901234567\", \"address\": \"123 Nguyễn Huệ, Quận 1\", \"district\": \"Quận 1\"}', NULL, 'Giao hàng giờ hành chính', 'Cập nhật từ admin interface', NULL, NULL, '2025-07-20 13:10:32', '2025-07-26 14:48:13'),
-(100001, 1003, 'ORD-002', 'Trần Thị B', 'tranthib@email.com', '0912345678', 448000.00, 0.00, 30000.00, 0.00, 478000.00, 'pending', 'vnpay', 'paid', '{\"city\": \"TP.HCM\", \"name\": \"Trần Thị B\", \"ward\": \"Phường 6\", \"phone\": \"0912345678\", \"address\": \"456 Lê Lợi, Quận 3\", \"district\": \"Quận 3\"}', NULL, '', 'Cập nhật từ admin interface', NULL, NULL, '2025-07-23 13:10:32', '2025-07-26 14:45:07'),
-(100002, 1004, 'ORD-003', 'Lê Văn C', 'levanc@email.com', '0923456789', 599000.00, 0.00, 0.00, 0.00, 599000.00, 'pending', 'momo', 'refunded', '{\"city\": \"TP.HCM\", \"name\": \"Lê Văn C\", \"ward\": \"Phường 8\", \"phone\": \"0923456789\", \"address\": \"789 Nguyễn Trãi, Quận 5\", \"district\": \"Quận 5\"}', NULL, 'Miễn phí ship đơn trên 500k', 'Cập nhật từ admin interface', '2025-07-26 13:43:19', '2025-07-26 13:43:23', '2025-07-24 13:10:32', '2025-07-26 14:45:04');
+(100095, 1019, 'ORD2508100697', 'Nguyen Tien Dat', 'dat@gmail.com', '0375099213', 599000.00, 0.00, 30000.00, 0.00, 629000.00, 'cancelled', 'cod', 'pending', '{\"name\": \"Nguyen Tien Dat\", \"phone\": \"0375099213\", \"address\": \"Discovery Central, 67, Tran Phu Street, Điện Biên, Ba Đình District, Hà Nội, 10160, Vietnam\"}', NULL, '', 'Khách hàng yêu cầu hủy', NULL, NULL, '2025-08-10 11:55:36', '2025-08-10 13:28:12'),
+(100096, 1019, 'ORD2508102294', 'Nguyen Tien Dat', 'dat@gmail.com', '0375099213', 599000.00, 0.00, 30000.00, 0.00, 629000.00, 'processing', 'vnpay', 'paid', '{\"name\": \"Nguyen Tien Dat\", \"phone\": \"0375099213\", \"address\": \"Discovery Central, 67, Tran Phu Street, Điện Biên, Ba Đình District, Hà Nội, 10160, Vietnam\"}', NULL, '', NULL, NULL, NULL, '2025-08-10 11:56:14', '2025-08-10 11:56:48'),
+(100097, 1019, 'ORD2508103133', 'Nguyen Tien Dat', 'dat@gmail.com', '0375099213', 729000.00, 0.00, 30000.00, 0.00, 759000.00, 'cancelled', 'cod', 'pending', '{\"name\": \"Nguyen Tien Dat\", \"phone\": \"0375099213\", \"address\": \"Discovery Central, 67, Tran Phu Street, Điện Biên, Ba Đình District, Hà Nội, 10160, Vietnam\"}', NULL, '', 'Khách hàng yêu cầu hủy', NULL, NULL, '2025-08-10 13:29:22', '2025-08-10 13:29:37'),
+(100098, 1019, 'ORD2508102787', 'Nguyen Tien Dat', 'dat@gmail.com', '0375099213', 699000.00, 0.00, 30000.00, 0.00, 729000.00, 'cancelled', 'cod', 'pending', '{\"name\": \"Nguyen Tien Dat\", \"phone\": \"0375099213\", \"address\": \"Discovery Central, 67, Tran Phu Street, Điện Biên, Ba Đình District, Hà Nội, 10160, Vietnam\"}', NULL, '', 'Khách hàng yêu cầu hủy', NULL, NULL, '2025-08-10 13:30:26', '2025-08-10 13:33:00'),
+(100099, 1019, 'ORD2508104506', 'Nguyen Tien Dat', 'dat@gmail.com', '0375099213', 559000.00, 0.00, 30000.00, 0.00, 589000.00, 'processing', 'cod', 'pending', '{\"name\": \"Nguyen Tien Dat\", \"phone\": \"0375099213\", \"address\": \"Discovery Central, 67, Tran Phu Street, Điện Biên, Ba Đình District, Hà Nội, 10160, Vietnam\"}', NULL, '', NULL, NULL, NULL, '2025-08-10 13:40:28', '2025-08-10 13:40:28'),
+(100100, 1019, 'ORD2508104453', 'Nguyen Tien Dat', 'dat@gmail.com', '0375099213', 559000.00, 0.00, 30000.00, 0.00, 589000.00, 'delivered', 'cod', 'pending', '{\"name\": \"Nguyen Tien Dat\", \"phone\": \"0375099213\", \"address\": \"Discovery Central, 67, Tran Phu Street, Điện Biên, Ba Đình District, Hà Nội, 10160, Vietnam\"}', NULL, '', 'Cập nhật từ admin interface', '2025-08-10 13:59:54', '2025-08-10 14:01:14', '2025-08-10 13:42:14', '2025-08-10 14:01:14');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `order_items`
+-- Table structure for table `order_items`
 --
 
 DROP TABLE IF EXISTS `order_items`;
@@ -373,12 +378,24 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   KEY `order_items_order_id_foreign` (`order_id`),
   KEY `order_items_product_id_foreign` (`product_id`),
   KEY `order_items_variant_id_foreign` (`variant_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=90 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `product_name`, `product_sku`, `variant_info`, `quantity`, `price`, `total`, `created_at`, `updated_at`) VALUES
+(84, 100095, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 1, 599000.00, 599000.00, '2025-08-10 11:55:36', '2025-08-10 11:55:36'),
+(85, 100096, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 1, 599000.00, 599000.00, '2025-08-10 11:56:14', '2025-08-10 11:56:14'),
+(86, 100097, 5, NULL, 'Quần Âu Nữ Ống Suông', '', NULL, 1, 729000.00, 729000.00, '2025-08-10 13:29:22', '2025-08-10 13:29:22'),
+(87, 100098, 6, NULL, 'Áo Khoác Nam Bomber', '', NULL, 1, 699000.00, 699000.00, '2025-08-10 13:30:26', '2025-08-10 13:30:26'),
+(88, 100099, 7, NULL, 'Đầm Nữ Midi Cổ V', '', NULL, 1, 559000.00, 559000.00, '2025-08-10 13:40:28', '2025-08-10 13:40:28'),
+(89, 100100, 7, NULL, 'Đầm Nữ Midi Cổ V', '', NULL, 1, 559000.00, 559000.00, '2025-08-10 13:42:14', '2025-08-10 13:42:14');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `order_logs`
+-- Table structure for table `order_logs`
 --
 
 DROP TABLE IF EXISTS `order_logs`;
@@ -394,43 +411,22 @@ CREATE TABLE IF NOT EXISTS `order_logs` (
   KEY `order_logs_order_id_foreign` (`order_id`),
   KEY `order_logs_created_by_foreign` (`created_by`),
   KEY `order_logs_created_at_index` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `order_logs`
+-- Dumping data for table `order_logs`
 --
 
 INSERT INTO `order_logs` (`id`, `order_id`, `status_from`, `status_to`, `notes`, `created_by`, `created_at`) VALUES
-(1, 100002, NULL, 'pending', 'Đơn hàng được tạo thành công', 1, '2025-01-20 03:30:00'),
-(2, 100002, 'pending', 'processing', 'Đang xử lý đơn hàng', 1, '2025-01-20 07:15:00'),
-(3, 100002, 'processing', 'confirmed', 'Test confirmed status', 1, '2025-07-26 13:22:07'),
-(4, 100002, '', 'confirmed', 'Test confirmed status', 1, '2025-07-26 13:25:10'),
-(5, 100002, '', 'processing', 'Cập nhật từ admin interface', 1, '2025-07-26 13:35:36'),
-(6, 100002, 'processing', 'shipped', 'Cập nhật từ admin interface', 1, '2025-07-26 13:42:27'),
-(7, 100002, 'shipped', 'delivered', 'Cập nhật từ admin interface', 1, '2025-07-26 13:42:31'),
-(8, 100002, 'delivered', 'confirmed', 'Cập nhật từ admin interface', 1, '2025-07-26 13:42:37'),
-(9, 100002, '', 'confirmed', 'Cập nhật từ admin interface', 1, '2025-07-26 13:42:43'),
-(10, 100002, '', 'processing', 'Cập nhật từ admin interface', 1, '2025-07-26 13:42:51'),
-(11, 100002, 'processing', 'cancelled', 'Cập nhật từ admin interface', 1, '2025-07-26 13:42:57'),
-(12, 100002, 'cancelled', 'pending', 'Cập nhật từ admin interface', 1, '2025-07-26 13:43:10'),
-(13, 100002, 'pending', 'processing', 'Cập nhật từ admin interface', 1, '2025-07-26 13:43:15'),
-(14, 100002, 'processing', 'shipped', 'Cập nhật từ admin interface', 1, '2025-07-26 13:43:19'),
-(15, 100002, 'shipped', 'delivered', 'Cập nhật từ admin interface', 1, '2025-07-26 13:43:23'),
-(16, 100002, 'delivered', 'cancelled', 'Cập nhật từ admin interface', 1, '2025-07-26 13:43:29'),
-(17, 100002, 'cancelled', 'pending', 'Cập nhật từ admin interface', 1, '2025-07-26 13:47:25'),
-(18, 100002, 'pending', 'cancelled', 'Cập nhật từ admin interface', 1, '2025-07-26 13:47:28'),
-(19, 100002, 'cancelled', 'confirmed', 'Cập nhật từ admin interface', 1, '2025-07-26 13:47:40'),
-(20, 100002, '', 'confirmed', 'Cập nhật từ admin interface', 1, '2025-07-26 13:53:39'),
-(21, 100002, '', 'processing', 'Cập nhật từ admin interface', 1, '2025-07-26 13:53:43'),
-(22, 100002, 'processing', 'pending', 'Cập nhật từ admin interface', 1, '2025-07-26 14:45:04'),
-(23, 100001, 'shipped', 'pending', 'Cập nhật từ admin interface', 1, '2025-07-26 14:45:07'),
-(24, 100000, 'delivered', 'pending', 'Cập nhật từ admin interface', 1, '2025-07-26 14:45:10'),
-(25, 100000, 'pending', 'processing', 'Cập nhật từ admin interface', 1, '2025-07-26 14:47:58');
+(26, 100100, 'processing', 'shipped', 'Cập nhật từ admin interface', 1, '2025-08-10 13:59:54'),
+(27, 100100, 'shipped', 'delivered', 'Cập nhật từ admin interface', 1, '2025-08-10 14:00:07'),
+(28, 100100, 'delivered', 'cancelled', 'Cập nhật từ admin interface', 1, '2025-08-10 14:00:15'),
+(29, 100100, 'cancelled', 'delivered', 'Cập nhật từ admin interface', 1, '2025-08-10 14:01:14');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `password_reset_tokens`
+-- Table structure for table `password_reset_tokens`
 --
 
 DROP TABLE IF EXISTS `password_reset_tokens`;
@@ -448,7 +444,7 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `posts`
+-- Table structure for table `posts`
 --
 
 DROP TABLE IF EXISTS `posts`;
@@ -466,7 +462,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
 ) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `posts`
+-- Dumping data for table `posts`
 --
 
 INSERT INTO `posts` (`id`, `title`, `content`, `thumbnail`, `author_id`, `created_at`, `updated_at`, `status`) VALUES
@@ -480,7 +476,7 @@ INSERT INTO `posts` (`id`, `title`, `content`, `thumbnail`, `author_id`, `create
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `products`
+-- Table structure for table `products`
 --
 
 DROP TABLE IF EXISTS `products`;
@@ -531,12 +527,11 @@ CREATE TABLE IF NOT EXISTS `products` (
 ) ENGINE=InnoDB AUTO_INCREMENT=10023 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `products`
+-- Dumping data for table `products`
 --
 
 INSERT INTO `products` (`id`, `name`, `slug`, `sku`, `short_description`, `description`, `price`, `sale_price`, `cost_price`, `category_id`, `brand_id`, `featured_image`, `gallery`, `status`, `featured`, `weight`, `dimensions`, `material`, `care_instructions`, `gender`, `season`, `style`, `meta_title`, `meta_description`, `views`, `created_at`, `updated_at`, `has_variants`, `manage_stock`, `stock_quantity`, `low_stock_threshold`) VALUES
-(3, 'Áo Sơ Mi Nữ Trắng Công Sở', 'ao-so-mi-nam-trang-3', 'ASN001', 'Áo sơ mi nữ trắng thanh lịch cho công sở', 'Áo sơ mi nữ màu trắng với thiết kế thanh lịch, phù hợp cho môi trường công sở. Chất liệu polyester cao cấp, ít nhăn.', 459000.00, 0.00, NULL, 3, 3, '/uploads/products/68863ea9486ac_1753628329.webp', '[\"/uploads/products/6888ab9490662_1753787284_0.webp\", \"/uploads/products/6888ab94909c2_1753787284_1.webp\", \"/uploads/products/6888ab9490fcf_1753787284_3.webp\", \"/uploads/products/6888b19d7c43d_1753788829_0.webp\", \"/uploads/products/6888b19d7c70f_1753788829_1.webp\"]', 'published', 1, 2.00, '20x30x5', NULL, NULL, 'unisex', 'all_season', 'casual', 'Áo Sơ Mi Nữ Trắng Công Sở', 'Áo Sơ Mi Nữ Trắng Công Sở', 89, '2025-07-27 04:06:19', '2025-08-07 13:56:10', 1, 1, 0, 5),
-(4, 'Váy Maxi Nữ Hoa Nhí', 'quan-kaki-nam-4', 'VMN001', 'Váy maxi nữ họa tiết hoa nhí dễ thương', 'Váy maxi nữ với họa tiết hoa nhí dễ thương, phù hợp cho dạo phố và du lịch. Chất liệu voan mềm mại, thoáng mát.', 599000.00, 399000.00, NULL, 5, 4, '/uploads/products/6886434083834_1753629504.webp', NULL, 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 112, '2025-07-27 04:06:19', '2025-07-29 02:36:02', 0, 1, 0, 5),
+(4, 'Váy Maxi Nữ Hoa Nhí', 'quan-kaki-nam-4', 'VMN001', 'Váy maxi nữ họa tiết hoa nhí dễ thương', 'Váy maxi nữ với họa tiết hoa nhí dễ thương, phù hợp cho dạo phố và du lịch. Chất liệu voan mềm mại, thoáng mát.', 599000.00, NULL, NULL, 5, 4, '/uploads/products/689710bd6913c_1754730685.webp', '[\"/uploads/products/689710bd69f23_1754730685_0.webp\", \"/uploads/products/689710bd6a269_1754730685_1.webp\"]', 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 112, '2025-07-27 04:06:19', '2025-08-09 10:11:19', 1, 0, 0, 5),
 (5, 'Quần Âu Nữ Ống Suông', 'ao-hoodie-nam-5', 'QAN001', 'Quần âu nữ ống suông thanh lịch', 'Quần âu nữ ống suông với thiết kế thanh lịch, phù hợp cho công sở và những dịp trang trọng.', 729000.00, 0.00, NULL, 4, 5, '/uploads/products/6886434ae7a37_1753629514.webp', NULL, 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 67, '2025-07-27 04:06:19', '2025-07-28 06:47:10', 0, 1, 0, 5),
 (6, 'Áo Khoác Nam Bomber', 'ao-thun-nu-crop-6', 'AKN001', 'Áo khoác nam style bomber thời trang', 'Áo khoác nam style bomber với thiết kế trẻ trung, năng động. Chất liệu polyester chống gió, giữ ấm tốt.', 899000.00, 699000.00, NULL, 1, 1, '/uploads/products/6886435667f65_1753629526.webp', NULL, 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 234, '2025-07-27 04:06:19', '2025-07-27 08:18:46', 0, 1, 0, 5),
 (7, 'Đầm Nữ Midi Cổ V', 'quan-jean-nu-skinny-7', 'DAN001', 'Đầm nữ midi cổ V thanh lịch', 'Đầm nữ midi với thiết kế cổ V thanh lịch, phù hợp cho những buổi hẹn hò và dự tiệc.', 759000.00, 559000.00, NULL, 5, 3, '/uploads/products/6886436366223_1753629539.webp', NULL, 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 145, '2025-07-27 04:06:19', '2025-07-27 08:18:59', 0, 1, 0, 5),
@@ -548,7 +543,7 @@ INSERT INTO `products` (`id`, `name`, `slug`, `sku`, `short_description`, `descr
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `product_attributes`
+-- Table structure for table `product_attributes`
 --
 
 DROP TABLE IF EXISTS `product_attributes`;
@@ -569,7 +564,7 @@ CREATE TABLE IF NOT EXISTS `product_attributes` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `product_attributes`
+-- Dumping data for table `product_attributes`
 --
 
 INSERT INTO `product_attributes` (`id`, `name`, `slug`, `type`, `description`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES
@@ -580,7 +575,7 @@ INSERT INTO `product_attributes` (`id`, `name`, `slug`, `type`, `description`, `
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `product_attribute_values`
+-- Table structure for table `product_attribute_values`
 --
 
 DROP TABLE IF EXISTS `product_attribute_values`;
@@ -602,7 +597,7 @@ CREATE TABLE IF NOT EXISTS `product_attribute_values` (
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `product_attribute_values`
+-- Dumping data for table `product_attribute_values`
 --
 
 INSERT INTO `product_attribute_values` (`id`, `attribute_id`, `value`, `slug`, `color_code`, `image`, `sort_order`, `status`, `created_at`, `updated_at`) VALUES
@@ -622,7 +617,7 @@ INSERT INTO `product_attribute_values` (`id`, `attribute_id`, `value`, `slug`, `
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `product_images`
+-- Table structure for table `product_images`
 --
 
 DROP TABLE IF EXISTS `product_images`;
@@ -645,7 +640,7 @@ CREATE TABLE IF NOT EXISTS `product_images` (
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `product_reviews`
+-- Table structure for table `product_reviews`
 --
 
 DROP TABLE IF EXISTS `product_reviews`;
@@ -672,7 +667,7 @@ CREATE TABLE IF NOT EXISTS `product_reviews` (
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `product_variants`
+-- Table structure for table `product_variants`
 --
 
 DROP TABLE IF EXISTS `product_variants`;
@@ -699,10 +694,10 @@ CREATE TABLE IF NOT EXISTS `product_variants` (
   KEY `product_variants_product_id_foreign` (`product_id`),
   KEY `product_variants_status_index` (`status`),
   KEY `product_variants_stock_index` (`stock_quantity`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `product_variants`
+-- Dumping data for table `product_variants`
 --
 
 INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `variant_name`, `price`, `sale_price`, `cost_price`, `stock_quantity`, `reserved_quantity`, `weight`, `dimensions`, `image`, `gallery`, `status`, `sort_order`, `created_at`, `updated_at`) VALUES
@@ -718,16 +713,14 @@ INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `variant_name`, `pric
 (10, 10022, 'TEST-2-7-10022', 'Áo Thun Test - Xanh dương - XS', NULL, NULL, NULL, 26, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:08:55', '2025-07-30 00:08:55'),
 (11, 10022, 'TEST-2-8-10022', 'Áo Thun Test - Xanh dương - S', NULL, NULL, NULL, 44, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:08:55', '2025-07-30 00:08:55'),
 (12, 10022, 'TEST-2-9-10022', 'Áo Thun Test - Xanh dương - M', NULL, NULL, NULL, 45, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:08:55', '2025-07-30 00:08:55'),
-(13, 3, 'SHIRT-1-7-3', 'Áo Sơ Mi Nữ Trắng Công Sở - Đỏ - XS', NULL, NULL, NULL, 20, 0, NULL, '', '', NULL, 'active', 0, '2025-07-30 00:28:16', '2025-07-30 02:30:55'),
-(14, 3, 'SHIRT-1-8-3', 'Áo Sơ Mi Nữ Trắng Công Sở - Đỏ - S', NULL, NULL, NULL, 37, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:28:16', '2025-07-30 00:28:16'),
-(15, 3, 'SHIRT-1-9-3', 'Áo Sơ Mi Nữ Trắng Công Sở - Đỏ - M', NULL, NULL, NULL, 45, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:28:16', '2025-07-30 00:28:16'),
-(16, 3, 'SHIRT-2-7-3', 'Áo Sơ Mi Nữ Trắng Công Sở - Xanh dương - XS', NULL, NULL, NULL, 43, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:28:16', '2025-07-30 00:28:16'),
-(17, 3, 'SHIRT-2-8-3', 'Áo Sơ Mi Nữ Trắng Công Sở - Xanh dương - S', NULL, NULL, NULL, 4605, 0, NULL, '', '', NULL, 'active', 0, '2025-07-30 00:28:16', '2025-07-30 02:34:06');
+(20, 4, 'VMN001-XAN-XS-DO', 'Váy Maxi Nữ Hoa Nhí - Xanh dương - XS - Đỏ', NULL, NULL, NULL, 10, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-09 09:47:37', '2025-08-09 09:47:37'),
+(21, 4, 'VMN001-DEN-M-DO', 'Váy Maxi Nữ Hoa Nhí - Đen - M - Đỏ', NULL, NULL, NULL, 20, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-09 09:47:49', '2025-08-09 09:47:49'),
+(22, 4, 'VMN001-TRA-S-DO', 'Váy Maxi Nữ Hoa Nhí - Trắng - S - Đỏ', NULL, NULL, NULL, 30, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-09 09:48:01', '2025-08-09 09:48:01');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `product_variant_attributes`
+-- Table structure for table `product_variant_attributes`
 --
 
 DROP TABLE IF EXISTS `product_variant_attributes`;
@@ -740,10 +733,10 @@ CREATE TABLE IF NOT EXISTS `product_variant_attributes` (
   UNIQUE KEY `product_variant_attributes_unique` (`variant_id`,`attribute_value_id`),
   KEY `product_variant_attributes_variant_id_foreign` (`variant_id`),
   KEY `product_variant_attributes_attribute_value_id_foreign` (`attribute_value_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `product_variant_attributes`
+-- Dumping data for table `product_variant_attributes`
 --
 
 INSERT INTO `product_variant_attributes` (`id`, `variant_id`, `attribute_value_id`, `created_at`) VALUES
@@ -780,12 +773,21 @@ INSERT INTO `product_variant_attributes` (`id`, `variant_id`, `attribute_value_i
 (31, 16, 2, '2025-07-30 00:28:16'),
 (32, 16, 7, '2025-07-30 00:28:16'),
 (33, 17, 2, '2025-07-30 00:28:16'),
-(34, 17, 8, '2025-07-30 00:28:16');
+(34, 17, 8, '2025-07-30 00:28:16'),
+(40, 20, 2, '2025-08-09 09:47:37'),
+(41, 20, 7, '2025-08-09 09:47:37'),
+(42, 20, 1, '2025-08-09 09:47:37'),
+(43, 21, 5, '2025-08-09 09:47:49'),
+(44, 21, 9, '2025-08-09 09:47:49'),
+(45, 21, 1, '2025-08-09 09:47:49'),
+(46, 22, 6, '2025-08-09 09:48:01'),
+(47, 22, 8, '2025-08-09 09:48:01'),
+(48, 22, 1, '2025-08-09 09:48:01');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `reviews`
+-- Table structure for table `reviews`
 --
 
 DROP TABLE IF EXISTS `reviews`;
@@ -812,7 +814,7 @@ CREATE TABLE IF NOT EXISTS `reviews` (
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `settings`
+-- Table structure for table `settings`
 --
 
 DROP TABLE IF EXISTS `settings`;
@@ -830,7 +832,7 @@ CREATE TABLE IF NOT EXISTS `settings` (
 ) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `settings`
+-- Dumping data for table `settings`
 --
 
 INSERT INTO `settings` (`id`, `key`, `value`, `type`, `group`, `created_at`, `updated_at`) VALUES
@@ -859,10 +861,8 @@ INSERT INTO `settings` (`id`, `key`, `value`, `type`, `group`, `created_at`, `up
 
 -- --------------------------------------------------------
 
--- --------------------------------------------------------
-
 --
--- Cấu trúc bảng cho bảng `stock_movements`
+-- Table structure for table `stock_movements`
 --
 
 DROP TABLE IF EXISTS `stock_movements`;
@@ -889,7 +889,7 @@ CREATE TABLE IF NOT EXISTS `stock_movements` (
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `users`
+-- Table structure for table `users`
 --
 
 DROP TABLE IF EXISTS `users`;
@@ -905,7 +905,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `role` enum('admin','customer') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'customer',
   `status` enum('active','inactive','banned') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'active',
   `email_verified_at` timestamp NULL DEFAULT NULL,
-  `email_verify_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email_verify_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `last_login_at` timestamp NULL DEFAULT NULL,
   `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `reset_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -918,25 +918,26 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `users_email_unique` (`email`),
   KEY `users_role_index` (`role`),
   KEY `users_status_index` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=1019 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1020 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `users`
+-- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `phone`, `address`, `avatar`, `role`, `status`, `email_verified_at`, `email_verify_token`, `last_login_at`, `remember_token`, `reset_token`, `reset_token_expires_at`, `created_at`, `updated_at`, `birthday`) VALUES
-(1, 'admin', 'admin@5sfashion.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', '0375099213', NULL, NULL, 'admin', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-25 13:10:32', '2025-07-26 15:23:35', '2025-08-03 15:51:26'),
+(1, 'admin', 'admin@5sfashion.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', '0375099213', NULL, NULL, 'admin', 'active', NULL, NULL, '2025-08-10 11:44:58', NULL, NULL, NULL, '2025-07-25 13:10:32', '2025-08-10 11:44:58', '2025-08-03 15:51:26'),
 (1002, 'nguyen_van_a', 'nguyenvana@email.com', '$2y$10$ms36/o7ZhziFtVYPf4bs.eo.PPUbWGPfEAgY3gpM0mTurbLaSPBSS', 'Nguyễn Văn A', '0901234567', 'hello', NULL, 'customer', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-25 13:10:32', '2025-08-03 18:30:21', '2025-08-02 17:00:00'),
 (1003, 'tran_thi_b', 'tranthib@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Trần Thị B', '0912345678', NULL, NULL, 'customer', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-25 13:10:32', '2025-07-25 13:10:32', '2025-08-03 15:51:26'),
 (1004, 'le_van_c', 'levanc@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Lê Văn C', '0923456789', NULL, NULL, 'customer', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-25 13:10:32', '2025-07-25 13:10:32', '2025-08-03 15:51:26'),
 (1005, 'pham_thi_d', 'phamthid@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Phạm Thị D', '0934567890', NULL, NULL, 'customer', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-25 13:10:32', '2025-07-25 13:10:32', '2025-08-03 15:51:26'),
 (1006, 'datdev', 'datdev@gmail.com', '$2y$10$KLfaI8pXJND4/Ba1P4foL.nbGJMYLXtEPDJrM4wT2CFjpVSc38fZC', 'Nguyễn Tiến Đạt', '0375099213', NULL, NULL, 'admin', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-26 15:25:08', '2025-07-26 15:25:08', '2025-08-03 15:51:26'),
-(1018, 'Hieu', 'dongochieu333@gmail.com', '$2y$10$zRp4thHpMKd/TtpUkp4HkeKWynXGXlRMQ4NuwmcFnoKwi9gF5qLim', 'Do Ngoc Hieu', '0384946973', NULL, NULL, 'customer', 'active', '2025-08-04 18:22:35', NULL, '2025-08-07 13:42:51', NULL, NULL, NULL, '2025-08-04 18:21:37', '2025-08-07 13:42:51', '2025-08-04 18:21:37');
+(1018, 'Hieu', 'dongochieu333@gmail.com', '$2y$10$zRp4thHpMKd/TtpUkp4HkeKWynXGXlRMQ4NuwmcFnoKwi9gF5qLim', 'Do Ngoc Hieu', '0384946973', NULL, NULL, 'customer', 'active', '2025-08-04 18:22:35', NULL, '2025-08-07 13:42:51', NULL, NULL, NULL, '2025-08-04 18:21:37', '2025-08-07 13:42:51', '2025-08-04 18:21:37'),
+(1019, 'Dat', 'dat@gmail.com', '$2y$10$gUPE9Y6LvqPisPty6hCzJOy9K2cmj34wtRHcEu6NXdshWxtYIX8Le', 'Nguyen Dat', '0988888888', NULL, NULL, 'customer', 'active', '2025-08-14 07:04:30', NULL, '2025-08-10 08:45:08', NULL, NULL, NULL, '2025-08-10 07:02:35', '2025-08-10 08:45:08', '2025-08-10 07:02:35');
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `user_coupons`
+-- Table structure for table `user_coupons`
 --
 
 DROP TABLE IF EXISTS `user_coupons`;
@@ -955,7 +956,7 @@ CREATE TABLE IF NOT EXISTS `user_coupons` (
 ) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `user_coupons`
+-- Dumping data for table `user_coupons`
 --
 
 INSERT INTO `user_coupons` (`id`, `user_id`, `coupon_id`, `saved_at`, `used_at`, `status`) VALUES
@@ -974,7 +975,7 @@ INSERT INTO `user_coupons` (`id`, `user_id`, `coupon_id`, `saved_at`, `used_at`,
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `wishlist`
+-- Table structure for table `wishlist`
 --
 
 DROP TABLE IF EXISTS `wishlist`;
@@ -988,36 +989,28 @@ CREATE TABLE IF NOT EXISTS `wishlist` (
   UNIQUE KEY `unique_user_product` (`user_id`,`product_id`),
   KEY `user_id` (`user_id`),
   KEY `product_id` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=73 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=87 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Đang đổ dữ liệu cho bảng `wishlist`
---
-
-INSERT INTO `wishlist` (`id`, `user_id`, `product_id`, `created_at`, `updated_at`) VALUES
-(71, 1018, 9, '2025-08-04 19:02:08', '2025-08-04 19:02:08'),
-(72, 1018, 8, '2025-08-04 19:02:12', '2025-08-04 19:02:12');
-
---
--- Các ràng buộc cho các bảng đã đổ
+-- Constraints for dumped tables
 --
 
 --
--- Các ràng buộc cho bảng `categories`
+-- Constraints for table `carts`
+--
+ALTER TABLE `carts`
+  ADD CONSTRAINT `fk_cart_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_cart_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_cart_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `categories`
 --
 ALTER TABLE `categories`
   ADD CONSTRAINT `categories_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL;
 
 --
--- Các ràng buộc cho bảng `carts`
---
-ALTER TABLE `carts`
-  ADD CONSTRAINT `fk_cart_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_cart_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_cart_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE;
-
---
--- Các ràng buộc cho bảng `coupon_usage`
+-- Constraints for table `coupon_usage`
 --
 ALTER TABLE `coupon_usage`
   ADD CONSTRAINT `coupon_usage_coupon_id_foreign` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`id`) ON DELETE CASCADE,
@@ -1025,19 +1018,19 @@ ALTER TABLE `coupon_usage`
   ADD CONSTRAINT `coupon_usage_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Các ràng buộc cho bảng `customer_addresses`
+-- Constraints for table `customer_addresses`
 --
 ALTER TABLE `customer_addresses`
   ADD CONSTRAINT `customer_addresses_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `orders`
+-- Constraints for table `orders`
 --
 ALTER TABLE `orders`
   ADD CONSTRAINT `orders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Các ràng buộc cho bảng `order_items`
+-- Constraints for table `order_items`
 --
 ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
@@ -1045,14 +1038,14 @@ ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_variant_id_foreign` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL;
 
 --
--- Các ràng buộc cho bảng `order_logs`
+-- Constraints for table `order_logs`
 --
 ALTER TABLE `order_logs`
   ADD CONSTRAINT `order_logs_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `order_logs_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `user_coupons`
+-- Constraints for table `user_coupons`
 --
 ALTER TABLE `user_coupons`
   ADD CONSTRAINT `user_coupons_coupon_id_foreign` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`id`) ON DELETE CASCADE,

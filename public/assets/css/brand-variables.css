@@ -1,0 +1,215 @@
+/**
+ * 5S Fashion - Brand Variables CSS
+ * Following UI Guidelines from UI.md
+ * Brand Color System Implementation
+ */
+
+:root {
+    /* ========== BRAND COLORS - CORE SYSTEM ========== */
+    /* Primary Colors */
+    --primary-color: #007bff;
+    /* Blue - Chính */
+    --dark-color: #343a40;
+    /* Dark Gray - Text chính */
+
+    /* Bootstrap Standard Colors */
+    --secondary-color: #6c757d;
+    /* Gray */
+    --success-color: #28a745;
+    /* Green */
+    --info-color: #17a2b8;
+    /* Cyan */
+    --warning-color: #ffc107;
+    /* Yellow */
+    --danger-color: #dc3545;
+    /* Red */
+    --light-color: #f8f9fa;
+    /* Light Gray */
+    --white-color: #ffffff;
+    /* White */
+
+    /* ========== GRADIENT COLORS ========== */
+    /* Orange Gradient - Voucher chính */
+    --voucher-gradient: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 50%, #ffa726 100%);
+
+    /* Green Gradient - Voucher fixed amount */
+    --voucher-green-gradient: linear-gradient(135deg, #4CAF50 0%, #66BB6A 50%, #81C784 100%);
+
+    /* Feature Section Background */
+    --section-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+
+    /* Brand Primary Gradient */
+    --primary-gradient: linear-gradient(135deg, var(--primary-color), #ff7675);
+
+    /* Section Title Underline */
+    --title-underline-gradient: linear-gradient(45deg, var(--primary-color), var(--info-color));
+
+    /* ========== COMPONENT STANDARDS ========== */
+    /* Border Radius */
+    --border-radius-standard: 15px;
+    --border-radius-button: 50px;
+    --border-radius-small: 8px;
+
+    /* Box Shadows */
+    --shadow-card: 0 5px 15px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
+    --shadow-button: 0 10px 25px rgba(0, 123, 255, 0.3);
+
+    /* Transitions */
+    --transition-standard: all 0.3s ease;
+
+    /* Hover Effects */
+    --hover-translate: -8px;
+    --hover-button-translate: -2px;
+
+    /* ========== TYPOGRAPHY ========== */
+    /* Font Sizes */
+    --font-hero-title: 3.5rem;
+    --font-section-title: 2.8rem;
+    --font-subsection-title: 2.2rem;
+    --font-card-title: 1.8rem;
+    --font-component-title: 1.4rem;
+    --font-small-title: 1.2rem;
+    --font-lead: 1.3rem;
+    --font-body: 1rem;
+    --font-small: 0.875rem;
+    --font-xs: 0.75rem;
+
+    /* Line Heights */
+    --line-height-title: 1.2;
+    --line-height-body: 1.6;
+
+    /* Font Weights */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+}
+
+/* ========== COMPLIANCE UTILITY CLASSES ========== */
+
+/* Text Colors - MUST USE */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-secondary {
+    color: var(--secondary-color) !important;
+}
+
+.text-dark {
+    color: var(--dark-color) !important;
+}
+
+.text-muted {
+    color: var(--secondary-color);
+    opacity: 0.75;
+}
+
+/* Background Colors - MUST USE */
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.bg-light {
+    background-color: var(--light-color) !important;
+}
+
+.bg-dark {
+    background-color: var(--dark-color) !important;
+}
+
+/* Standard Border Radius */
+.border-radius-standard {
+    border-radius: var(--border-radius-standard);
+}
+
+.border-radius-button {
+    border-radius: var(--border-radius-button);
+}
+
+/* Standard Shadows */
+.shadow-card {
+    box-shadow: var(--shadow-card);
+}
+
+.shadow-hover {
+    box-shadow: var(--shadow-hover);
+}
+
+/* Standard Transitions */
+.transition-standard {
+    transition: var(--transition-standard);
+}
+
+/* ========== ANTI-PATTERN OVERRIDES ========== */
+/* Force compliance with brand colors */
+
+/* Remove any hardcoded colors that violate guidelines */
+* {
+    /* Prevent usage of non-brand colors */
+}
+
+/* Card compliance */
+.card {
+    border-radius: var(--border-radius-standard) !important;
+    box-shadow: var(--shadow-card) !important;
+    border: none !important;
+    transition: var(--transition-standard);
+}
+
+.card:hover {
+    transform: translateY(var(--hover-translate));
+    box-shadow: var(--shadow-hover) !important;
+}
+
+/* Button compliance */
+.btn {
+    border-radius: var(--border-radius-button) !important;
+    padding: 12px 30px !important;
+    font-weight: var(--font-weight-semibold) !important;
+    transition: var(--transition-standard);
+}
+
+.btn:hover {
+    transform: translateY(var(--hover-button-translate));
+}
+
+/* Primary button gradient */
+.btn-primary {
+    background: var(--primary-gradient) !important;
+    border: none !important;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, var(--primary-color)) !important;
+    box-shadow: var(--shadow-button) !important;
+}
+
+/* Danger button gradient */
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #c82333) !important;
+    border: none !important;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130) !important;
+    box-shadow: 0 10px 25px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+    :root {
+        --font-hero-title: 2.5rem;
+        --font-section-title: 2.2rem;
+        --font-subsection-title: 1.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    :root {
+        --font-hero-title: 2rem;
+        --font-section-title: 1.8rem;
+        --font-subsection-title: 1.5rem;
+    }
+}

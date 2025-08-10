@@ -864,8 +864,9 @@ function showToast(message, type = 'info') {
 }
 
 function updateCartCounter() {
-	// Use existing cart counter function from client.js
-	if (typeof window.updateCartCounter === 'function') {
-		window.updateCartCounter();
-	}
+	// ALWAYS use unified cart manager - no fallbacks to prevent conflicts
+	console.log(
+		'🛍️ Shop: updateCartCounter called - doing nothing to prevent conflicts'
+	);
+	return; // Let unified manager handle everything automatically
 }

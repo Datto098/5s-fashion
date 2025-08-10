@@ -102,6 +102,7 @@ return [
     'payment/methods' => 'PaymentController@getMethods',
     'payment/vnpay' => 'PaymentController@vnpay',
     'payment/vnpay/return' => 'PaymentController@vnpayReturn',
+    'payment/cod' => 'PaymentController@cod',
     'payment/momo' => 'PaymentController@momo',
     'payment/momo/return' => 'PaymentController@momoReturn',
     'payment/bank-transfer' => 'PaymentController@bankTransfer',

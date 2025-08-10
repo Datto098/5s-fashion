@@ -430,21 +430,28 @@ class CartPageManager {
 	 * Cập nhật số lượng hiển thị trên counter
 	 */
 	async updateCartCounter(count = null) {
-		try {
-			if (count === null) {
-				const response = await fetch(`${this.baseUrl}/cart/count`);
-				const result = await response.json();
-				count = result.success ? result.count : 0;
-			}
+		// TEMPORARILY DISABLED - preventing all counter updates
+		console.log(
+			'🚫 Cart.js counter update DISABLED to stop jumping numbers'
+		);
+		return;
 
-			// Update all cart counters
-			document.querySelectorAll('.cart-count').forEach((el) => {
-				el.textContent = count;
-				el.style.display = count > 0 ? 'inline' : 'none';
-			});
-		} catch (error) {
-			console.error('Update cart counter error:', error);
-		}
+		// OLD CODE DISABLED:
+		// try {
+		// 	if (count === null) {
+		// 		const response = await fetch(`${this.baseUrl}/cart/count`);
+		// 		const result = await response.json();
+		// 		count = result.success ? result.count : 0;
+		// 	}
+		//
+		// 	// Update all cart counters
+		// 	document.querySelectorAll('.cart-count').forEach((el) => {
+		// 		el.textContent = count;
+		// 		el.style.display = count > 0 ? 'inline' : 'none';
+		// 	});
+		// } catch (error) {
+		// 	console.error('Update cart counter error:', error);
+		// }
 	}
 
 	/**

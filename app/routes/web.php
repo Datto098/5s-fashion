@@ -26,6 +26,20 @@ $router->get('/product/{slug}', 'HomeController@product');
 $router->get('/checkout', 'HomeController@checkout');
 $router->post('/checkout/process', 'CheckoutController@process');
 
+// Order routes
+$router->post('/order/place', 'OrderController@place');
+$router->get('/order/success', 'OrderController@success');
+$router->get('/order/success/{id}', 'OrderController@success');
+
+// Payment routes
+$router->post('/payment/vnpay', 'PaymentController@vnpay');
+$router->get('/payment/vnpay/return', 'PaymentController@vnpayReturn');
+$router->post('/payment/cod', 'PaymentController@cod');
+$router->get('/payment/methods', 'PaymentController@getMethods');
+
+// Cart routes
+$router->get('/cart', 'HomeController@cart');
+
 // User Authentication routes
 $router->get('/login', 'AuthController@loginForm');
 $router->post('/login', 'AuthController@login');

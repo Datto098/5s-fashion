@@ -10,17 +10,29 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= asset('images/favicon.ico') ?>">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="<?= $meta_description ?? '5S Fashion - Thời trang nam nữ cao cấp, xu hướng mới nhất' ?>">
+    <meta name="keywords" content="<?= $meta_keywords ?? 'thời trang, nam, nữ, cao cấp, 5s fashion' ?>">
+    <title><?= $title ?? '5S Fashion - Thời trang cao cấp' ?></title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="<?= asset('images/favicon.ico') ?>">
 
     <!-- CSS - Load in correct order -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" rel="stylesheet">
 
-    <!-- Base CSS - Always loaded first -->
+    <!-- Brand Variables CSS - MUST load first -->
+    <link href="<?= asset('css/brand-variables.css') ?>" rel="stylesheet">
+
+    <!-- Base CSS - Always loaded after brand variables -->
     <link href="<?= asset('css/base.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/client.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/components.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/quick-view.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/counter-smooth.css') ?>" rel="stylesheet">
 
     <!-- Custom CSS for current page - Loaded after base CSS -->
     <?php if (isset($custom_css)): ?>
@@ -128,7 +140,7 @@
         .cart-item {
             border-bottom: 1px solid #eee;
             padding: 1rem 0;
-            display: flex;
+            /* display: flex; */
             gap: 1rem;
             align-items: center;
             justify-content: start;
@@ -313,9 +325,28 @@
             }
         }
     </style>
+
+    <!-- Global JavaScript Variables -->
+    <script>
+        // User authentication status - REQUIRED for cart functionality
+        window.isLoggedIn = <?= isLoggedIn() ? 'true' : 'false' ?>;
+        window.userId = <?= getUser() ? getUser()['id'] : 'null' ?>;
+
+        // Base URLs
+        window.baseUrl = '/5s-fashion';
+        window.apiUrl = '/5s-fashion/ajax';
+
+        // Current page info
+        window.currentPage = '<?= $_SERVER['REQUEST_URI'] ?? '' ?>';
+
+        console.log('User authentication status:', window.isLoggedIn);
+        console.log('User ID:', window.userId);
+    </script>
 </head>
 
-<body data-logged-in="<?= isLoggedIn() ? 'true' : 'false' ?>">
+<body data-logged-in="<?= isLoggedIn() ? 'true' : 'false' ?>"
+      data-user-id="<?= getUser() ? getUser()['id'] : '' ?>"
+      class="<?= $body_class ?? '' ?>">
     <!-- Header -->
     <?php include_once VIEW_PATH . '/client/layouts/header.php'; ?>
 
@@ -412,11 +443,14 @@
     <!-- Unified notification system -->
     <script src="<?= asset('js/notifications.js') ?>"></script>
 
-    <!-- Unified cart and wishlist systems -->
+    <!-- Unified cart and wishlist systems - ENABLED but counters hidden via CSS -->
     <script src="<?= asset('js/unified-cart.js') ?>"></script>
     <script src="<?= asset('js/unified-wishlist.js') ?>"></script>
 
-    <!-- Quick View Modal System -->
+    <!-- DISABLED VERSIONS NO LONGER NEEDED:
+    <script src="<?= asset('js/unified-cart-disabled.js') ?>"></script>
+    <script src="<?= asset('js/unified-wishlist-disabled.js') ?>"></script>
+    -->    <!-- Quick View Modal System -->
     <script src="<?= asset('js/quick-view.js') ?>"></script>
 
     <!-- Main client JavaScript -->
@@ -424,16 +458,51 @@
 
     <!-- Initialize global cart manager -->
     <script>
+        // Global notification helper function - thay thế cho tất cả alert()
+        window.showAlert = function(message, type = 'info', title = '') {
+            if (window.notifications && typeof window.notifications.show === 'function') {
+                window.notifications.show(message, type, title);
+            } else if (typeof showNotification === 'function') {
+                showNotification(message, type, title);
+            } else {
+                // Final fallback: console log thay vì alert
+                console.log(`${type.toUpperCase()}: ${message}`);
+            }
+        };
+
+        // Shorthand functions
+        window.showSuccess = function(message, title = 'Thành công') {
+            window.showAlert(message, 'success', title);
+        };
+
+        window.showError = function(message, title = 'Lỗi') {
+            window.showAlert(message, 'error', title);
+        };
+
+        window.showWarning = function(message, title = 'Cảnh báo') {
+            window.showAlert(message, 'warning', title);
+        };
+
+        window.showInfo = function(message, title = 'Thông tin') {
+            window.showAlert(message, 'info', title);
+        };
+
         // Initialize global cart manager - wait for unified system to be ready
-        let cartManager;
+        let cartManager, wishlistManager;
         document.addEventListener('DOMContentLoaded', function() {
-            // Wait for unifiedCartManager to be created
+            // Wait for unified managers to be created
             const checkForUnified = () => {
-                if (typeof unifiedCartManager !== 'undefined') {
+                if (typeof unifiedCartManager !== 'undefined' && typeof unifiedWishlistManager !== 'undefined') {
                     cartManager = unifiedCartManager;
+                    wishlistManager = unifiedWishlistManager;
+
+                    // Global exports
                     window.cartManager = cartManager;
-                    window.unifiedCart = cartManager; // Also expose as unifiedCart
-                    console.log('Cart manager initialized:', cartManager);
+                    window.wishlistManager = wishlistManager;
+                    window.unifiedCart = cartManager;
+                    window.unifiedWishlist = wishlistManager;
+
+                    console.log('Unified managers initialized:', { cartManager, wishlistManager });
                 } else {
                     // If not ready yet, wait a bit more
                     setTimeout(checkForUnified, 50);
@@ -464,9 +533,17 @@
     <script>
         // Initialize systems on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // These are now handled by unified systems
-            // loadCartItems();
-            // updateCartCounter();
+            // Clear old localStorage data that might interfere
+            console.log('🧹 Clearing old localStorage data...');
+            localStorage.removeItem('wishlist'); // Remove old localStorage wishlist
+            localStorage.removeItem('cart'); // Remove old localStorage cart
+
+            // Add page-loaded class for CSS animations
+            setTimeout(() => {
+                document.body.classList.add('page-loaded');
+            }, 100);
+
+            console.log('✅ Page initialized - counters hidden via CSS');
         });
     </script>
 </body>

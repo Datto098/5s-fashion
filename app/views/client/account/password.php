@@ -128,7 +128,7 @@ ob_start();
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-lock me-2"></i>Đổi mật khẩu
+                                        Đổi mật khẩu
                                     </button>
                                     <a href="<?= url('account') ?>" class="btn btn-outline-secondary">
                                         <i class="fas fa-times me-2"></i>Hủy
@@ -181,8 +181,8 @@ ob_start();
                                             <div class="login-info">
                                                 <strong>Lần cuối đăng nhập:</strong><br>
                                                 <small class="text-muted">
-    <?= !empty(getUser()['last_login_at']) 
-        ? date('d/m/Y H:i', strtotime(getUser()['last_login_at'])) 
+    <?= !empty(getUser()['last_login_at'])
+        ? date('d/m/Y H:i', strtotime(getUser()['last_login_at']))
         : 'Chưa có thông tin' ?>
                                                 </small>
                                             </div>

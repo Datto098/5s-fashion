@@ -487,13 +487,10 @@ class UnifiedWishlistManager {
 	}
 
 	updateWishlistCounterUI(count) {
-		const counters = document.querySelectorAll(
-			'#wishlist-count, .wishlist-count'
-		);
-		counters.forEach((counter) => {
-			counter.textContent = count;
-			counter.style.display = count > 0 ? 'inline' : 'none';
-		});
+		// Counters are hidden via CSS - just log the count for debugging
+		console.log('❤️ Wishlist counter would be:', count, '(hidden via CSS)');
+
+		// Don't update DOM since counters are hidden with display: none !important;
 	}
 
 	/**

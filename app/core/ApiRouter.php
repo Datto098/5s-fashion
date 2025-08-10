@@ -243,7 +243,12 @@ class ApiRouter
                     if (method_exists($controller, $method)) {
                         // Extract route parameters
                         $params = $this->extractRouteParameters($path);
-                        $controller->$method($params);
+                        // Pass individual parameters based on method needs
+                        if (isset($params['id'])) {
+                            $controller->$method($params['id']);
+                        } else {
+                            $controller->$method();
+                        }
                     } else {
                         ApiResponse::serverError("Method {$method} not found in {$controllerClass}");
                     }
@@ -262,9 +267,12 @@ class ApiRouter
         $params = [];
         $pathParts = explode('/', trim($path, '/'));
 
-        // Simple parameter extraction - can be enhanced
-        if (count($pathParts) >= 3) {
-            $params['id'] = end($pathParts);
+        // For route like /orders/{id}/cancel, extract the ID (second part)
+        if (count($pathParts) >= 3 && $pathParts[0] === 'orders' && $pathParts[2] === 'cancel') {
+            $params['id'] = $pathParts[1];
+        } elseif (count($pathParts) >= 2) {
+            // For other routes, use the last segment as ID
+            $params['id'] = $pathParts[1];
         }
 
         return $params;

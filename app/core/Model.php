@@ -74,6 +74,17 @@ abstract class BaseModel
         // Filter only fillable fields
         $filteredData = $this->filterFillable($data);
 
+        // Debug log for Order model
+        if ($this->table === 'orders') {
+            error_log('[MODEL CREATE] ===== ORDER CREATION DEBUG =====');
+            error_log('[MODEL CREATE] Original data keys: ' . implode(', ', array_keys($data)));
+            error_log('[MODEL CREATE] Fillable fields: ' . implode(', ', $this->fillable));
+            error_log('[MODEL CREATE] Original data: ' . print_r($data, true));
+            error_log('[MODEL CREATE] Filtered data: ' . print_r($filteredData, true));
+            error_log('[MODEL CREATE] Status in original: ' . (isset($data['status']) ? $data['status'] : 'NOT SET'));
+            error_log('[MODEL CREATE] Status in filtered: ' . (isset($filteredData['status']) ? $filteredData['status'] : 'NOT SET'));
+        }
+
         // Add timestamps
         if ($this->timestamps) {
             $filteredData['created_at'] = date('Y-m-d H:i:s');
@@ -86,7 +97,17 @@ abstract class BaseModel
         $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
 
         if ($this->db->execute($sql, $filteredData)) {
-            return $this->find($this->db->lastInsertId());
+            $insertId = $this->db->lastInsertId();
+            if ($this->table === 'orders') {
+                error_log('[MODEL CREATE] SQL executed: ' . $sql);
+                error_log('[MODEL CREATE] Insert ID: ' . $insertId);
+
+                // Immediately check what was actually inserted
+                $insertedRecord = $this->find($insertId);
+                error_log('[MODEL CREATE] Inserted record status: ' . ($insertedRecord['status'] ?? 'NULL/EMPTY'));
+                error_log('[MODEL CREATE] Full inserted record: ' . print_r($insertedRecord, true));
+            }
+            return $this->find($insertId);
         }
 
         return false;

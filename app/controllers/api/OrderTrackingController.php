@@ -5,10 +5,10 @@
  * 5S Fashion E-commerce Platform
  */
 
-require_once dirname(__DIR__) . '/core/ApiController.php';
-require_once dirname(__DIR__) . '/models/Order.php';
+require_once dirname(dirname(__DIR__)) . '/core/ApiController.php';
+require_once dirname(dirname(__DIR__)) . '/models/Order.php';
 
-class OrderApiController extends ApiController
+class OrderTrackingController extends ApiController
 {
     private $orderModel;
 
@@ -149,7 +149,7 @@ class OrderApiController extends ApiController
                     'success' => false,
                     'message' => 'Không tìm thấy đơn hàng'
                 ]);
-                return;
+                exit;
             }
 
             // Check if user owns this order
@@ -158,7 +158,7 @@ class OrderApiController extends ApiController
                     'success' => false,
                     'message' => 'Bạn không có quyền hủy đơn hàng này'
                 ]);
-                return;
+                exit;
             }
 
             // Check if order can be cancelled
@@ -167,7 +167,16 @@ class OrderApiController extends ApiController
                     'success' => false,
                     'message' => 'Không thể hủy đơn hàng ở trạng thái hiện tại'
                 ]);
-                return;
+                exit;
+            }
+
+            // Only allow cancellation for COD orders
+            if ($order['payment_method'] !== 'cod') {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Chỉ có thể hủy đơn hàng thanh toán khi nhận hàng (COD)'
+                ]);
+                exit;
             }
 
             // Get reason from request
@@ -182,11 +191,13 @@ class OrderApiController extends ApiController
                     'success' => true,
                     'message' => 'Hủy đơn hàng thành công'
                 ]);
+                exit;
             } else {
                 echo json_encode([
                     'success' => false,
                     'message' => 'Không thể hủy đơn hàng'
                 ]);
+                exit;
             }
 
         } catch (Exception $e) {
@@ -195,6 +206,7 @@ class OrderApiController extends ApiController
                 'success' => false,
                 'message' => 'Có lỗi xảy ra khi hủy đơn hàng'
             ]);
+            exit;
         }
     }
 

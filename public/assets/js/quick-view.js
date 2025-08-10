@@ -458,15 +458,26 @@ class QuickViewModal {
 	}
 
 	/**
-	 * Show notification
+	 * Show notification - sử dụng hệ thống thống nhất
 	 */
 	showNotification(message, type = 'success') {
+		// Sử dụng hệ thống notification thống nhất
+		if (
+			window.notifications &&
+			typeof window.notifications.show === 'function'
+		) {
+			window.notifications.show(message, type);
+			return;
+		}
+
+		// Fallback: sử dụng global function
 		if (typeof showNotification === 'function') {
 			showNotification(message, type);
-		} else {
-			// Fallback alert
-			alert(message);
+			return;
 		}
+
+		// Final fallback: console log thay vì alert
+		console.log(`${type.toUpperCase()}: ${message}`);
 	}
 
 	/**

@@ -65,5 +65,45 @@ class BaseController
             session_start();
         }
     }
+
+    /**
+     * Check if user is authenticated
+     * @return bool
+     */
+    protected function isUserAuthenticated()
+    {
+        $this->ensureSessionStarted();
+        return isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true;
+    }
+
+    /**
+     * Check if admin is authenticated
+     * @return bool
+     */
+    protected function isAdminAuthenticated()
+    {
+        $this->ensureSessionStarted();
+        return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+    }
+
+    /**
+     * Get current user ID
+     * @return int|null
+     */
+    protected function getCurrentUserId()
+    {
+        $this->ensureSessionStarted();
+        return $_SESSION['user_id'] ?? null;
+    }
+
+    /**
+     * Get current user data
+     * @return array|null
+     */
+    protected function getCurrentUser()
+    {
+        $this->ensureSessionStarted();
+        return $_SESSION['user'] ?? null;
+    }
 }
 ?>

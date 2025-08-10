@@ -378,6 +378,16 @@ class OrderController extends Controller
                 exit;
             }
 
+            // DEBUG: Log input data to see if status is being sent
+            error_log('=== ORDER PLACE DEBUG ===');
+            error_log('Raw input keys: ' . implode(', ', array_keys($input)));
+            error_log('Input data: ' . json_encode($input));
+            if (isset($input['status'])) {
+                error_log('STATUS FOUND in input: "' . $input['status'] . '" (length: ' . strlen($input['status']) . ')');
+            } else {
+                error_log('STATUS NOT FOUND in input - GOOD!');
+            }
+
             $user = getUser();
 
             // Validate required fields
@@ -475,7 +485,7 @@ class OrderController extends Controller
                 'shipping_amount' => $shippingFee,
                 'discount_amount' => $discountAmount,
                 'total_amount' => $totalAmount,
-                'status' => 'pending',
+                // No status - let database default to 'pending'
                 'payment_method' => $input['payment']['method'],
                 'payment_status' => 'pending',
                 'shipping_address' => json_encode([
@@ -592,29 +602,47 @@ class OrderController extends Controller
     /**
      * Show order success page
      */
-    public function success($orderId = null)
+    public function success($orderCodeOrId = null)
     {
+        require_once dirname(__DIR__) . '/models/Order.php';
+        $orderModel = new Order();
         $order = null;
 
-        if ($orderId) {
-            // Get order details with items
-            require_once dirname(__DIR__) . '/models/Order.php';
-            $orderModel = new Order();
-            $order = $orderModel->getFullDetails($orderId);
-
-            // Verify order belongs to current user
-            if ($order && isLoggedIn()) {
-                $user = getUser();
-                if ($order['user_id'] != $user['id']) {
-                    $order = null; // Don't show other user's orders
-                }
+        // Check if we have a parameter from URL
+        if ($orderCodeOrId) {
+            // Check if it's an order code (starts with letters) or numeric ID
+            if (is_numeric($orderCodeOrId)) {
+                // It's a numeric ID
+                $order = $orderModel->getFullDetails($orderCodeOrId);
+            } else {
+                // It's an order code (like ORD2508104453)
+                $order = $orderModel->getOrderWithItems($orderCodeOrId);
             }
+        }
+
+        // Also check GET parameter for backwards compatibility
+        $orderCode = $_GET['order'] ?? null;
+        if (!$order && $orderCode) {
+            $order = $orderModel->getOrderWithItems($orderCode);
+        }
+
+        // Verify order belongs to current user (if logged in)
+        if ($order && isLoggedIn()) {
+            $user = getUser();
+            if ($order['user_id'] != $user['id']) {
+                $order = null; // Don't show other user's orders
+            }
+        }
+
+        if (!$order) {
+            header('Location: /5s-fashion/');
+            exit;
         }
 
         $data = [
             'title' => 'Đặt hàng thành công - 5S Fashion',
             'order' => $order,
-            'orderId' => $orderId
+            'orderCode' => $orderCodeOrId
         ];
 
         require dirname(__DIR__) . '/views/client/order/success.php';
@@ -641,6 +669,137 @@ class OrderController extends Controller
         $data['orders'] = $orders;
 
         require dirname(__DIR__) . '/views/client/order/tracking.php';
+    }
+
+    /**
+     * Place a new order
+     */
+    public function place()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Phương thức không hợp lệ']);
+            exit;
+        }
+
+        // Check if user is logged in
+        session_start();
+        if (!isset($_SESSION['user_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập để đặt hàng']);
+            exit;
+        }
+
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $userId = $_SESSION['user_id'];
+
+            // Get user's cart items from database
+            $sql = "SELECT c.*, p.name as product_name, p.price as product_price
+                    FROM carts c
+                    LEFT JOIN products p ON c.product_id = p.id
+                    WHERE c.user_id = ?";
+
+            require_once dirname(__DIR__) . '/core/Database.php';
+            $database = new Database();
+            $pdo = $database->getConnection();
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$userId]);
+            $cartItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($cartItems)) {
+                echo json_encode(['success' => false, 'message' => 'Giỏ hàng trống']);
+                exit;
+            }
+
+            // Calculate totals
+            $subtotal = 0;
+            foreach ($cartItems as $item) {
+                $subtotal += $item['price'] * $item['quantity'];
+            }
+
+            $shippingCost = $input['totals']['shipping'] ?? 30000;
+            $discount = $input['totals']['discount'] ?? 0;
+            $total = $subtotal + $shippingCost - $discount;
+
+            // Generate order code
+            $orderCode = 'ORD' . date('Ymd') . rand(1000, 9999);
+
+            // Create order data
+            $orderData = [
+                'user_id' => $userId,
+                'order_code' => $orderCode,
+                'customer_name' => $input['customer']['name'] ?? '',
+                'customer_phone' => $input['customer']['phone'] ?? '',
+                'subtotal' => $subtotal,
+                'shipping_amount' => $shippingCost,
+                'discount_amount' => $discount,
+                'total_amount' => $total,
+                // No status - let database default to 'pending'
+                'payment_method' => $input['payment']['method'] ?? 'cod',
+                'payment_status' => 'pending',
+                'shipping_address' => json_encode($input['shipping'] ?? []),
+                'notes' => $input['order_notes'] ?? ''
+            ];
+
+            // Create order
+            require_once dirname(__DIR__) . '/models/Order.php';
+            $orderModel = new Order();
+            $orderId = $orderModel->create($orderData);
+
+            if ($orderId) {
+                // Create order items
+                $this->createOrderItems($orderId, $cartItems);
+
+                echo json_encode([
+                    'success' => true,
+                    'order_id' => $orderId,
+                    'order_code' => $orderCode,
+                    'message' => 'Đơn hàng đã được tạo thành công'
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể tạo đơn hàng']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Order creation error: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.'
+            ]);
+        }
+    }
+
+    /**
+     * Create order items
+     */
+    private function createOrderItems($orderId, $cartItems)
+    {
+        try {
+            require_once dirname(__DIR__) . '/core/Database.php';
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = "INSERT INTO order_items (order_id, product_id, product_variant_id, quantity, price, subtotal)
+                    VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $pdo->prepare($sql);
+
+            foreach ($cartItems as $item) {
+                $subtotal = $item['price'] * $item['quantity'];
+                $stmt->execute([
+                    $orderId,
+                    $item['product_id'],
+                    $item['product_variant_id'] ?? null,
+                    $item['quantity'],
+                    $item['price'],
+                    $subtotal
+                ]);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error creating order items: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }
 ?>

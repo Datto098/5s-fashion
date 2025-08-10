@@ -11,7 +11,8 @@ class Order extends BaseModel
     protected $fillable = [
         'user_id', 'order_code', 'customer_name', 'customer_email', 'customer_phone',
         'subtotal', 'tax_amount', 'shipping_amount', 'discount_amount', 'total_amount',
-        'status', 'payment_method', 'payment_status', 'shipping_address', 'billing_address',
+        // 'status', // Removed from fillable - let database default handle it
+        'payment_method', 'payment_status', 'shipping_address', 'billing_address',
         'notes', 'admin_notes', 'shipped_at', 'delivered_at'
     ];
 
@@ -38,6 +39,30 @@ class Order extends BaseModel
         }
 
         return $this->db->fetchAll($sql, [$userId]);
+    }
+
+    /**
+     * Get orders by user with items
+     */
+    public function getByUserWithItems($userId, $limit = null)
+    {
+        $sql = "SELECT * FROM {$this->table}
+                WHERE user_id = ?
+                ORDER BY created_at DESC";
+
+        if ($limit) {
+            $sql .= " LIMIT ?";
+            $orders = $this->db->fetchAll($sql, [$userId, $limit]);
+        } else {
+            $orders = $this->db->fetchAll($sql, [$userId]);
+        }
+
+        // Get items for each order
+        foreach ($orders as &$order) {
+            $order['items'] = $this->getOrderItems($order['id']);
+        }
+
+        return $orders;
     }
 
     /**
@@ -155,7 +180,15 @@ class Order extends BaseModel
             }
 
             // Insert order
+            error_log('[ORDER CREATE] Order data before create: ' . print_r($orderData, true));
             $orderResult = $this->create($orderData);
+
+            if ($orderResult) {
+                error_log('[ORDER CREATE] Order created successfully with ID: ' . $orderResult['id']);
+                error_log('[ORDER CREATE] Created order status: ' . ($orderResult['status'] ?? 'NULL'));
+            } else {
+                error_log('[ORDER CREATE] Failed to create order');
+            }
 
             if (!$orderResult) {
                 throw new Exception('Failed to create order');
@@ -209,7 +242,7 @@ class Order extends BaseModel
             $itemData['product_id'],
             $itemData['variant_id'] ?? null,
             $itemData['product_name'],
-            $itemData['product_sku'],
+            $itemData['product_sku'] ?? null,
             $itemData['variant_info'] ?? null,
             $itemData['quantity'],
             $itemData['price'],
@@ -295,12 +328,29 @@ class Order extends BaseModel
     }
 
     /**
-     * Update payment status
+     * Update payment status with extended parameters
      */
-    public function updatePaymentStatus($id, $paymentStatus)
+    public function updatePaymentStatus($id, $paymentStatus, $transactionId = null, $paymentNote = null)
     {
-        $sql = "UPDATE {$this->table} SET payment_status = ?, updated_at = NOW() WHERE id = ?";
-        return $this->db->execute($sql, [$paymentStatus, $id]);
+        $sql = "UPDATE {$this->table}
+                SET payment_status = ?, updated_at = NOW()";
+        $params = [$paymentStatus];
+
+        // Skip transaction_id as column doesn't exist
+        // if ($transactionId) {
+        //     $sql .= ", transaction_id = ?";
+        //     $params[] = $transactionId;
+        // }
+
+        if ($paymentNote) {
+            $sql .= ", admin_notes = ?";
+            $params[] = $paymentNote;
+        }
+
+        $sql .= " WHERE id = ?";
+        $params[] = $id;
+
+        return $this->db->execute($sql, $params);
     }
 
     /**
@@ -559,5 +609,60 @@ class Order extends BaseModel
         }
 
         return $this->db->fetchAll($sql, $params);
+    }
+
+    /**
+     * Update payment method
+     */
+    public function updatePaymentMethod($orderId, $paymentMethod, $paymentStatus = 'pending')
+    {
+        $sql = "UPDATE {$this->table}
+                SET payment_method = ?, payment_status = ?, updated_at = NOW()
+                WHERE id = ?";
+
+        return $this->db->query($sql, [$paymentMethod, $paymentStatus, $orderId]);
+    }
+
+    /**
+     * Update order status
+     */
+    public function updateOrderStatus($orderId, $status, $note = null)
+    {
+        $sql = "UPDATE {$this->table}
+                SET status = ?, updated_at = NOW()";
+        $params = [$status];
+
+        if ($note) {
+            $sql .= ", admin_notes = ?";
+            $params[] = $note;
+        }
+
+        $sql .= " WHERE id = ?";
+        $params[] = $orderId;
+
+        return $this->db->query($sql, $params);
+    }
+
+    /**
+     * Get order with items by order code
+     */
+    public function getOrderWithItems($orderCode)
+    {
+        // Get order
+        $order = $this->findByOrderCode($orderCode);
+        if (!$order) {
+            return null;
+        }
+
+        // Get order items
+        $sql = "SELECT oi.*, p.name as product_name, p.featured_image as image, p.slug as product_slug
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = ?";
+
+        $items = $this->db->fetchAll($sql, [$order['id']]);
+
+        $order['items'] = $items;
+        return $order;
     }
 }
