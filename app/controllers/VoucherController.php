@@ -212,6 +212,11 @@ class VoucherController extends BaseController
     {
         header('Content-Type: application/json');
 
+        if (empty($_POST['code']) || empty($_POST['amount'])) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu mã hoặc số tiền']);
+            exit;
+        }
+
         $code = $_POST['code'] ?? '';
         $orderAmount = (float)($_POST['amount'] ?? 0);
         $userId = $_SESSION['user_id'] ?? null;
@@ -224,9 +229,24 @@ class VoucherController extends BaseController
             exit;
         }
 
-        // Validate coupon
-        $validation = $this->couponModel->validateCoupon($code, $orderAmount, $userId);
+        // Chỉ cho phép áp dụng nếu user đã lưu mã này (user_coupons)
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập để sử dụng voucher']);
+            exit;
+        }
 
+        // Kiểm tra user đã lưu mã này chưa
+        $userCoupon = $this->userCouponModel->findByUserAndCode($userId, $code);
+        if (!$userCoupon) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Bạn chưa lưu mã này vào ví voucher của mình!'
+            ]);
+            exit;
+        }
+
+        // Validate coupon (kiểm tra hạn, điều kiện...)
+        $validation = $this->couponModel->validateCoupon($code, $orderAmount, $userId);
         if (!$validation['valid']) {
             echo json_encode([
                 'success' => false,

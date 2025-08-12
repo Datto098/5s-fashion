@@ -828,85 +828,38 @@ class CheckoutManager {
  * Handles address management for checkout
  */
 class CheckoutAddressManager {
-	constructor() {
-		this.provinces = [];
-		this.districts = [];
-		this.wards = [];
-		this.map = null;
-		this.marker = null;
-		this.selectedLocation = null;
-	}
+       constructor() {
+	       this.provinces = window.PROVINCES || [];
+	       this.districts = [];
+	       this.wards = [];
+	       this.map = null;
+	       this.marker = null;
+	       this.selectedLocation = null;
+       }
 
-	async showAddressModal(addressId = null) {
-		const modal = new bootstrap.Modal(
-			document.getElementById('addressModal')
-		);
+       showAddressModal(addressId = null) {
+	       const modal = new bootstrap.Modal(
+		       document.getElementById('addressModal')
+	       );
 
-		if (addressId) {
-			// Edit mode
-			const address = checkoutManager.addresses.find(
-				(addr) => addr.id === addressId
-			);
-			if (address) {
-				this.populateAddressForm(address);
-			}
-		} else {
-			// Add new mode
-			document.getElementById('addressForm').reset();
-		}
+	       if (addressId) {
+		       // Edit mode
+		       const address = checkoutManager.addresses.find(
+			       (addr) => addr.id === addressId
+		       );
+		       if (address) {
+			       this.populateAddressForm(address);
+		       }
+	       } else {
+		       // Add new mode
+		       document.getElementById('addressForm').reset();
+	       }
 
-		// Load provinces if not loaded
-		if (this.provinces.length === 0) {
-			await this.loadProvinces();
-		}
+	       this.populateProvinceSelect();
+	       modal.show();
+       }
 
-		modal.show();
-	}
-
-	async loadProvinces() {
-		try {
-			// Use Vietnam provinces API that supports CORS
-			const response = await fetch(
-				'https://vapi.vnappmob.com/api/province/',
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				console.log('Provinces API response:', data);
-
-				// Handle different API response format
-				this.provinces = data.results || data || [];
-				this.populateProvinceSelect();
-			} else {
-				throw new Error(`API returned ${response.status}`);
-			}
-		} catch (error) {
-			console.error('Error loading provinces:', error);
-
-			// Fallback: use static data for major provinces
-			this.provinces = [
-				{ province_id: '1', province_name: 'Thành phố Hà Nội' },
-				{ province_id: '79', province_name: 'Thành phố Hồ Chí Minh' },
-				{ province_id: '48', province_name: 'Thành phố Đà Nẵng' },
-				{ province_id: '31', province_name: 'Thành phố Hải Phòng' },
-				{ province_id: '92', province_name: 'Thành phố Cần Thơ' },
-				{ province_id: '4', province_name: 'Tỉnh Cao Bằng' },
-				{ province_id: '6', province_name: 'Tỉnh Bắc Kạn' },
-				{ province_id: '8', province_name: 'Tỉnh Tuyên Quang' },
-			];
-			this.populateProvinceSelect();
-
-			this.showAddressError(
-				'Đang sử dụng danh sách tỉnh/thành phố cơ bản. Một số tỉnh có thể chưa đầy đủ.'
-			);
-		}
-	}
+	// loadProvinces removed: now only use provinces from backend
 
 	populateProvinceSelect() {
 		const select = document.querySelector('select[name="province"]');
@@ -925,66 +878,12 @@ class CheckoutAddressManager {
 		);
 	}
 
-	async loadDistricts(provinceCode) {
-		if (!provinceCode) return;
-
-		try {
-			// Use alternative API endpoint that supports CORS
-			const response = await fetch(
-				`https://vapi.vnappmob.com/api/province/district/${provinceCode}`,
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				console.log('Districts API response:', data);
-
-				// Handle different API response format
-				this.districts = data.results || data.districts || [];
-				this.populateDistrictSelect();
-			} else {
-				throw new Error(`API returned ${response.status}`);
-			}
-		} catch (error) {
-			console.error('Error loading districts:', error);
-
-			// Fallback: provide basic districts for major cities
-			if (provinceCode === '79') {
-				// Ho Chi Minh City
-				this.districts = [
-					{ district_id: '760', district_name: 'Quận 1' },
-					{ district_id: '769', district_name: 'Quận 3' },
-					{ district_id: '778', district_name: 'Quận 10' },
-					{ district_id: '783', district_name: 'Quận Tân Bình' },
-					{ district_id: '794', district_name: 'Quận Bình Thạnh' },
-				];
-			} else if (provinceCode === '1') {
-				// Hanoi
-				this.districts = [
-					{ district_id: '1', district_name: 'Quận Ba Đình' },
-					{ district_id: '5', district_name: 'Quận Hoàn Kiếm' },
-					{ district_id: '6', district_name: 'Quận Tây Hồ' },
-					{ district_id: '7', district_name: 'Quận Long Biên' },
-					{ district_id: '8', district_name: 'Quận Cầu Giấy' },
-				];
-			} else {
-				this.districts = [
-					{
-						district_id: 'default',
-						district_name: 'Quận/Huyện trung tâm',
-					},
-				];
-			}
-
-			this.populateDistrictSelect();
-			this.showAddressError('Đang sử dụng danh sách quận/huyện cơ bản.');
-		}
-	}
+       // loadDistricts: bạn cần tự truyền districts từ backend, không fetch và không fallback cứng nữa
+       loadDistricts(provinceCode) {
+	       // Gợi ý: lấy districts từ window.DISTRICTS[provinceCode] hoặc truyền từ backend
+	       this.districts = (window.DISTRICTS && window.DISTRICTS[provinceCode]) ? window.DISTRICTS[provinceCode] : [];
+	       this.populateDistrictSelect();
+       }
 
 	populateDistrictSelect() {
 		const select = document.querySelector('select[name="district"]');
@@ -1003,46 +902,12 @@ class CheckoutAddressManager {
 		);
 	}
 
-	async loadWards(districtCode) {
-		if (!districtCode) return;
-
-		try {
-			// Use Vietnam wards API that supports CORS
-			const response = await fetch(
-				`https://vapi.vnappmob.com/api/province/ward/${districtCode}`,
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				console.log('Wards API response:', data);
-
-				// Handle different API response format
-				this.wards = data.results || data.wards || [];
-				this.populateWardSelect();
-			} else {
-				throw new Error(`API returned ${response.status}`);
-			}
-		} catch (error) {
-			console.error('Error loading wards:', error);
-
-			// Fallback: provide basic wards
-			this.wards = [
-				{ ward_id: 'default-1', ward_name: 'Phường 1' },
-				{ ward_id: 'default-2', ward_name: 'Phường 2' },
-				{ ward_id: 'default-3', ward_name: 'Phường 3' },
-				{ ward_id: 'default-other', ward_name: 'Phường/Xã khác' },
-			];
-
-			this.populateWardSelect();
-			this.showAddressError('Đang sử dụng danh sách phường/xã cơ bản.');
-		}
-	}
+       // loadWards: bạn cần tự truyền wards từ backend, không fetch và không fallback cứng nữa
+       loadWards(districtCode) {
+	       // Gợi ý: lấy wards từ window.WARDS[districtCode] hoặc truyền từ backend
+	       this.wards = (window.WARDS && window.WARDS[districtCode]) ? window.WARDS[districtCode] : [];
+	       this.populateWardSelect();
+       }
 
 	populateWardSelect() {
 		const select = document.querySelector('select[name="ward"]');
@@ -1057,37 +922,7 @@ class CheckoutAddressManager {
 		});
 	}
 
-	showAddressError(message) {
-		console.error('Address API Error:', message);
-
-		// Show notification if available
-		if (typeof showToast === 'function') {
-			showToast(message, 'error');
-		} else if (typeof alert === 'function') {
-			alert(message);
-		}
-
-		// Or create a simple error display in the modal
-		const errorDiv = document.createElement('div');
-		errorDiv.className = 'alert alert-danger mt-2';
-		errorDiv.textContent = message;
-
-		const modal = document.querySelector('#addressModal .modal-body');
-		if (modal) {
-			const existingError = modal.querySelector('.alert-danger');
-			if (existingError) {
-				existingError.remove();
-			}
-			modal.appendChild(errorDiv);
-
-			// Auto remove after 5 seconds
-			setTimeout(() => {
-				if (errorDiv.parentNode) {
-					errorDiv.remove();
-				}
-			}, 5000);
-		}
-	}
+	// showAddressError: loại bỏ hoàn toàn, không hiển thị thông báo tỉnh/thành fallback nữa
 
 	async saveAddress() {
 		const form = document.getElementById('addressForm');

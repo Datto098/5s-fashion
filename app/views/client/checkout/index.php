@@ -122,82 +122,67 @@ ob_start();
     </div>
 </div>
 
-<!-- Address Form Modal -->
+
+<!-- Address Form Modal (chuẩn style như trang account/addresses) -->
 <div class="modal fade" id="addressModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Thêm địa chỉ giao hàng</h5>
+                <h5 class="modal-title">Thêm địa chỉ mới</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <form id="addressForm">
+            <form id="addressForm">
+                <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Họ và tên *</label>
-                            <input type="text" class="form-control" name="full_name" required>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Số điện thoại *</label>
-                            <input type="tel" class="form-control" name="phone" required>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone" required>
+                            </div>
                         </div>
                     </div>
-
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Tỉnh/Thành phố *</label>
-                            <select class="form-select" name="province" required>
-                                <option value="">Chọn tỉnh/thành</option>
-                            </select>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Địa chỉ giao hàng <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="address" name="address" placeholder="Nhập địa chỉ, ví dụ: 123 Lê Lợi, Quận 1, TP.HCM" autocomplete="off" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="searchAddressBtn" title="Tìm trên bản đồ">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Quận/Huyện *</label>
-                            <select class="form-select" name="district" required>
-                                <option value="">Chọn quận/huyện</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Phường/Xã *</label>
-                            <select class="form-select" name="ward" required>
-                                <option value="">Chọn phường/xã</option>
-                            </select>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <div id="map" style="height: 300px; border-radius: 8px;"></div>
+                                <input type="hidden" id="lat" name="lat">
+                                <input type="hidden" id="lng" name="lng">
+                            </div>
                         </div>
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label">Địa chỉ cụ thể *</label>
-                        <input type="text" class="form-control" name="address_line"
-                               placeholder="Số nhà, tên đường..." required>
+                        <label for="note" class="form-label">Ghi chú địa chỉ (nếu có)</label>
+                        <textarea class="form-control" id="note" name="note" rows="3" placeholder="Ghi chú thêm về địa chỉ, ví dụ: Gần trường học, tầng 2..."></textarea>
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Loại địa chỉ</label>
-                        <div class="d-flex gap-3">
-                            <label class="form-check">
-                                <input type="radio" class="form-check-input" name="address_type" value="home" checked>
-                                <span class="form-check-label">Nhà riêng</span>
-                            </label>
-                            <label class="form-check">
-                                <input type="radio" class="form-check-input" name="address_type" value="office">
-                                <span class="form-check-label">Văn phòng</span>
-                            </label>
-                        </div>
-                    </div>
-
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" name="is_default" id="setDefault">
-                        <label class="form-check-label" for="setDefault">
+                        <input class="form-check-input" type="checkbox" id="is_default" name="is_default">
+                        <label class="form-check-label" for="is_default">
                             Đặt làm địa chỉ mặc định
                         </label>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" onclick="addressManager.saveAddress()">
-                    Lưu địa chỉ
-                </button>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu địa chỉ</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -251,4 +236,99 @@ include VIEW_PATH . '/client/layouts/app.php';
         checkoutManager.loadOrder();
         checkoutManager.initializeForm();
     });
+</script>
+
+<script>
+// Khởi tạo lại map khi mở modal địa chỉ checkout
+let checkoutMap, checkoutMarker;
+const checkoutModal = document.getElementById('addressModal');
+checkoutModal.addEventListener('shown.bs.modal', function () {
+    // Xóa map cũ nếu có
+    if (checkoutMap) {
+        checkoutMap.remove();
+        checkoutMap = null;
+    }
+    setTimeout(function() {
+        checkoutMap = L.map('map').setView([21.0285, 105.8542], 13); 
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(checkoutMap);
+        checkoutMap.on('click', function(e) {
+            setCheckoutMarker(e.latlng.lat, e.latlng.lng);
+        });
+        // Nếu đã có lat/lng thì set lại marker
+        const lat = document.getElementById('lat').value;
+        const lng = document.getElementById('lng').value;
+        if (lat && lng) setCheckoutMarker(lat, lng);
+    }, 200);
+});
+
+function setCheckoutMarker(lat, lng) {
+    if (checkoutMarker) checkoutMarker.remove();
+    checkoutMarker = L.marker([lat, lng]).addTo(checkoutMap);
+    document.getElementById('lat').value = lat;
+    document.getElementById('lng').value = lng;
+    checkoutMap.setView([lat, lng], 17);
+    // Lấy địa chỉ từ lat/lng và điền vào input address
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.display_name) {
+                document.getElementById('address').value = data.display_name;
+            }
+        });
+}
+
+// Tìm kiếm địa chỉ với Nominatim
+function searchCheckoutAddressOnMap() {
+    let query = document.getElementById('address').value;
+    if (!query) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                let lat = parseFloat(data[0].lat);
+                let lon = parseFloat(data[0].lon);
+                setCheckoutMarker(lat, lon);
+            } else {
+                alert('Không tìm thấy địa chỉ phù hợp!');
+            }
+        });
+}
+document.getElementById('address').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        searchCheckoutAddressOnMap();
+    }
+});
+document.getElementById('searchAddressBtn').addEventListener('click', function() {
+    searchCheckoutAddressOnMap();
+});
+</script>
+
+<script>
+document.getElementById('addressForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    const formData = new FormData(form);
+    fetch('/5s-fashion/account/addAddress', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Có lỗi xảy ra khi thêm địa chỉ!');
+        }
+    })
+    .catch(() => {
+        alert('Có lỗi xảy ra khi thêm địa chỉ!');
+    });
+});
 </script>

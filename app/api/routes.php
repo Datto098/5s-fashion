@@ -111,6 +111,7 @@ $router->get('/vouchers/featured', 'VoucherApiController@featured');
 $router->post('/voucher/save', 'VoucherApiController@save');
 $router->get('/voucher/check', 'VoucherApiController@check');
 $router->get('/auth/check', 'AuthApiController@check');
+$router->post('/vouchers/apply', 'VoucherController@apply');
 
 // Chatbot API routes
 $router->post('/chatbot/chat', 'ChatbotApiController@chat');

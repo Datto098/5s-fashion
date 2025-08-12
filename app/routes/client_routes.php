@@ -84,6 +84,7 @@ return [
     'vouchers/my-vouchers' => 'VoucherController@myVouchers',
     'vouchers/remove' => 'VoucherController@remove',
     'vouchers/save' => 'VoucherController@save',
+    'vouchers/apply' => 'VoucherController@apply',
 
     // Order API routes for checkout
     'order/addresses' => 'OrderController@getAddresses',

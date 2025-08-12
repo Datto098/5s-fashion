@@ -94,6 +94,9 @@ class CartPageManager {
 		const promoInput = document.getElementById('promo-code');
 
 		if (promoBtn) {
+			// Xóa sự kiện cũ trước khi thêm mới
+			promoBtn.removeEventListener('click', this.applyPromoCode.bind(this));
+			promoBtn.removeEventListener('click', removeVoucher);
 			promoBtn.addEventListener('click', this.applyPromoCode.bind(this));
 		}
 
@@ -266,31 +269,94 @@ class CartPageManager {
 		const promoCode = promoInput ? promoInput.value.trim() : '';
 
 		if (!promoCode) {
-			this.showNotification('Vui lòng nhập mã giảm giá', 'warning');
+			this.showNotification('Vui lòng nhập mã giảm giá', 'info');
+			document.getElementById('voucher-message').innerHTML = '<span class="text-info"><i class="fas fa-info-circle me-1"></i> Vui lòng nhập mã giảm giá để được giảm giá</span>';
 			return;
 		}
 
 		// Show loading state for promo button
 		const promoBtn = document.querySelector('.promo-btn');
-		const originalText = promoBtn ? promoBtn.innerHTML : '';
+		// Lưu nội dung gốc vào thuộc tính data để luôn khôi phục đúng
 		if (promoBtn) {
+			if (!promoBtn.dataset.originalText) {
+				promoBtn.dataset.originalText = promoBtn.innerHTML;
+			}
 			promoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 			promoBtn.disabled = true;
 		}
-
-		// TODO: Implement promo code API
-		setTimeout(() => {
-			this.showNotification(
-				'Tính năng mã giảm giá đang được phát triển',
-				'info'
-			);
-
+		
+		// Show loading message
+		document.getElementById('voucher-message').innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin me-1"></i> Đang kiểm tra...</span>';
+		
+		// Get the cart subtotal
+		const subtotalElement = document.getElementById('subtotal');
+		const subtotalText = subtotalElement.textContent;
+		const subtotal = parseFloat(subtotalText.replace(/[^\d]/g, ''));
+		
+		// Get base URL
+		const baseUrl = window.location.pathname.includes('/public') ? 
+			window.location.origin + window.location.pathname.split('/public')[0] + '/public' : 
+			window.location.origin + '/5s-fashion';
+		
+		// Call API to apply voucher (POST)
+		fetch('/5s-fashion/vouchers/apply', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'Accept': 'application/json'
+			},
+			body: `code=${encodeURIComponent(promoCode)}&amount=${subtotal}`
+		})
+		.then(response => {
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+			return response.json();
+		})
+		.then(data => {
+			if (data.success) {
+				// Update UI with discount
+				document.getElementById('discount').textContent = data.formatted_discount;
+				// Tính lại tổng cộng: final_amount + phí ship 30,000
+				const shippingFee = 30000;
+				const totalWithShipping = (parseInt(data.final_amount) + shippingFee);
+				document.getElementById('total').textContent = this.formatPrice(totalWithShipping);
+				// Show success message
+				document.getElementById('voucher-message').innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i> ' + 
+					'Áp dụng mã giảm giá thành công: ' + data.formatted_discount + '</span>';
+				this.showNotification('Áp dụng mã giảm giá thành công', 'success');
+				// Đổi nút thành Xóa mã khi nhập mã thành công
+				promoInput.disabled = true;
+				promoBtn.innerHTML = '<i class="fas fa-times"></i> Xóa mã';
+				promoBtn.classList.remove('btn-primary');
+				promoBtn.classList.add('btn-outline-secondary');
+				// Xóa sự kiện cũ và gán mới
+				promoBtn.removeEventListener('click', applyPromoCode);
+				promoBtn.removeEventListener('click', removeVoucher);
+				promoBtn.addEventListener('click', removeVoucher);
+				promoBtn.disabled = false;
+			} else {
+				// Show error message
+				document.getElementById('voucher-message').innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> ' +
+					(data.message || 'Mã giảm giá không hợp lệ') + '</span>';
+				this.showNotification(data.message || 'Mã giảm giá không hợp lệ', 'warning');
+				// Restore button
+				if (promoBtn) {
+					promoBtn.innerHTML = promoBtn.dataset.originalText || 'Áp dụng';
+					promoBtn.disabled = false;
+				}
+			}
+		})
+		.catch(error => {
+			console.error('Error applying voucher:', error);
+			document.getElementById('voucher-message').innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i> Có lỗi xảy ra khi áp dụng mã giảm giá. Vui lòng thử lại sau.</span>';
+			this.showNotification('Có lỗi xảy ra khi áp dụng mã giảm giá. Vui lòng thử lại sau.', 'error');
 			// Restore button
 			if (promoBtn) {
-				promoBtn.innerHTML = originalText;
+				promoBtn.innerHTML = promoBtn.dataset.originalText || 'Áp dụng';
 				promoBtn.disabled = false;
 			}
-		}, 1000);
+		});
 	}
 
 	updateSummary() {
@@ -299,17 +365,22 @@ class CartPageManager {
 			(sum, item) => sum + item.total,
 			0
 		);
+		// Shipping fee cố định 30,000
+		this.shippingFee = 30000;
 		this.total = this.subtotal + this.shippingFee - this.discount;
 
 		// Update DOM elements
 		const subtotalElement = document.getElementById('subtotal');
 		const discountElement = document.getElementById('discount');
 		const totalElement = document.getElementById('total');
+		const shippingElement = document.querySelector('.summary-value.text-success');
 
 		if (subtotalElement)
 			subtotalElement.textContent = this.formatPrice(this.subtotal);
 		if (discountElement)
 			discountElement.textContent = this.formatPrice(this.discount);
+		if (shippingElement)
+			shippingElement.textContent = this.formatPrice(this.shippingFee);
 		if (totalElement)
 			totalElement.textContent = this.formatPrice(this.total);
 	}
@@ -396,6 +467,49 @@ function removeCartItem(cartKey) {
 	}
 }
 
+
+// Hàm toàn cục để xóa mã giảm giá
+function removeVoucher(e) {
+	// Ngăn chặn sự kiện mặc định và lan truyền
+	if (e) {
+		e.preventDefault();
+		e.stopPropagation();
+	}
+	
+	// Hiển thị thông báo thân thiện
+	const voucherMsg = document.getElementById('voucher-message');
+	if (voucherMsg) {
+		voucherMsg.innerHTML = '<span class="text-info"><i class="fas fa-info-circle me-1"></i> Đã xóa mã giảm giá, bạn có thể nhập mã khác</span>';
+	}
+	
+	// Reset UI
+	const promoInput = document.getElementById('promo-code');
+	const promoBtn = document.querySelector('.promo-btn');
+	
+	if (promoInput) {
+		promoInput.value = '';
+		promoInput.disabled = false;
+		promoInput.focus(); // Focus vào ô nhập để người dùng có thể nhập mã mới ngay
+	}
+	
+	if (promoBtn) {
+		promoBtn.innerHTML = '<i class="fas fa-check"></i> Áp dụng';
+		promoBtn.classList.remove('btn-outline-secondary');
+		promoBtn.classList.add('btn-primary');
+		promoBtn.disabled = false;
+		// Xóa sự kiện onclick cũ và gán lại
+		promoBtn.removeEventListener('click', applyPromoCode);
+		promoBtn.removeEventListener('click', removeVoucher);
+		promoBtn.addEventListener('click', applyPromoCode);
+	}
+	
+	// Reset giá trị giảm giá
+	if (window.cartPageManager) {
+		window.cartPageManager.discount = 0;
+		window.cartPageManager.updateSummary();
+		window.cartPageManager.showNotification('Đã xóa mã giảm giá, bạn có thể nhập mã khác', 'info');
+	}
+}
 function proceedToCheckout() {
 	if (window.cartPageManager) {
 		window.cartPageManager.proceedToCheckout();
@@ -411,4 +525,25 @@ function applyPromoCode() {
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function () {
 	window.cartPageManager = new CartPageManager();
+	// Xóa mọi thông báo voucher cũ khi load lại trang
+	var voucherMsg = document.getElementById('voucher-message');
+	if (voucherMsg) voucherMsg.innerHTML = '';
+	// Reset lại giao diện nút Áp dụng về trạng thái ban đầu
+	var promoBtn = document.querySelector('.promo-btn');
+	var promoInput = document.getElementById('promo-code');
+	if (promoBtn) {
+		promoBtn.innerHTML = '<i class="fas fa-check"></i> Áp dụng';
+		promoBtn.classList.remove('btn-outline-secondary');
+		promoBtn.classList.add('btn-primary');
+		promoBtn.disabled = false;
+		// Xóa sự kiện cũ và gán mới
+		promoBtn.removeEventListener('click', applyPromoCode);
+		promoBtn.removeEventListener('click', removeVoucher);
+		promoBtn.addEventListener('click', applyPromoCode);
+	}
+	// Đảm bảo input không bị disabled
+	if (promoInput) {
+		promoInput.disabled = false;
+		promoInput.value = '';
+	}
 });
