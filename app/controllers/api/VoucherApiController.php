@@ -93,7 +93,7 @@ class VoucherApiController extends ApiController
             $stmt->execute([$userId, $couponId]);
 
             if ($stmt->fetch()) {
-                ApiResponse::error('You already have this voucher', 422);
+                ApiResponse::error('Bạn đã lưu mã giảm giá này rồi', 422);
                 return;
             }
 

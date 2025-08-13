@@ -5,9 +5,41 @@ class Review extends BaseModel
     protected $table = 'reviews';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'product_id', 'user_id', 'rating', 'title', 'content',
-        'status', 'is_verified_purchase'
+        'product_id', 'user_id', 'rating', 'title', 'content', 'status'
     ];
+    
+    /**
+     * Check if user has already reviewed a product
+     * 
+     * @param int $userId User ID
+     * @param int $productId Product ID
+     * @return bool True if user has already reviewed the product
+     */
+    public function hasUserReviewedProduct($userId, $productId)
+    {
+        $sql = "SELECT COUNT(*) as count 
+                FROM {$this->table}
+                WHERE user_id = ? AND product_id = ?";
+                
+        $result = $this->db->fetchOne($sql, [$userId, $productId]);
+        return $result['count'] > 0;
+    }
+    
+    /**
+     * Get user's reviews for a product (count)
+     * @param int $userId User ID
+     * @param int $productId Product ID
+     * @return int Number of reviews
+     */
+    public function getUserReviewCount($userId, $productId)
+    {
+        $sql = "SELECT COUNT(*) as count 
+                FROM {$this->table}
+                WHERE user_id = ? AND product_id = ?";
+                
+        $result = $this->db->fetchOne($sql, [$userId, $productId]);
+        return $result['count'];
+    }
 
     /**
      * Search reviews with filters
@@ -156,16 +188,63 @@ class Review extends BaseModel
     /**
      * Get product reviews
      */
-    public function getProductReviews($productId, $limit = 10)
+    public function getProductReviews($productId, $limit = 10, $userId = null)
     {
-        $sql = "SELECT r.*, u.full_name as customer_name, u.avatar as customer_avatar
-                FROM {$this->table} r
-                LEFT JOIN users u ON r.user_id = u.id
-                WHERE r.product_id = ? AND r.status = 'approved'
-                ORDER BY r.created_at DESC
-                LIMIT ?";
-
-        return $this->db->fetchAll($sql, [$productId, $limit]);
+        // Xây dựng truy vấn cơ bản trước
+        $params = [$productId];
+        
+        // Truy vấn SQL cơ bản
+        $baseSql = "
+            SELECT r.*, u.full_name as customer_name, u.avatar as customer_avatar,
+                   0 as is_verified_purchase 
+            FROM {$this->table} r
+            LEFT JOIN users u ON r.user_id = u.id
+            WHERE r.product_id = ?
+        ";
+        
+        // Lấy kết quả truy vấn cơ bản
+        $sql = $baseSql . " ORDER BY r.created_at DESC LIMIT ?";
+        $params[] = $limit;
+        
+        $result = $this->db->fetchAll($sql, $params);
+        
+        // Nếu có userId, thêm thông tin like cho từng review
+        if ($userId && !empty($result)) {
+            // Tạo mảng các review id để lấy thông tin like trong 1 lần truy vấn
+            $reviewIds = array_column($result, 'id');
+            $placeholders = implode(',', array_fill(0, count($reviewIds), '?'));
+            
+            // Lấy danh sách các review mà user đã like
+            $likesSql = "
+                SELECT review_id 
+                FROM review_likes 
+                WHERE review_id IN ($placeholders) AND user_id = ?
+            ";
+            
+            // Tạo params cho truy vấn likes
+            $likeParams = array_merge($reviewIds, [$userId]);
+            $likedReviews = $this->db->fetchAll($likesSql, $likeParams);
+            
+            // Chuyển kết quả thành mảng đơn giản các ID review đã like
+            $likedReviewIds = array_column($likedReviews, 'review_id');
+            
+            // Debug
+            error_log("Liked review IDs for user $userId: " . implode(', ', $likedReviewIds));
+            
+            // Đánh dấu các review đã like trong kết quả
+            foreach ($result as &$review) {
+                $review['user_has_liked'] = in_array($review['id'], $likedReviewIds);
+            }
+        } else {
+            // Nếu không có userId, đánh dấu tất cả là chưa like
+            foreach ($result as &$review) {
+                $review['user_has_liked'] = false;
+            }
+        }
+        
+        error_log("Final review result: " . print_r($result, true));
+        
+        return $result;
     }
 
     /**
@@ -189,5 +268,122 @@ class Review extends BaseModel
     public function executeQuery($sql, $params = [])
     {
         return $this->db->fetchAll($sql, $params);
+    }
+    
+    /**
+     * Lấy thông tin đánh giá theo ID
+     * 
+     * @param int $id Review ID
+     * @return array|false Thông tin đánh giá hoặc false nếu không tìm thấy
+     */
+    public function findById($id)
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE id = ?";
+        return $this->db->fetchOne($sql, [$id]);
+    }
+    
+    /**
+     * Kiểm tra xem người dùng đã like đánh giá chưa
+     * 
+     * @param int $reviewId ID đánh giá
+     * @param int $userId ID người dùng
+     * @return bool True nếu người dùng đã like
+     */
+    public function hasUserLikedReview($reviewId, $userId)
+    {
+        $sql = "SELECT COUNT(*) as count FROM review_likes 
+                WHERE review_id = ? AND user_id = ?";
+        $result = $this->db->fetchOne($sql, [$reviewId, $userId]);
+        return $result['count'] > 0;
+    }
+    
+    /**
+     * Thêm like cho đánh giá
+     * 
+     * @param int $reviewId ID đánh giá
+     * @param int $userId ID người dùng
+     * @return bool Kết quả của thao tác
+     */
+    public function addLike($reviewId, $userId)
+    {
+        try {
+            // Bắt đầu transaction
+            $this->db->beginTransaction();
+            
+            // Thêm record vào bảng review_likes
+            $sqlInsert = "INSERT INTO review_likes (review_id, user_id) VALUES (?, ?)";
+            $this->db->execute($sqlInsert, [$reviewId, $userId]);
+            
+            // Tăng helpful_count trong bảng reviews
+            $sqlUpdate = "UPDATE {$this->table} SET helpful_count = helpful_count + 1 WHERE id = ?";
+            $this->db->execute($sqlUpdate, [$reviewId]);
+            
+            // Commit transaction
+            $this->db->commit();
+            
+            return true;
+        } catch (Exception $e) {
+            // Rollback nếu có lỗi
+            $this->db->rollback();
+            error_log("Error adding like: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Tăng số lượt thích cho một đánh giá
+     * 
+     * @param int $id Review ID
+     * @return bool Kết quả của thao tác
+     */
+    public function incrementHelpfulCount($id)
+    {
+        $sql = "UPDATE {$this->table} SET helpful_count = helpful_count + 1 WHERE id = ?";
+        return $this->db->execute($sql, [$id]);
+    }
+    
+    /**
+     * Remove a like from a review
+     * 
+     * @param int $reviewId Review ID
+     * @param int $userId User ID
+     * @return bool Success status
+     */
+    public function removeLike($reviewId, $userId)
+    {
+        try {
+            // Remove the like
+            $sqlDelete = "DELETE FROM review_likes WHERE review_id = ? AND user_id = ?";
+            $result = $this->db->execute($sqlDelete, [$reviewId, $userId]);
+            
+            if ($result) {
+                // Update helpful_count
+                $sqlUpdate = "UPDATE {$this->table} 
+                             SET helpful_count = (
+                                 SELECT COUNT(*) FROM review_likes WHERE review_id = ?
+                             ) 
+                             WHERE id = ?";
+                $this->db->execute($sqlUpdate, [$reviewId, $reviewId]);
+                
+                return true;
+            }
+            
+            return false;
+        } catch (Exception $e) {
+            error_log("Error removing like: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Xóa đánh giá theo ID
+     * 
+     * @param int $id Review ID
+     * @return bool Kết quả của thao tác
+     */
+    public function delete($id)
+    {
+        $sql = "DELETE FROM {$this->table} WHERE id = ?";
+        return $this->db->execute($sql, [$id]);
     }
 }

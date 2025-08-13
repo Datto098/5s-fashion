@@ -16,6 +16,12 @@ return [
     // Product
     'product/{slug}' => 'HomeController@product',
 
+    
+    // Review (via AJAX)
+    'ajax/review/like/{id}' => 'AjaxController@reviewLike',
+    'ajax/review/delete/{id}' => 'AjaxController@reviewDelete',
+    'ajax/review/add' => 'AjaxController@reviewAdd',
+
     // Cart
     'cart' => 'HomeController@cart',
 

@@ -667,5 +667,234 @@ class AjaxController extends Controller
             ]);
         }
     }
+
+    /**
+     * Like a review
+     * 
+     * @param int $id Review ID
+     * @return void
+     */
+    public function reviewLike($id = null)
+    {
+        // Debug
+        error_log("AjaxController::reviewLike called with ID: $id");
+        
+        if (!isLoggedIn()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Bạn cần đăng nhập để thực hiện thao tác này']);
+            return;
+        }
+        
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'ID đánh giá không hợp lệ']);
+            return;
+        }
+        
+        $userId = $_SESSION['user']['id'];
+        
+        // Load Review model
+        require_once APP_PATH . '/models/Review.php';
+        $reviewModel = new Review();
+        
+        // Kiểm tra xem đánh giá có tồn tại không
+        $review = $reviewModel->findById($id);
+        if (!$review) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy đánh giá']);
+            return;
+        }
+        
+        // Kiểm tra xem người dùng đã like đánh giá này chưa
+        $hasLiked = $reviewModel->hasUserLikedReview($id, $userId);
+        
+        if ($hasLiked) {
+            // Nếu đã like, thì unlike (xóa like)
+            $result = $reviewModel->removeLike($id, $userId);
+            $action = 'unliked';
+            $message = 'Đã bỏ thích đánh giá';
+        } else {
+            // Nếu chưa like, thì thêm like
+            $result = $reviewModel->addLike($id, $userId);
+            $action = 'liked';
+            $message = 'Cảm ơn bạn đã đánh giá nội dung này là hữu ích';
+        }
+        
+        if ($result) {
+            // Lấy số lượt thích mới
+            $updatedReview = $reviewModel->findById($id);
+            $helpfulCount = $updatedReview['helpful_count'] ?? 0;
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => $message,
+                'helpfulCount' => $helpfulCount,
+                'action' => $action,
+                'hasLiked' => !$hasLiked  // Toggle the state
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi khi xử lý yêu cầu']);
+        }
+    }
+    
+    /**
+     * Add a new review
+     * 
+     * @return void
+     */
+    public function reviewAdd()
+    {
+        // Debug
+        error_log("AjaxController::reviewAdd called");
+        error_log("POST data: " . print_r($_POST, true));
+        error_log("REQUEST_METHOD: " . $_SERVER['REQUEST_METHOD']);
+        error_log("Raw input: " . file_get_contents('php://input'));
+        
+        // Check if user is logged in
+        if (!isLoggedIn()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Bạn cần đăng nhập để đánh giá sản phẩm']);
+            return;
+        }
+        
+        $userId = $_SESSION['user']['id'];
+        $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+        $rating = isset($_POST['rating']) ? (int)$_POST['rating'] : 0;
+        $title = isset($_POST['title']) ? trim($_POST['title']) : '';
+        $content = isset($_POST['content']) ? trim($_POST['content']) : '';
+        
+        // Validate input
+        if (!$productId) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'ID sản phẩm không hợp lệ']);
+            return;
+        }
+        
+        if ($rating < 1 || $rating > 5) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Đánh giá phải từ 1-5 sao']);
+            return;
+        }
+        
+        if (empty($content)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Vui lòng nhập nội dung đánh giá']);
+            return;
+        }
+        
+        // Load required models
+        require_once APP_PATH . '/models/Review.php';
+        require_once APP_PATH . '/models/Order.php';
+        $reviewModel = new Review();
+        $orderModel = new Order();
+        
+        // Check if user has already reviewed this product
+        if ($reviewModel->hasUserReviewedProduct($userId, $productId)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Bạn đã đánh giá sản phẩm này rồi']);
+            return;
+        }
+        
+        // Check if user has purchased this product
+        $hasPurchased = $orderModel->hasUserPurchasedProduct($userId, $productId);
+        if (!$hasPurchased) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Bạn chỉ có thể đánh giá sản phẩm mà bạn đã mua']);
+            return;
+        }
+        
+        // Create the review
+        $reviewData = [
+            'product_id' => $productId,
+            'user_id' => $userId,
+            'rating' => $rating,
+            'title' => $title,
+            'content' => $content,
+            'status' => 'approved' 
+        ];
+        
+        try {
+            $result = $reviewModel->create($reviewData);
+            
+            if ($result) {
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Cảm ơn bạn đã đánh giá sản phẩm!',
+                    'review_id' => $result
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi khi thêm đánh giá']);
+            }
+        } catch (Exception $e) {
+            error_log("Error adding review: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Delete a review
+     * 
+     * @param int $id Review ID
+     * @return void
+     */
+    public function reviewDelete($id = null)
+    {
+        // Debug
+        error_log("AjaxController::reviewDelete called with ID: $id");
+        
+        if (!isLoggedIn()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Bạn cần đăng nhập để thực hiện thao tác này']);
+            return;
+        }
+        
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'ID đánh giá không hợp lệ']);
+            return;
+        }
+        
+        $userId = $_SESSION['user']['id'];
+        
+        // Load Review model
+        require_once APP_PATH . '/models/Review.php';
+        $reviewModel = new Review();
+        
+        // Kiểm tra xem đánh giá có tồn tại và thuộc về người dùng hiện tại không
+        $review = $reviewModel->findById($id);
+        if (!$review) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy đánh giá']);
+            return;
+        }
+        
+        if ($review['user_id'] != $userId) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền xóa đánh giá này']);
+            return;
+        }
+        
+        // Xóa đánh giá
+        $result = $reviewModel->delete($id);
+        
+        // Kiểm tra xem người dùng còn đánh giá nào cho sản phẩm không
+        $productId = $review['product_id'];
+        $hasMoreReviews = $reviewModel->hasUserReviewedProduct($userId, $productId);
+        
+        if ($result) {
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Đánh giá đã được xóa thành công',
+                'canAddReview' => !$hasMoreReviews, // true nếu không còn đánh giá nào
+                'productId' => $productId
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi khi xóa đánh giá']);
+        }
+    }
 }
 ?>

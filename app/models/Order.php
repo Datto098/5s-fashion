@@ -23,6 +23,31 @@ class Order extends BaseModel
     {
         return $this->findBy('order_code', $orderCode);
     }
+    
+    /**
+     * Check if a user has purchased and received a product
+     * 
+     * @param int $userId User ID
+     * @param int $productId Product ID
+     * @param array $statuses Array of valid statuses to consider (e.g. 'delivered', 'completed')
+     * @return bool True if user has purchased and received product
+     */
+    public function hasUserPurchasedProduct($userId, $productId, $statuses = ['delivered', 'completed'])
+    {
+        $placeholders = implode(',', array_fill(0, count($statuses), '?'));
+        
+        $sql = "SELECT COUNT(*) as count 
+                FROM {$this->table} o
+                JOIN order_items oi ON o.id = oi.order_id
+                WHERE o.user_id = ? 
+                AND oi.product_id = ?
+                AND o.status IN ($placeholders)";
+                
+        $params = array_merge([$userId, $productId], $statuses);
+        $result = $this->db->fetchOne($sql, $params);
+        
+        return $result['count'] > 0;
+    }
 
     /**
      * Get orders by user

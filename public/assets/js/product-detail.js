@@ -73,9 +73,9 @@ class ProductDetailManager {
 		});
 
 		// Review form
-		const reviewForm = document.querySelector('.review-form');
+		const reviewForm = document.querySelector('#review-add-form');
 		if (reviewForm) {
-			reviewForm.addEventListener('submit', this.handleReviewSubmit);
+			reviewForm.addEventListener('submit', this.handleReviewSubmit.bind(this));
 		}
 
 		// Image zoom
@@ -386,23 +386,29 @@ class ProductDetailManager {
 
 	handleReviewSubmit(e) {
 		e.preventDefault();
+		console.log('handleReviewSubmit called');
 
 		const formData = new FormData(e.target);
 		const rating = formData.get('rating');
-		const reviewText = formData.get('reviewText');
+		const content = formData.get('content');
+		
+		console.log('Rating:', rating);
+		console.log('Content:', content);
+		console.log('Content length:', content ? content.trim().length : 0);
 
 		if (!rating) {
-			showToast('Vui lòng chọn số sao đánh giá', 'warning');
+			console.log('No rating selected');
+			showToast('warning', 'Vui lòng chọn số sao đánh giá');
 			return;
 		}
 
-		if (!reviewText || reviewText.trim().length < 10) {
-			showToast(
-				'Vui lòng nhập nội dung đánh giá ít nhất 10 ký tự',
-				'warning'
-			);
+		if (!content || content.trim().length < 10) {
+			console.log('Content too short');
+			showToast('warning', 'Vui lòng nhập nội dung đánh giá ít nhất 10 ký tự');
 			return;
 		}
+
+		console.log('Validation passed, submitting form...');
 
 		const submitBtn = e.target.querySelector('button[type="submit"]');
 		const originalText = submitBtn.innerHTML;
@@ -412,20 +418,51 @@ class ProductDetailManager {
 			'<i class="fas fa-spinner fa-spin me-2"></i>Đang gửi...';
 		submitBtn.disabled = true;
 
-		// Simulate API call
-		setTimeout(() => {
-			// Reset form
-			e.target.reset();
-			document.querySelectorAll('.star-rating label').forEach((label) => {
-				label.style.color = '#ddd';
-			});
+		// Log form data for debugging
+		console.log('Form data being submitted:');
+		for (let pair of formData.entries()) {
+			console.log(pair[0] + ': ' + pair[1]);
+		}
 
-			// Reset button
+		// Submit form using AJAX
+		fetch('/5s-fashion/ajax/review/add', {
+			method: 'POST',
+			body: formData
+		})
+		.then(response => {
+			console.log('Response status:', response.status);
+			return response.json();
+		})
+		.then(data => {
+			console.log('Response data:', data);
+			if (data.success) {
+				// Reset form
+				e.target.reset();
+				
+				// Reset star ratings
+				document.querySelectorAll('.star-rating label').forEach((label) => {
+					label.style.color = '#ddd';
+				});
+				
+				// Show success message
+				showToast('success', data.message);
+				
+				// Reload the page after a short delay to show the new review
+				setTimeout(() => {
+					window.location.reload();
+				}, 1500);
+			} else {
+				showToast('error', data.message || 'Có lỗi xảy ra khi gửi đánh giá');
+				submitBtn.innerHTML = originalText;
+				submitBtn.disabled = false;
+			}
+		})
+		.catch(error => {
+			console.error('Error:', error);
+			showToast('error', 'Đã xảy ra lỗi khi gửi đánh giá');
 			submitBtn.innerHTML = originalText;
 			submitBtn.disabled = false;
-
-			showToast('Cảm ơn bạn đã đánh giá sản phẩm!', 'success');
-		}, 1500);
+		});
 	}
 }
 
@@ -540,38 +577,74 @@ function openImageZoom() {
 }
 
 // Utility functions
-function showToast(message, type = 'info') {
-	// Use unified notification system if available
-	if (
-		window.showNotification &&
-		typeof window.showNotification === 'function'
-	) {
-		window.showNotification(message, type);
-		return;
-	}
-
-	// Use global showToast if available (but not the same function)
-	if (
-		window.globalShowToast &&
-		typeof window.globalShowToast === 'function'
-	) {
-		window.globalShowToast(message, type);
-		return;
-	}
-
-	// Simple fallback toast
-	const toast = document.createElement('div');
-	toast.className = `alert alert-${
-		type === 'error' ? 'danger' : type
-	} position-fixed`;
-	toast.style.cssText =
-		'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-	toast.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-    `;
-
-	document.body.appendChild(toast);
+function showToast(type = 'info', message) {
+    // Kiểm tra xem đã có container cho toast chưa
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Tạo ID duy nhất cho toast
+    const toastId = 'toast-' + new Date().getTime();
+    
+    // Xác định class dựa trên loại thông báo
+    let bgClass = 'bg-info';
+    if (type === 'success') bgClass = 'bg-success';
+    if (type === 'warning') bgClass = 'bg-warning';
+    if (type === 'error' || type === 'danger') bgClass = 'bg-danger';
+    
+    try {
+        // Tạo HTML cho toast
+        const toastHTML = `
+            <div id="${toastId}" class="toast align-items-center ${bgClass} text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        // Thêm toast vào container
+        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+        
+        // Khởi tạo và hiển thị toast
+        const toastElement = document.getElementById(toastId);
+        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            const bsToast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+            bsToast.show();
+            
+            // Xóa toast sau khi ẩn
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        } else {
+            // Fallback if Bootstrap is not available
+            toastElement.style.display = 'block';
+            setTimeout(() => {
+                toastElement.remove();
+            }, 5000);
+        }
+    } catch (error) {
+        // Simple fallback toast if anything goes wrong
+        const alertToast = document.createElement('div');
+        alertToast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed`;
+        alertToast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertToast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+        `;
+        
+        document.body.appendChild(alertToast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            alertToast.remove();
+        }, 5000);
+    }
 
 	setTimeout(() => {
 		if (toast.parentElement) {
@@ -590,7 +663,79 @@ function updateCartCounter() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
+	console.log('DOM loaded, initializing ProductDetailManager');
+	
+	// Prevent multiple initializations
+	if (window.productDetailManagerInitialized) {
+		console.log('ProductDetailManager already initialized, skipping');
+		return;
+	}
+	
 	window.productDetailManager = new ProductDetailManager();
+	window.productDetailManagerInitialized = true;
+
+	// Direct form handling as a fallback
+	const reviewForm = document.querySelector('#review-add-form');
+	if (reviewForm) {
+		console.log('Found review form, adding event listener');
+		reviewForm.addEventListener('submit', function(e) {
+			e.preventDefault();
+			console.log('Direct form handler called');
+			
+			if (window.productDetailManager && typeof window.productDetailManager.handleReviewSubmit === 'function') {
+				console.log('Using ProductDetailManager handler');
+				window.productDetailManager.handleReviewSubmit.call(window.productDetailManager, e);
+			} else {
+				console.log('Direct form handling - ProductDetailManager not available');
+				
+				const formData = new FormData(e.target);
+				const rating = formData.get('rating');
+				const content = formData.get('content');
+				
+				console.log('Direct - Rating:', rating);
+				console.log('Direct - Content:', content);
+				
+				if (!rating) {
+					alert('Vui lòng chọn số sao đánh giá');
+					return;
+				}
+
+				if (!content || content.trim().length < 10) {
+					alert('Vui lòng nhập nội dung đánh giá ít nhất 10 ký tự');
+					return;
+				}
+				
+				// Log form data for debugging
+				console.log('Form data (direct):');
+				for (let pair of formData.entries()) {
+					console.log(pair[0] + ': ' + pair[1]);
+				}
+				
+				// Submit the form using fetch
+				fetch('/5s-fashion/ajax/review/add', {
+					method: 'POST',
+					body: formData
+				})
+				.then(response => response.json())
+				.then(data => {
+					if (data.success) {
+						alert('Cảm ơn bạn đã đánh giá sản phẩm!');
+						setTimeout(() => {
+							window.location.reload();
+						}, 1000);
+					} else {
+						alert(data.message || 'Có lỗi xảy ra khi gửi đánh giá');
+					}
+				})
+				.catch(error => {
+					console.error('Error:', error);
+					alert('Đã xảy ra lỗi khi gửi đánh giá');
+				});
+			}
+		});
+	} else {
+		console.log('Review form not found!');
+	}
 
 	console.log(
 		'🚫 Product-detail: localStorage wishlist loading disabled - using unified system only'

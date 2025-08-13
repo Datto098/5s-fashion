@@ -122,7 +122,7 @@ try {
     if ($stmt->fetch()) {
         $response = [
             'success' => false,
-            'message' => 'You already have this voucher',
+            'message' => 'Bạn đã lưu mã giảm giá này rồi',
             'errors' => null,
             'timestamp' => date('c'),
             'status_code' => 422
