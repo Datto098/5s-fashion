@@ -293,4 +293,14 @@ class UserCoupon extends BaseModel
             'message' => 'Áp dụng mã giảm giá thành công'
         ];
     }
+
+    /**
+     * Đánh dấu coupon đã dùng cho đơn hàng
+     */
+    public function updateCouponUsed($userId, $couponId, $orderId)
+    {
+        $now = date('Y-m-d H:i:s');
+        $sql = "UPDATE {$this->table} SET order_id = ?, used_at = ?, status = 'used' WHERE user_id = ? AND coupon_id = ? AND status = 'saved' LIMIT 1";
+        return $this->db->execute($sql, [$orderId, $now, $userId, $couponId]);
+    }
 }

@@ -945,6 +945,7 @@ CREATE TABLE IF NOT EXISTS `user_coupons` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `coupon_id` int NOT NULL,
+  `order_id` int DEFAULT NULL,
   `saved_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `used_at` timestamp NULL DEFAULT NULL,
   `status` enum('saved','used','expired') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'saved',
@@ -952,6 +953,7 @@ CREATE TABLE IF NOT EXISTS `user_coupons` (
   UNIQUE KEY `user_coupon_unique` (`user_id`,`coupon_id`),
   KEY `user_coupons_user_id_foreign` (`user_id`),
   KEY `user_coupons_coupon_id_foreign` (`coupon_id`),
+  KEY `user_coupons_order_id_foreign` (`order_id`),
   KEY `user_coupons_status_index` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

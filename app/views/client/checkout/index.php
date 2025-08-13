@@ -16,9 +16,17 @@ $custom_js = [
     'js/checkout.js'
 ];
 
+// Lấy thông tin mã giảm giá từ session nếu có
+$applied_coupon = isset($_SESSION['applied_coupon']) ? $_SESSION['applied_coupon'] : null;
+
 // Start output buffering for content
 ob_start();
 ?>
+
+<script>
+// Truyền dữ liệu mã giảm giá vào JavaScript nếu có
+window.appliedCoupon = <?= $applied_coupon ? json_encode($applied_coupon) : 'null' ?>;
+</script>
 
 
 <style>
@@ -83,6 +91,14 @@ ob_start();
                 <!-- Order Summary -->
                 <div class="order-summary sticky-top" style="top: 120px;">
                     <!-- Summary sẽ được load bởi JavaScript -->
+                    <?php if (!empty($applied_coupon)) : ?>
+                    <div id="applied-coupon-info" style="margin-bottom:10px;">
+                        <div class="alert alert-success p-2 mb-2" style="font-size: 15px;">
+                            <span>Mã giảm giá: <b><?= htmlspecialchars($applied_coupon['code']) ?></b></span>
+                            <span class="ms-2">- <?= number_format($applied_coupon['discount_amount']) ?>đ</span>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -221,6 +237,11 @@ ob_start();
 </div>
 
 <?php
+$applied_coupon = isset($_SESSION['applied_coupon']) ? $_SESSION['applied_coupon'] : null;
+if ($applied_coupon) {
+    echo '<script>window.appliedCoupon = ' . json_encode($applied_coupon) . ';</script>';
+}
+
 // Store content in variable
 $content = ob_get_clean();
 
@@ -232,7 +253,6 @@ include VIEW_PATH . '/client/layouts/app.php';
     document.addEventListener('DOMContentLoaded', function() {
         window.checkoutManager = new CheckoutManager();
         window.addressManager = new CheckoutAddressManager();
-
         checkoutManager.loadOrder();
         checkoutManager.initializeForm();
     });

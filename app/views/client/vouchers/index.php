@@ -36,83 +36,6 @@
         </div>
     <?php endif; ?>
 
-    <!-- Trending Vouchers -->
-    <?php if (!empty($trendingCoupons)): ?>
-        <div class="row mb-5">
-            <div class="col-12">
-                <div class="d-flex align-items-center mb-3">
-                    <i class="fas fa-fire text-danger me-2"></i>
-                    <h3 class="h4 mb-0">Voucher Hot Nhất</h3>
-                </div>
-
-                <div class="row">
-                    <?php foreach ($trendingCoupons as $coupon): ?>
-                        <?php
-                        $isSaved = false;
-                        if (!empty($savedCoupons)) {
-                            foreach ($savedCoupons as $saved) {
-                                if ($saved['coupon_id'] == $coupon['id']) {
-                                    $isSaved = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if ($isSaved) continue; // Ẩn voucher đã lưu khỏi phần Hot
-                        ?>
-                        <div class="col-md-4 mb-3">
-                            <div class="voucher-card trending">
-                                <div class="voucher-header">
-                                    <div class="voucher-badge">
-                                        <i class="fas fa-fire"></i> HOT
-                                    </div>
-                                    <div class="voucher-code"><?= htmlspecialchars($coupon['code']) ?></div>
-                                </div>
-
-                                <div class="voucher-body">
-                                    <h5 class="voucher-title"><?= htmlspecialchars($coupon['name']) ?></h5>
-                                    <div class="voucher-value">
-                                        <?php if ($coupon['type'] === 'percentage'): ?>
-                                            <span class="value-text">Giảm <?= $coupon['value'] ?>%</span>
-                                        <?php else: ?>
-                                            <span class="value-text">Giảm <?= number_format($coupon['value']) ?>đ</span>
-                                        <?php endif; ?>
-                                    </div>
-
-                                    <?php if ($coupon['minimum_amount']): ?>
-                                        <div class="voucher-condition">
-                                            Cho đơn hàng từ <?= number_format($coupon['minimum_amount']) ?>đ
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <?php if ($coupon['description']): ?>
-                                        <p class="voucher-description"><?= htmlspecialchars($coupon['description']) ?></p>
-                                    <?php endif; ?>
-                                </div>
-
-                                <div class="voucher-footer">
-                                    <?php if ($coupon['valid_until']): ?>
-                                        <div class="voucher-expiry">
-                                            <i class="fas fa-clock"></i> HSD: <?= date('d/m/Y', strtotime($coupon['valid_until'])) ?>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <?php if ($userId): ?>
-                                        <button class="btn btn-sm save-voucher btn-primary" data-coupon-id="<?= $coupon['id'] ?>">
-                                            <i class="fas fa-plus"></i> Lưu
-                                        </button>
-                                    <?php else: ?>
-                                        <a href="/5s-fashion/login" class="btn btn-outline-primary btn-sm">
-                                            Đăng nhập để lưu
-                                        </a>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
 
     <!-- Available Vouchers -->
     <div class="row">
@@ -139,6 +62,30 @@
             </div>
         <?php else: ?>
             <?php foreach ($availableCoupons as $coupon): ?>
+                <?php
+                $btnType = 'save';
+                $btnText = '<i class="fas fa-plus"></i> Lưu';
+                $btnClass = 'btn-primary';
+                $btnDisabled = '';
+                if (!empty($savedCoupons)) {
+                    foreach ($savedCoupons as $saved) {
+                        if ($saved['coupon_id'] == $coupon['id']) {
+                            if ($saved['status'] === 'used') {
+                                $btnType = 'used';
+                                $btnText = '<i class="fas fa-check"></i> Đã sử dụng';
+                                $btnClass = 'btn-secondary';
+                                $btnDisabled = 'disabled';
+                            } elseif ($saved['status'] === 'saved') {
+                                $btnType = 'saved';
+                                $btnText = '<i class="fas fa-bookmark"></i> Đã lưu';
+                                $btnClass = 'btn-success';
+                                $btnDisabled = 'disabled';
+                            }
+                            break;
+                        }
+                    }
+                }
+                ?>
                 <div class="col-md-6 col-lg-4 mb-4 voucher-item" data-type="<?= $coupon['type'] ?>">
                     <div class="voucher-card">
                         <div class="voucher-header">
@@ -190,9 +137,13 @@
 
                                 <div class="voucher-actions">
                                     <?php if ($userId): ?>
-                                        <button class="btn btn-primary btn-sm save-voucher" data-coupon-id="<?= $coupon['id'] ?>">
-                                            <i class="fas fa-plus"></i> Lưu
-                                        </button>
+                                        <?php if ($btnType === 'save'): ?>
+                                            <button class="btn btn-primary btn-sm save-voucher" data-coupon-id="<?= $coupon['id'] ?>">
+                                                <i class="fas fa-plus"></i> Lưu
+                                            </button>
+                                        <?php else: ?>
+                                            <button class="btn <?= $btnClass ?> btn-sm" disabled><?= $btnText ?></button>
+                                        <?php endif; ?>
                                     <?php else: ?>
                                         <a href="/5s-fashion/login" class="btn btn-outline-primary btn-sm">
                                             Đăng nhập để lưu
@@ -214,59 +165,6 @@
         <?php endif; ?>
     </div>
 
-    <!-- My Saved Vouchers (if logged in) -->
-    <?php if ($userId && !empty($savedCoupons)): ?>
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3 class="h4 mb-0">Voucher Đã Lưu</h3>
-                    <a href="/5s-fashion/vouchers/my-vouchers" class="btn btn-outline-primary btn-sm">
-                        Xem tất cả <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-
-                <div class="row">
-                    <?php foreach (array_slice($savedCoupons, 0, 3) as $coupon): ?>
-                        <div class="col-md-4 mb-3">
-                            <div class="voucher-card saved">
-                                <div class="voucher-header">
-                                    <div class="voucher-badge saved-badge">
-                                        <i class="fas fa-bookmark"></i> ĐÃ LƯU
-                                    </div>
-                                    <div class="voucher-code"><?= htmlspecialchars($coupon['code']) ?></div>
-                                </div>
-
-                                <div class="voucher-body">
-                                    <h5 class="voucher-title"><?= htmlspecialchars($coupon['name']) ?></h5>
-                                    <div class="voucher-value">
-                                        <?php if ($coupon['type'] === 'percentage'): ?>
-                                            <span class="value-text">Giảm <?= $coupon['value'] ?>%</span>
-                                        <?php else: ?>
-                                            <span class="value-text">Giảm <?= number_format($coupon['value']) ?>đ</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-
-                                <div class="voucher-footer">
-                                    <div class="d-flex justify-content-between">
-                                        <?php if ($coupon['valid_until']): ?>
-                                            <div class="voucher-expiry">
-                                                <i class="fas fa-clock"></i> HSD: <?= date('d/m/Y', strtotime($coupon['valid_until'])) ?>
-                                            </div>
-                                        <?php endif; ?>
-
-                                        <button class="btn btn-outline-danger btn-sm remove-voucher" data-coupon-id="<?= $coupon['coupon_id'] ?>">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    <?php endif; ?>
 </div>
 
 <style>

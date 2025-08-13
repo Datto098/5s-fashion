@@ -23,20 +23,20 @@ const TEST_DATA = {
 };
 
 let testResult = TEST_TEMPLATE;
-console.log('Before replacement:', testResult);
+// console.log('Before replacement:', testResult);
 
 // Manual replacement like in CheckoutManager - FIXED WITH global regex
 testResult = testResult.replace(/\{name\}/g, TEST_DATA.name);
 testResult = testResult.replace(/\{price\}/g, TEST_DATA.price);
 testResult = testResult.replace(/\{image\}/g, TEST_DATA.image);
 
-console.log('After replacement:', testResult);
-console.log('Contains {name}?', testResult.includes('{name}'));
-console.log('Contains product name?', testResult.includes('Váy Maxi'));
+// console.log('After replacement:', testResult);
+// console.log('Contains {name}?', testResult.includes('{name}'));
+// console.log('Contains product name?', testResult.includes('Váy Maxi'));
 
 class CheckoutManager {
 	constructor() {
-		console.log('CheckoutManager constructor called');
+		// console.log('CheckoutManager constructor called');
 		this.cart = null;
 		this.addresses = [];
 		this.selectedAddress = null;
@@ -46,7 +46,15 @@ class CheckoutManager {
 			discount: 0,
 			total: 0,
 		};
-		console.log('CheckoutManager initialized');
+		
+		// Lấy giảm giá từ biến PHP nếu có
+		// console.log("Applied coupon:", window.appliedCoupon);
+		if (window.appliedCoupon && window.appliedCoupon.discount_amount) {
+			this.orderSummary.discount = parseFloat(window.appliedCoupon.discount_amount);
+			// console.log("Setting discount to:", this.orderSummary.discount);
+		}
+		
+		// console.log('CheckoutManager initialized');
 	}
 
 	async loadOrder() {
@@ -225,10 +233,16 @@ class CheckoutManager {
 			return total + (item.price || 0) * (item.quantity || 1);
 		}, 0);
 
+		// Đảm bảo discount được áp dụng từ session
+		if (window.appliedCoupon && window.appliedCoupon.discount_amount) {
+			this.orderSummary.discount = parseFloat(window.appliedCoupon.discount_amount);
+		}
+
 		this.orderSummary.total =
 			this.orderSummary.subtotal +
 			this.orderSummary.shipping -
 			this.orderSummary.discount;
+		console.log("Total calculation:", this.orderSummary);
 		this.updateOrderSummary();
 	}
 
@@ -236,59 +250,55 @@ class CheckoutManager {
 		const summaryContainer = document.querySelector('.order-summary');
 		if (!summaryContainer) return;
 
-		// Only update the totals section, not the entire summary
+		// Render block tổng kết (không chứa .order-items)
 		let totalsHtml = `
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Thông tin đơn hàng</h5>
-                </div>
-                <div class="card-body">
-                    <div class="order-items">
-                        <!-- Items will be populated by displayOrderItems -->
-                    </div>
-
-                    <hr>
-
-                    <div class="order-totals">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Tạm tính:</span>
-                            <span>${this.formatCurrency(
-								this.orderSummary.subtotal
-							)}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Phí vận chuyển:</span>
-                            <span>${this.formatCurrency(
-								this.orderSummary.shipping
-							)}</span>
-                        </div>
-                        ${
-							this.orderSummary.discount > 0
+			<div class="card">
+				<div class="card-header">
+					<h5 class="mb-0">Thông tin đơn hàng</h5>
+					
+				</div>
+				<div class="card-body">
+				<div class="order-items"></div>
+					<hr>
+					<div class="order-totals">
+						<div class="d-flex justify-content-between mb-2">
+							<span>Tạm tính:</span>
+							<span>${this.formatCurrency(this.orderSummary.subtotal)}</span>
+						</div>
+						<div class="d-flex justify-content-between mb-2">
+							<span>Phí vận chuyển:</span>
+							<span>${this.formatCurrency(this.orderSummary.shipping)}</span>
+						</div>
+						${
+							this.orderSummary.discount > 0 && window.appliedCoupon && window.appliedCoupon.code
 								? `
-                        <div class="d-flex justify-content-between mb-2 text-success">
-                            <span>Giảm giá:</span>
-                            <span>-${this.formatCurrency(
-								this.orderSummary.discount
-							)}</span>
-                        </div>
-                        `
+						<div class="d-flex justify-content-between mb-2 text-success">
+							<span>Giảm giá (${window.appliedCoupon.code}):</span>
+							<span>-${this.formatCurrency(this.orderSummary.discount)}</span>
+						</div>
+						`
+								: this.orderSummary.discount > 0
+								? `
+						<div class="d-flex justify-content-between mb-2 text-success">
+							<span>Giảm giá:</span>
+							<span>-${this.formatCurrency(this.orderSummary.discount)}</span>
+						</div>
+						`
 								: ''
 						}
-                        <hr>
-                        <div class="d-flex justify-content-between fw-bold fs-5">
-                            <span>Tổng cộng:</span>
-                            <span class="text-primary">${this.formatCurrency(
-								this.orderSummary.total
-							)}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+						<hr>
+						<div class="d-flex justify-content-between fw-bold fs-5">
+							<span>Tổng cộng:</span>
+							<span class="text-primary">${this.formatCurrency(this.orderSummary.total)}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+		`;
 
 		summaryContainer.innerHTML = totalsHtml;
-
-		// Display items after updating summary structure
+		// Render lại sản phẩm vào .order-items
 		this.displayOrderItems();
 	}
 
@@ -617,6 +627,8 @@ class CheckoutManager {
 			order_notes: formData.get('order_notes') || '',
 			items: this.cart,
 			totals: this.orderSummary,
+			// Thêm discount_amount rõ ràng cho backend
+			discount_amount: this.orderSummary.discount || 0,
 		};
 
 		try {

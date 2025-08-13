@@ -30,9 +30,12 @@ class VoucherController extends BaseController
         $availableCoupons = [];
         $savedCoupons = [];
 
+
         if ($userId) {
-            $availableCoupons = $this->userCouponModel->getAvailableCoupons($userId);
-            $savedCoupons = $this->userCouponModel->getUserCoupons($userId, 'saved');
+            // Lấy tất cả coupon còn hạn, active
+            $availableCoupons = $this->couponModel->getActiveCoupons();
+            // Lấy tất cả trạng thái user đã lưu (saved, used)
+            $savedCoupons = $this->userCouponModel->getUserCoupons($userId, null); // null để lấy tất cả trạng thái
         } else {
             $availableCoupons = $this->couponModel->getActiveCoupons();
         }
