@@ -369,7 +369,7 @@
 </head>
 
 <body data-logged-in="<?= isLoggedIn() ? 'true' : 'false' ?>"
-      data-user-id="<?= getUser() ? getUser()['id'] : '' ?>"
+      data-user-id="<?= getUser() && !is_array(getUser()['id']) ? getUser()['id'] : '' ?>"
       class="<?= $body_class ?? '' ?>">
     <!-- Header -->
     <?php include_once VIEW_PATH . '/client/layouts/header.php'; ?>

@@ -93,6 +93,17 @@ class Database
     public function query($sql, $params = [])
     {
         try {
+            // Debug for array parameters
+            if (APP_DEBUG && is_array($params)) {
+                foreach ($params as $key => $value) {
+                    if (is_array($value)) {
+                        error_log("Warning: Array value detected in query params for key: " . $key);
+                        // Convert array to string to prevent "Array to string conversion" error
+                        $params[$key] = json_encode($value);
+                    }
+                }
+            }
+            
             $stmt = $this->connection->prepare($sql);
             $stmt->execute($params);
             return $stmt;

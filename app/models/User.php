@@ -10,7 +10,8 @@ class User extends BaseModel
     protected $primaryKey = 'id';
 protected $fillable = [
     'username', 'email', 'password_hash', 'full_name', 'phone',
-    'avatar', 'role', 'status', 'email_verified_at', 'birthday', 'address',  'email_verify_token'
+    'avatar', 'role', 'status', 'email_verified_at', 'birthday', 'address', 'email_verify_token',
+    'google_id', 'last_login_at'
 ];
     protected $hidden = ['password_hash', 'remember_token', 'reset_token'];
 

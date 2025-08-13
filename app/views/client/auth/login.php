@@ -40,6 +40,17 @@ ob_start();
                             <a href="<?= url('forgot-password') ?>" class="text-muted">Quên mật khẩu?</a>
                         </div>
                     </form>
+                    
+                    <!-- Social Login Options -->
+                    <div class="social-login mt-4">
+                        <p class="text-center mb-3">Hoặc đăng nhập bằng</p>
+                        <div class="d-grid gap-2">
+                            <a href="<?= url('auth/google') ?>" class="btn btn-outline-danger">
+                                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" width="20" height="20" class="me-2">
+                                Đăng nhập bằng Google
+                            </a>
+                        </div>
+                    </div>
 
                     <hr class="my-4">
 
@@ -47,7 +58,7 @@ ob_start();
                         <p class="mb-0">Chưa có tài khoản?
                             <a href="<?= url('register') ?>" class="text-primary">Đăng ký ngay</a>
                         </p>
-Đ                    </div>
+                    </div>
                 </div>
             </div>
         </div>

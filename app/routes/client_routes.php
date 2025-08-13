@@ -35,6 +35,10 @@ return [
     'logout' => 'AuthController@logout',
     'forgot-password' => 'AuthController@forgotPasswordForm',
     'reset-password/{token}' => 'AuthController@resetPasswordForm',
+    
+    // Google OAuth
+    'auth/google' => 'GoogleAuthController@login',
+    'auth/google-callback' => 'GoogleAuthController@callback',
 
     // Account
     'account' => 'AccountController@index',

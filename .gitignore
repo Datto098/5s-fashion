@@ -1,0 +1,51 @@
+# Ignore vendor directory
+/vendor/
+
+# Ignore composer lock file
+composer.lock
+
+# Ignore any log files
+*.log
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore upload directories (except .gitkeep to maintain directory structure)
+/uploads/*
+!/uploads/.gitkeep
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Ignore node modules
+/node_modules/
+
+# Ignore cache and session files
+/tmp/
+/cache/
+/sessions/
+
+# Ignore IDE and editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Ignore OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Ignore backup files
+*.bak
+*.backup
+*~
+
+# Ignore sensitive configuration files that may contain passwords
+/app/config/database.php
