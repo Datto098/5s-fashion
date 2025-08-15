@@ -24,7 +24,7 @@ class VoucherController extends BaseController
      */
     public function index()
     {
-        $userId = $_SESSION['user_id'] ?? null;
+        $userId = $_SESSION['user']['id']  ?? null;
 
         // Get available coupons (not saved by user yet)
         $availableCoupons = [];
@@ -56,12 +56,12 @@ class VoucherController extends BaseController
      */
     public function myVouchers()
     {
-        if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['user']['id'] )) {
             header('Location: /5s-fashion/login?redirect=' . urlencode($_SERVER['REQUEST_URI']));
             exit;
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId = $_SESSION['user']['id'] ;
 
         // Get user's coupons by status
         $savedCoupons = $this->userCouponModel->getUserCoupons($userId, 'saved');
@@ -86,7 +86,7 @@ class VoucherController extends BaseController
     {
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['user']['id'] )) {
             echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập để lưu voucher']);
             exit;
         }
@@ -96,7 +96,7 @@ class VoucherController extends BaseController
             exit;
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId = $_SESSION['user']['id'] ;
         $couponId = (int)($_POST['coupon_id'] ?? 0);
 
         if (!$couponId) {
@@ -116,7 +116,7 @@ class VoucherController extends BaseController
     {
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['user']['id'] )) {
             echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập']);
             exit;
         }
@@ -126,7 +126,7 @@ class VoucherController extends BaseController
             exit;
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId = $_SESSION['user']['id'] ;
         $couponId = (int)($_POST['coupon_id'] ?? 0);
 
         if (!$couponId) {
@@ -148,7 +148,7 @@ class VoucherController extends BaseController
 
         $code = $_GET['code'] ?? '';
         $orderAmount = (float)($_GET['amount'] ?? 0);
-        $userId = $_SESSION['user_id'] ?? null;
+        $userId = $_SESSION['user']['id']  ?? null;
 
         if (!$code || !$orderAmount) {
             echo json_encode([
@@ -179,12 +179,12 @@ class VoucherController extends BaseController
     {
         header('Content-Type: application/json');
 
-        if (!isset($_SESSION['user_id'])) {
+        if (!isset($_SESSION['user']['id'] )) {
             echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập']);
             exit;
         }
 
-        $userId = $_SESSION['user_id'];
+        $userId = $_SESSION['user']['id'] ;
         $orderAmount = (float)($_GET['amount'] ?? 0);
 
         if (!$orderAmount) {
@@ -222,7 +222,7 @@ class VoucherController extends BaseController
 
         $code = $_POST['code'] ?? '';
         $orderAmount = (float)($_POST['amount'] ?? 0);
-        $userId = $_SESSION['user_id'] ?? null;
+        $userId = $_SESSION['user']['id']  ?? null;
 
         if (!$code || !$orderAmount) {
             echo json_encode([

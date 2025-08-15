@@ -199,14 +199,6 @@ class GoogleAuthController extends Controller
             // Chuẩn bị dữ liệu người dùng mới - đảm bảo username là chuỗi và không có ký tự đặc biệt
             $username = preg_replace('/[^a-zA-Z0-9]/', '', explode('@', $userData['email'])[0]);
             
-            // Debug: Kiểm tra chi tiết từng giá trị để tìm cái nào là mảng
-            error_log('Email: ' . (is_array($userData['email']) ? 'IS ARRAY' : 'is string') . ' - ' . (is_array($userData['email']) ? json_encode($userData['email']) : $userData['email']));
-            error_log('Name: ' . (is_array($userData['name']) ? 'IS ARRAY' : 'is string') . ' - ' . (is_array($userData['name']) ? json_encode($userData['name']) : $userData['name']));
-            error_log('Google ID: ' . (is_array($userData['google_id']) ? 'IS ARRAY' : 'is string') . ' - ' . (is_array($userData['google_id']) ? json_encode($userData['google_id']) : $userData['google_id']));
-            error_log('Picture: ' . (is_array($userData['picture'] ?? '') ? 'IS ARRAY' : 'is string') . ' - ' . (is_array($userData['picture'] ?? '') ? json_encode($userData['picture'] ?? '') : ($userData['picture'] ?? 'NULL')));
-            error_log('Username generated: ' . $username);
-            // Log entire user data for debugging
-            error_log('Complete userData: ' . print_r($userData, true));
             
             $newUser = [
                 'email' => $userData['email'],
@@ -282,10 +274,10 @@ class GoogleAuthController extends Controller
                     'full_name' => isset($userData['name']) ? (is_array($userData['name']) ? implode(' ', $userData['name']) : (string)$userData['name']) : '',
                     'role' => 'customer',
                     'avatar' => isset($userData['picture']) ? (is_array($userData['picture']) ? null : (string)$userData['picture']) : null,
-                    'status' => 'active', // Ensure status is explicitly set
+                    'status' => 'active', 
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s'),
-                    'email_verified_at' => date('Y-m-d H:i:s'), // Add missing date fields to ensure they always exist
+                    'email_verified_at' => date('Y-m-d H:i:s'), 
                     'last_login_at' => date('Y-m-d H:i:s'),
                 ];
             }
