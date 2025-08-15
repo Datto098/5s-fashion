@@ -11,15 +11,13 @@ class OrderController extends Controller
     private $userModel;
     private $customerModel;
 
-    /**
-     * Hiển thị trang checkout
-     */
-    public function checkout()
-    {
-        $user = getUser();
-        $addresses = $this->customerModel->getCustomerAddresses($user['id']);
-
-        // Lấy danh sách voucher đã lưu còn hạn
+/**
+ * Hiển thị trang checkout
+ */
+public function checkout()
+{
+    $user = getUser();
+    $addresses = $this->customerModel->getCustomerAddresses($user['id']);        // Lấy danh sách voucher đã lưu còn hạn
         require_once dirname(__DIR__) . '/models/UserCoupon.php';
         $userCouponModel = new UserCoupon();
 
@@ -377,6 +375,14 @@ class OrderController extends Controller
                 echo json_encode(['success' => false, 'message' => 'Không có dữ liệu đơn hàng']);
                 exit;
             }
+            
+            // Kiểm tra và lấy thông tin mã giảm giá từ session nếu có
+            if (isset($_SESSION['applied_coupon'])) {
+                // Lưu vào input data để sử dụng
+                $input['discount'] = $_SESSION['applied_coupon']['discount_amount'];
+                $input['coupon_id'] = $_SESSION['applied_coupon']['id'];
+                $input['coupon_code'] = $_SESSION['applied_coupon']['code'];
+            }
 
             // DEBUG: Log input data to see if status is being sent
             error_log('=== ORDER PLACE DEBUG ===');
@@ -471,7 +477,7 @@ class OrderController extends Controller
 
             // Calculate order totals
             $shippingFee = (float)($input['shipping']['fee'] ?? 30000);
-            $discountAmount = (float)($input['discount'] ?? 0);
+            $discountAmount = isset($input['discount_amount']) ? (float)$input['discount_amount'] : (float)($input['discount'] ?? 0);
             $totalAmount = $subtotal + $shippingFee - $discountAmount;
 
             // Prepare order data
@@ -501,6 +507,15 @@ class OrderController extends Controller
             $orderModel = new Order();
 
             $orderId = $orderModel->createOrder($orderData, $orderItems);
+
+            // Nếu có mã giảm giá đã áp dụng thì cập nhật user_coupons
+            if ($orderId && isset($_SESSION['applied_coupon']) && !empty($_SESSION['applied_coupon']['id'])) {
+                require_once dirname(__DIR__) . '/models/UserCoupon.php';
+                $userCouponModel = new UserCoupon();
+                $couponId = $_SESSION['applied_coupon']['id'];
+                $userId = $user['id'];
+                $userCouponModel->updateCouponUsed($userId, $couponId, $orderId);
+            }
 
             if ($orderId) {
                 // Get the created order for response

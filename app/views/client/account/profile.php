@@ -165,9 +165,10 @@ ob_start();
                                 <div class="col-md-6">
                                     <div class="info-item">
                                         <label>Trạng thái:</label>
-                                        <span class="badge bg-<?= ($user['status'] ?? '') === 'active' ? 'danger' : 'warning' ?>">
-                                            <?= ($user['status'] ?? '') === 'active' ? 'Hoạt động' : 'Không hoạt động' ?>
+                                        <span class="badge bg-<?= (isset($user['status']) && $user['status'] === 'active') ? 'danger' : 'warning' ?>">
+                                            <?= (isset($user['status']) && $user['status'] === 'active') ? 'Hoạt động' : 'Không hoạt động' ?>
                                         </span>
+                                        <?php error_log('User status in view: ' . ($user['status'] ?? 'NULL')); ?>
                                     </div>
                                 </div>
                             </div>
@@ -175,13 +176,29 @@ ob_start();
                                 <div class="col-md-6">
                                     <div class="info-item">
                                         <label>Ngày tham gia:</label>
-                                        <span><?= isset($user['created_at']) ? date('d/m/Y H:i', strtotime($user['created_at'])) : 'N/A' ?></span>
+                                        <span>
+                                            <?php 
+                                                if (isset($user['created_at']) && $user['created_at']) {
+                                                    echo date('d/m/Y H:i', strtotime($user['created_at'])); 
+                                                } else {
+                                                    echo 'N/A';
+                                                }
+                                            ?>
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="info-item">
                                         <label>Cập nhật cuối:</label>
-                                        <span><?= isset($user['updated_at']) ? date('d/m/Y H:i', strtotime($user['updated_at'])) : 'N/A' ?></span>
+                                        <span>
+                                            <?php 
+                                                if (isset($user['updated_at']) && $user['updated_at']) {
+                                                    echo date('d/m/Y H:i', strtotime($user['updated_at'])); 
+                                                } else {
+                                                    echo 'N/A';
+                                                }
+                                            ?>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

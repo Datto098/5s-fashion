@@ -418,11 +418,9 @@
 .voucher-actions {
     display: flex;
     gap: 5px;
-    flex-wrap: wrap;
 }
 
 .voucher-actions .btn-sm {
-    flex: 1;
     min-width: auto;
 }
 

@@ -6,18 +6,24 @@
 
 require_once __DIR__ . '/../models/ProductVariant.php';
 require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../models/Review.php';
+require_once __DIR__ . '/../models/Order.php';
 
 class HomeController extends Controller
 {
     private $productModel;
     private $categoryModel;
     private $couponModel;
+    private $reviewModel;
+    private $orderModel;
 
     public function __construct()
     {
         $this->productModel = $this->model('Product');
         $this->categoryModel = $this->model('Category');
         $this->couponModel = $this->model('Coupon');
+        $this->reviewModel = new Review();
+        $this->orderModel = new Order();
     }
 
     public function index()
@@ -166,8 +172,45 @@ class HomeController extends Controller
         // Get related products
         $relatedProducts = $this->productModel->getRelatedProducts($product['id'], $product['category_id'], 8);
 
-        // Get product reviews (placeholder)
-        $reviews = [];
+        // Get product reviews from database
+        $userId = isLoggedIn() ? $_SESSION['user']['id'] : null;
+        $reviews = $this->reviewModel->getProductReviews($product['id'], 10, $userId);
+        $reviewCount = count($reviews);
+        
+        // Debug: Log reviews
+        error_log("Reviews for product {$product['id']}: " . print_r($reviews, true));
+        error_log("Review count: " . $reviewCount);
+        
+        // Check if the current user can review this product
+        $canReview = false;
+        $userId = null;
+        $hasOrderedProduct = false;
+        $hasCompletedOrders = false;
+        $hasReviewed = false;
+        
+        if (isLoggedIn()) {
+            $userId = $_SESSION['user']['id'];
+            
+            // Kiểm tra xem người dùng đã đặt hàng sản phẩm này chưa (bất kể trạng thái)
+            $hasOrderedProduct = $this->orderModel->hasUserPurchasedProduct(
+                $userId, 
+                $product['id'], 
+                ['processing', 'shipped', 'delivered', 'completed']
+            );
+            
+            // Kiểm tra xem người dùng đã mua và nhận sản phẩm này chưa
+            $hasCompletedOrders = $this->orderModel->hasUserPurchasedProduct(
+                $userId, 
+                $product['id'], 
+                ['delivered', 'completed']
+            );
+            
+            // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
+            $hasReviewed = $this->reviewModel->hasUserReviewedProduct($userId, $product['id']);
+            
+            // Người dùng có thể đánh giá nếu đã mua và nhận sản phẩm, và chưa đánh giá
+            $canReview = $hasCompletedOrders && !$hasReviewed;
+        }
 
         $data = [
             'title' => $product['name'] . ' - 5S Fashion',
@@ -175,7 +218,13 @@ class HomeController extends Controller
             'variants' => $variants,
             'attributes' => $attributes,
             'related_products' => $relatedProducts,
-            'reviews' => $reviews
+            'reviews' => $reviews,
+            'reviewCount' => $reviewCount,
+            'canReview' => $canReview,
+            'hasOrderedProduct' => $hasOrderedProduct,
+            'hasCompletedOrders' => $hasCompletedOrders,
+            'hasReviewed' => $hasReviewed,
+            'userId' => $userId
         ];
 
         $this->view('client/product/detail', $data);

@@ -75,7 +75,23 @@ function formatDate($date, $format = 'd/m/Y')
  */
 function getUser()
 {
-    return $_SESSION['user'] ?? null;
+    // Add safety check to prevent array to string conversion issues
+    if (!isset($_SESSION['user'])) {
+        return null;
+    }
+    
+    // Return a copy of the session user data
+    $userData = $_SESSION['user'];
+    
+    // Ensure all values are properly handled (not arrays)
+    foreach ($userData as $key => $value) {
+        if (is_array($value)) {
+            error_log("Warning: Array found in user session data for key: " . $key);
+            $userData[$key] = is_array($value) ? json_encode($value) : $value;
+        }
+    }
+    
+    return $userData;
 }
 
 /**
@@ -226,6 +242,12 @@ function clearCart()
 function setFlash($type, $message)
 {
     $_SESSION['flash'][$type] = $message;
+}
+
+// Alias for setFlash for better readability
+function setFlashMessage($type, $message)
+{
+    setFlash($type, $message);
 }
 
 function getFlash($type = null)

@@ -40,6 +40,10 @@ if ($isAdminRequest) {
     require_once APP_PATH . '/core/App.php';
     $app = new App();
     exit; // Stop execution after handling admin routes
+} elseif (preg_match('#^api/#', $url) || preg_match('#^vouchers/#', $url)) {
+    // Handle API and vouchers routing
+    require_once __DIR__ . '/app/api/routes.php';
+    exit;
 } else {
     // Handle client website routing with Router
     require_once APP_PATH . '/core/Router.php';

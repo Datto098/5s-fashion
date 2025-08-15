@@ -23,20 +23,20 @@ const TEST_DATA = {
 };
 
 let testResult = TEST_TEMPLATE;
-console.log('Before replacement:', testResult);
+// console.log('Before replacement:', testResult);
 
 // Manual replacement like in CheckoutManager - FIXED WITH global regex
 testResult = testResult.replace(/\{name\}/g, TEST_DATA.name);
 testResult = testResult.replace(/\{price\}/g, TEST_DATA.price);
 testResult = testResult.replace(/\{image\}/g, TEST_DATA.image);
 
-console.log('After replacement:', testResult);
-console.log('Contains {name}?', testResult.includes('{name}'));
-console.log('Contains product name?', testResult.includes('Váy Maxi'));
+// console.log('After replacement:', testResult);
+// console.log('Contains {name}?', testResult.includes('{name}'));
+// console.log('Contains product name?', testResult.includes('Váy Maxi'));
 
 class CheckoutManager {
 	constructor() {
-		console.log('CheckoutManager constructor called');
+		// console.log('CheckoutManager constructor called');
 		this.cart = null;
 		this.addresses = [];
 		this.selectedAddress = null;
@@ -46,7 +46,15 @@ class CheckoutManager {
 			discount: 0,
 			total: 0,
 		};
-		console.log('CheckoutManager initialized');
+		
+		// Lấy giảm giá từ biến PHP nếu có
+		// console.log("Applied coupon:", window.appliedCoupon);
+		if (window.appliedCoupon && window.appliedCoupon.discount_amount) {
+			this.orderSummary.discount = parseFloat(window.appliedCoupon.discount_amount);
+			// console.log("Setting discount to:", this.orderSummary.discount);
+		}
+		
+		// console.log('CheckoutManager initialized');
 	}
 
 	async loadOrder() {
@@ -225,10 +233,16 @@ class CheckoutManager {
 			return total + (item.price || 0) * (item.quantity || 1);
 		}, 0);
 
+		// Đảm bảo discount được áp dụng từ session
+		if (window.appliedCoupon && window.appliedCoupon.discount_amount) {
+			this.orderSummary.discount = parseFloat(window.appliedCoupon.discount_amount);
+		}
+
 		this.orderSummary.total =
 			this.orderSummary.subtotal +
 			this.orderSummary.shipping -
 			this.orderSummary.discount;
+		console.log("Total calculation:", this.orderSummary);
 		this.updateOrderSummary();
 	}
 
@@ -236,59 +250,55 @@ class CheckoutManager {
 		const summaryContainer = document.querySelector('.order-summary');
 		if (!summaryContainer) return;
 
-		// Only update the totals section, not the entire summary
+		// Render block tổng kết (không chứa .order-items)
 		let totalsHtml = `
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Thông tin đơn hàng</h5>
-                </div>
-                <div class="card-body">
-                    <div class="order-items">
-                        <!-- Items will be populated by displayOrderItems -->
-                    </div>
-
-                    <hr>
-
-                    <div class="order-totals">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Tạm tính:</span>
-                            <span>${this.formatCurrency(
-								this.orderSummary.subtotal
-							)}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Phí vận chuyển:</span>
-                            <span>${this.formatCurrency(
-								this.orderSummary.shipping
-							)}</span>
-                        </div>
-                        ${
-							this.orderSummary.discount > 0
+			<div class="card">
+				<div class="card-header">
+					<h5 class="mb-0">Thông tin đơn hàng</h5>
+					
+				</div>
+				<div class="card-body">
+				<div class="order-items"></div>
+					<hr>
+					<div class="order-totals">
+						<div class="d-flex justify-content-between mb-2">
+							<span>Tạm tính:</span>
+							<span>${this.formatCurrency(this.orderSummary.subtotal)}</span>
+						</div>
+						<div class="d-flex justify-content-between mb-2">
+							<span>Phí vận chuyển:</span>
+							<span>${this.formatCurrency(this.orderSummary.shipping)}</span>
+						</div>
+						${
+							this.orderSummary.discount > 0 && window.appliedCoupon && window.appliedCoupon.code
 								? `
-                        <div class="d-flex justify-content-between mb-2 text-success">
-                            <span>Giảm giá:</span>
-                            <span>-${this.formatCurrency(
-								this.orderSummary.discount
-							)}</span>
-                        </div>
-                        `
+						<div class="d-flex justify-content-between mb-2 text-success">
+							<span>Giảm giá (${window.appliedCoupon.code}):</span>
+							<span>-${this.formatCurrency(this.orderSummary.discount)}</span>
+						</div>
+						`
+								: this.orderSummary.discount > 0
+								? `
+						<div class="d-flex justify-content-between mb-2 text-success">
+							<span>Giảm giá:</span>
+							<span>-${this.formatCurrency(this.orderSummary.discount)}</span>
+						</div>
+						`
 								: ''
 						}
-                        <hr>
-                        <div class="d-flex justify-content-between fw-bold fs-5">
-                            <span>Tổng cộng:</span>
-                            <span class="text-primary">${this.formatCurrency(
-								this.orderSummary.total
-							)}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+						<hr>
+						<div class="d-flex justify-content-between fw-bold fs-5">
+							<span>Tổng cộng:</span>
+							<span class="text-primary">${this.formatCurrency(this.orderSummary.total)}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+		`;
 
 		summaryContainer.innerHTML = totalsHtml;
-
-		// Display items after updating summary structure
+		// Render lại sản phẩm vào .order-items
 		this.displayOrderItems();
 	}
 
@@ -617,6 +627,8 @@ class CheckoutManager {
 			order_notes: formData.get('order_notes') || '',
 			items: this.cart,
 			totals: this.orderSummary,
+			// Thêm discount_amount rõ ràng cho backend
+			discount_amount: this.orderSummary.discount || 0,
 		};
 
 		try {
@@ -828,85 +840,38 @@ class CheckoutManager {
  * Handles address management for checkout
  */
 class CheckoutAddressManager {
-	constructor() {
-		this.provinces = [];
-		this.districts = [];
-		this.wards = [];
-		this.map = null;
-		this.marker = null;
-		this.selectedLocation = null;
-	}
+       constructor() {
+	       this.provinces = window.PROVINCES || [];
+	       this.districts = [];
+	       this.wards = [];
+	       this.map = null;
+	       this.marker = null;
+	       this.selectedLocation = null;
+       }
 
-	async showAddressModal(addressId = null) {
-		const modal = new bootstrap.Modal(
-			document.getElementById('addressModal')
-		);
+       showAddressModal(addressId = null) {
+	       const modal = new bootstrap.Modal(
+		       document.getElementById('addressModal')
+	       );
 
-		if (addressId) {
-			// Edit mode
-			const address = checkoutManager.addresses.find(
-				(addr) => addr.id === addressId
-			);
-			if (address) {
-				this.populateAddressForm(address);
-			}
-		} else {
-			// Add new mode
-			document.getElementById('addressForm').reset();
-		}
+	       if (addressId) {
+		       // Edit mode
+		       const address = checkoutManager.addresses.find(
+			       (addr) => addr.id === addressId
+		       );
+		       if (address) {
+			       this.populateAddressForm(address);
+		       }
+	       } else {
+		       // Add new mode
+		       document.getElementById('addressForm').reset();
+	       }
 
-		// Load provinces if not loaded
-		if (this.provinces.length === 0) {
-			await this.loadProvinces();
-		}
+	       this.populateProvinceSelect();
+	       modal.show();
+       }
 
-		modal.show();
-	}
-
-	async loadProvinces() {
-		try {
-			// Use Vietnam provinces API that supports CORS
-			const response = await fetch(
-				'https://vapi.vnappmob.com/api/province/',
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				console.log('Provinces API response:', data);
-
-				// Handle different API response format
-				this.provinces = data.results || data || [];
-				this.populateProvinceSelect();
-			} else {
-				throw new Error(`API returned ${response.status}`);
-			}
-		} catch (error) {
-			console.error('Error loading provinces:', error);
-
-			// Fallback: use static data for major provinces
-			this.provinces = [
-				{ province_id: '1', province_name: 'Thành phố Hà Nội' },
-				{ province_id: '79', province_name: 'Thành phố Hồ Chí Minh' },
-				{ province_id: '48', province_name: 'Thành phố Đà Nẵng' },
-				{ province_id: '31', province_name: 'Thành phố Hải Phòng' },
-				{ province_id: '92', province_name: 'Thành phố Cần Thơ' },
-				{ province_id: '4', province_name: 'Tỉnh Cao Bằng' },
-				{ province_id: '6', province_name: 'Tỉnh Bắc Kạn' },
-				{ province_id: '8', province_name: 'Tỉnh Tuyên Quang' },
-			];
-			this.populateProvinceSelect();
-
-			this.showAddressError(
-				'Đang sử dụng danh sách tỉnh/thành phố cơ bản. Một số tỉnh có thể chưa đầy đủ.'
-			);
-		}
-	}
+	// loadProvinces removed: now only use provinces from backend
 
 	populateProvinceSelect() {
 		const select = document.querySelector('select[name="province"]');
@@ -925,66 +890,12 @@ class CheckoutAddressManager {
 		);
 	}
 
-	async loadDistricts(provinceCode) {
-		if (!provinceCode) return;
-
-		try {
-			// Use alternative API endpoint that supports CORS
-			const response = await fetch(
-				`https://vapi.vnappmob.com/api/province/district/${provinceCode}`,
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				console.log('Districts API response:', data);
-
-				// Handle different API response format
-				this.districts = data.results || data.districts || [];
-				this.populateDistrictSelect();
-			} else {
-				throw new Error(`API returned ${response.status}`);
-			}
-		} catch (error) {
-			console.error('Error loading districts:', error);
-
-			// Fallback: provide basic districts for major cities
-			if (provinceCode === '79') {
-				// Ho Chi Minh City
-				this.districts = [
-					{ district_id: '760', district_name: 'Quận 1' },
-					{ district_id: '769', district_name: 'Quận 3' },
-					{ district_id: '778', district_name: 'Quận 10' },
-					{ district_id: '783', district_name: 'Quận Tân Bình' },
-					{ district_id: '794', district_name: 'Quận Bình Thạnh' },
-				];
-			} else if (provinceCode === '1') {
-				// Hanoi
-				this.districts = [
-					{ district_id: '1', district_name: 'Quận Ba Đình' },
-					{ district_id: '5', district_name: 'Quận Hoàn Kiếm' },
-					{ district_id: '6', district_name: 'Quận Tây Hồ' },
-					{ district_id: '7', district_name: 'Quận Long Biên' },
-					{ district_id: '8', district_name: 'Quận Cầu Giấy' },
-				];
-			} else {
-				this.districts = [
-					{
-						district_id: 'default',
-						district_name: 'Quận/Huyện trung tâm',
-					},
-				];
-			}
-
-			this.populateDistrictSelect();
-			this.showAddressError('Đang sử dụng danh sách quận/huyện cơ bản.');
-		}
-	}
+       // loadDistricts: bạn cần tự truyền districts từ backend, không fetch và không fallback cứng nữa
+       loadDistricts(provinceCode) {
+	       // Gợi ý: lấy districts từ window.DISTRICTS[provinceCode] hoặc truyền từ backend
+	       this.districts = (window.DISTRICTS && window.DISTRICTS[provinceCode]) ? window.DISTRICTS[provinceCode] : [];
+	       this.populateDistrictSelect();
+       }
 
 	populateDistrictSelect() {
 		const select = document.querySelector('select[name="district"]');
@@ -1003,46 +914,12 @@ class CheckoutAddressManager {
 		);
 	}
 
-	async loadWards(districtCode) {
-		if (!districtCode) return;
-
-		try {
-			// Use Vietnam wards API that supports CORS
-			const response = await fetch(
-				`https://vapi.vnappmob.com/api/province/ward/${districtCode}`,
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				console.log('Wards API response:', data);
-
-				// Handle different API response format
-				this.wards = data.results || data.wards || [];
-				this.populateWardSelect();
-			} else {
-				throw new Error(`API returned ${response.status}`);
-			}
-		} catch (error) {
-			console.error('Error loading wards:', error);
-
-			// Fallback: provide basic wards
-			this.wards = [
-				{ ward_id: 'default-1', ward_name: 'Phường 1' },
-				{ ward_id: 'default-2', ward_name: 'Phường 2' },
-				{ ward_id: 'default-3', ward_name: 'Phường 3' },
-				{ ward_id: 'default-other', ward_name: 'Phường/Xã khác' },
-			];
-
-			this.populateWardSelect();
-			this.showAddressError('Đang sử dụng danh sách phường/xã cơ bản.');
-		}
-	}
+       // loadWards: bạn cần tự truyền wards từ backend, không fetch và không fallback cứng nữa
+       loadWards(districtCode) {
+	       // Gợi ý: lấy wards từ window.WARDS[districtCode] hoặc truyền từ backend
+	       this.wards = (window.WARDS && window.WARDS[districtCode]) ? window.WARDS[districtCode] : [];
+	       this.populateWardSelect();
+       }
 
 	populateWardSelect() {
 		const select = document.querySelector('select[name="ward"]');
@@ -1057,37 +934,7 @@ class CheckoutAddressManager {
 		});
 	}
 
-	showAddressError(message) {
-		console.error('Address API Error:', message);
-
-		// Show notification if available
-		if (typeof showToast === 'function') {
-			showToast(message, 'error');
-		} else if (typeof alert === 'function') {
-			alert(message);
-		}
-
-		// Or create a simple error display in the modal
-		const errorDiv = document.createElement('div');
-		errorDiv.className = 'alert alert-danger mt-2';
-		errorDiv.textContent = message;
-
-		const modal = document.querySelector('#addressModal .modal-body');
-		if (modal) {
-			const existingError = modal.querySelector('.alert-danger');
-			if (existingError) {
-				existingError.remove();
-			}
-			modal.appendChild(errorDiv);
-
-			// Auto remove after 5 seconds
-			setTimeout(() => {
-				if (errorDiv.parentNode) {
-					errorDiv.remove();
-				}
-			}, 5000);
-		}
-	}
+	// showAddressError: loại bỏ hoàn toàn, không hiển thị thông báo tỉnh/thành fallback nữa
 
 	async saveAddress() {
 		const form = document.getElementById('addressForm');

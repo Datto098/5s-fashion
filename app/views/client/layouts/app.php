@@ -28,6 +28,30 @@
     <link href="<?= asset('css/brand-variables.css') ?>" rel="stylesheet">
 
     <!-- Base CSS - Always loaded after brand variables -->
+    
+    <!-- Review styles for product detail page -->
+    <?php if (isset($product)): ?>
+    <style>
+        .review-actions .btn {
+            transition: all 0.2s ease;
+        }
+        .review-actions .btn:hover {
+            transform: translateY(-2px);
+        }
+        .like-review-btn.liked {
+            background-color: #28a745 !important;
+            color: white !important;
+            border-color: #28a745 !important;
+        }
+        .like-review-btn.liked .far.fa-thumbs-up {
+            font-weight: 900; /* Chuyển từ biểu tượng outline sang solid khi đã like */
+        }
+        .delete-review-btn:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+    <?php endif; ?>
     <link href="<?= asset('css/base.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/client.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/components.css') ?>" rel="stylesheet">
@@ -345,7 +369,7 @@
 </head>
 
 <body data-logged-in="<?= isLoggedIn() ? 'true' : 'false' ?>"
-      data-user-id="<?= getUser() ? getUser()['id'] : '' ?>"
+      data-user-id="<?= getUser() && !is_array(getUser()['id']) ? getUser()['id'] : '' ?>"
       class="<?= $body_class ?? '' ?>">
     <!-- Header -->
     <?php include_once VIEW_PATH . '/client/layouts/header.php'; ?>
@@ -546,6 +570,11 @@
             console.log('✅ Page initialized - counters hidden via CSS');
         });
     </script>
+    
+    <!-- Review scripts for product detail page -->
+    <?php if (isset($product)): ?>
+    <script src="/5s-fashion/public/assets/js/review.js"></script>
+    <?php endif; ?>
 </body>
 
 </html>

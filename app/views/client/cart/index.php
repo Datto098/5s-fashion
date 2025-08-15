@@ -147,11 +147,12 @@ ob_start();
                     </h6>
                     <div class="input-group">
                         <input type="text" class="form-control promo-input" id="promo-code" placeholder="Nhập mã giảm giá">
-                        <button class="btn promo-btn btn-primary" type="button" onclick="applyPromoCode()">
+                        <button class="btn promo-btn btn-primary" type="button" onclick="applyPromoCode()" id="promo-action-btn">
                             <i class="fas fa-check"></i>
                             Áp dụng
                         </button>
                     </div>
+                    <div id="voucher-message" class="mt-2 small"></div>
                 </div>
 
                 <!-- Order Summary -->
@@ -316,3 +317,26 @@ ob_start();
     // Include main layout
     include VIEW_PATH . '/client/layouts/app.php';
     ?>
+
+    <script>
+    function removeVoucher() {
+        const promoInput = document.getElementById('promo-code');
+        const promoBtn = document.querySelector('.promo-btn');
+        const removeBtn = document.getElementById('remove-voucher-btn');
+        document.getElementById('discount').textContent = '0 ₫';
+        // Tính lại tổng cộng: subtotal + phí ship
+        const subtotalElement = document.getElementById('subtotal');
+        const subtotalText = subtotalElement.textContent;
+        const subtotal = parseFloat(subtotalText.replace(/[^\d]/g, ''));
+        const shippingFee = 30000;
+        document.getElementById('total').textContent = new Intl.NumberFormat('vi-VN').format(subtotal + shippingFee) + ' ₫';
+        promoInput.value = '';
+        promoInput.disabled = false;
+        if (promoBtn) {
+            promoBtn.disabled = false;
+            promoBtn.innerHTML = promoBtn.dataset.originalText || 'Áp dụng';
+        }
+        if (removeBtn) removeBtn.style.display = 'none';
+        document.getElementById('voucher-message').innerHTML = '';
+    }
+    </script>

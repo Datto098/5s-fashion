@@ -69,7 +69,7 @@ ob_start();
 
                     <!-- Order Filters -->
                     <div class="order-filters mb-4">
-                        <div class="btn-group gap-2" role="group">
+                        <div class="btn-group" role="group">
                             <button type="button" class="btn btn-primary order-filter-btn" data-status="all">Tất cả</button>
                             <button type="button" class="btn btn-outline-primary order-filter-btn" data-status="confirmed">Đã xác nhận</button>
                             <button type="button" class="btn btn-outline-primary order-filter-btn" data-status="pending">Chờ xác nhận</button>
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .order-filters .btn-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
 }
 

@@ -8,13 +8,16 @@ require_once dirname(__DIR__) . '/core/Model.php';
 require_once dirname(__DIR__) . '/core/Database.php';
 
 class UserCoupon extends BaseModel
-{
-    protected $table = 'user_coupons';
-    protected $primaryKey = 'id';
-    protected $fillable = [
-        'user_id', 'coupon_id', 'status'
-    ];
 
+{
+
+        protected $table = 'user_coupons';
+        protected $primaryKey = 'id';
+        protected $fillable = [
+            'user_id', 'coupon_id', 'status'
+        ];
+
+    
     /**
      * Get user's saved coupons
      */
@@ -55,6 +58,16 @@ class UserCoupon extends BaseModel
                 ORDER BY c.created_at DESC";
 
         return $this->db->fetchAll($sql, [$userId]);
+    }
+        /**
+     * Tìm user_coupons theo user_id và code (dùng cho kiểm tra quyền áp dụng mã)
+     */
+    public function findByUserAndCode($userId, $code)
+    {
+        $sql = "SELECT uc.*, c.* FROM {$this->table} uc
+                INNER JOIN coupons c ON uc.coupon_id = c.id
+                WHERE uc.user_id = ? AND c.code = ? AND uc.status = 'saved'";
+        return $this->db->fetchOne($sql, [$userId, $code]);
     }
 
     /**
@@ -279,5 +292,15 @@ class UserCoupon extends BaseModel
             'coupon' => $coupon,
             'message' => 'Áp dụng mã giảm giá thành công'
         ];
+    }
+
+    /**
+     * Đánh dấu coupon đã dùng cho đơn hàng
+     */
+    public function updateCouponUsed($userId, $couponId, $orderId)
+    {
+        $now = date('Y-m-d H:i:s');
+        $sql = "UPDATE {$this->table} SET order_id = ?, used_at = ?, status = 'used' WHERE user_id = ? AND coupon_id = ? AND status = 'saved' LIMIT 1";
+        return $this->db->execute($sql, [$orderId, $now, $userId, $couponId]);
     }
 }

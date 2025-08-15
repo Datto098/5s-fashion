@@ -96,20 +96,28 @@ abstract class BaseModel
 
         $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
 
+        // Debug the SQL and parameters for all models, not just orders
+        error_log('[MODEL CREATE] Table: ' . $this->table . ', SQL: ' . $sql);
+        error_log('[MODEL CREATE] Filtered data: ' . json_encode($filteredData));
+
         if ($this->db->execute($sql, $filteredData)) {
             $insertId = $this->db->lastInsertId();
-            if ($this->table === 'orders') {
-                error_log('[MODEL CREATE] SQL executed: ' . $sql);
-                error_log('[MODEL CREATE] Insert ID: ' . $insertId);
+            error_log('[MODEL CREATE] Insert ID: ' . $insertId);
 
-                // Immediately check what was actually inserted
-                $insertedRecord = $this->find($insertId);
-                error_log('[MODEL CREATE] Inserted record status: ' . ($insertedRecord['status'] ?? 'NULL/EMPTY'));
-                error_log('[MODEL CREATE] Full inserted record: ' . print_r($insertedRecord, true));
+            // Get the inserted record for all models
+            $insertedRecord = $this->find($insertId);
+            
+            if ($insertedRecord) {
+                error_log('[MODEL CREATE] Record created successfully. ID: ' . $insertId);
+                return $insertedRecord;
+            } else {
+                error_log('[MODEL CREATE] WARNING: Could not retrieve created record with ID: ' . $insertId);
+                // Return a minimal record with at least the ID
+                return ['id' => (int)$insertId];
             }
-            return $this->find($insertId);
         }
 
+        error_log('[MODEL CREATE] ERROR: Failed to insert record into ' . $this->table);
         return false;
     }
 

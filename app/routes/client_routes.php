@@ -16,6 +16,12 @@ return [
     // Product
     'product/{slug}' => 'HomeController@product',
 
+    
+    // Review (via AJAX)
+    'ajax/review/like/{id}' => 'AjaxController@reviewLike',
+    'ajax/review/delete/{id}' => 'AjaxController@reviewDelete',
+    'ajax/review/add' => 'AjaxController@reviewAdd',
+
     // Cart
     'cart' => 'HomeController@cart',
 
@@ -29,6 +35,10 @@ return [
     'logout' => 'AuthController@logout',
     'forgot-password' => 'AuthController@forgotPasswordForm',
     'reset-password/{token}' => 'AuthController@resetPasswordForm',
+    
+    // Google OAuth
+    'auth/google' => 'GoogleAuthController@login',
+    'auth/google-callback' => 'GoogleAuthController@callback',
 
     // Account
     'account' => 'AccountController@index',
@@ -84,6 +94,7 @@ return [
     'vouchers/my-vouchers' => 'VoucherController@myVouchers',
     'vouchers/remove' => 'VoucherController@remove',
     'vouchers/save' => 'VoucherController@save',
+    'vouchers/apply' => 'VoucherController@apply',
 
     // Order API routes for checkout
     'order/addresses' => 'OrderController@getAddresses',
