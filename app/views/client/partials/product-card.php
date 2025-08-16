@@ -129,11 +129,36 @@
 
         <!-- Stock Status -->
         <div class="stock-status">
-            <?php if (isset($product['stock']) && $product['stock'] > 0): ?>
-                <?php if ($product['stock'] <= 5): ?>
+            <?php
+            // Check if product has variants
+            $hasStock = false;
+            $totalStock = 0;
+            $lowStock = false;
+
+            // If product has variants, check variant stock
+            if (isset($product['variants']) && !empty($product['variants'])) {
+                foreach ($product['variants'] as $variant) {
+                    if (isset($variant['stock_quantity']) && $variant['stock_quantity'] > 0) {
+                        $hasStock = true;
+                        $totalStock += $variant['stock_quantity'];
+                    }
+                }
+                $lowStock = $totalStock > 0 && $totalStock <= 5;
+            } else {
+                // No variants, check main product stock
+                if (isset($product['stock']) && $product['stock'] > 0) {
+                    $hasStock = true;
+                    $totalStock = $product['stock'];
+                    $lowStock = $totalStock <= 5;
+                }
+            }
+            ?>
+
+            <?php if ($hasStock): ?>
+                <?php if ($lowStock): ?>
                     <small class="text-warning">
                         <i class="fas fa-exclamation-triangle me-1"></i>
-                        Chỉ còn <?= $product['stock'] ?> sản phẩm
+                        Chỉ còn <?= $totalStock ?> sản phẩm
                     </small>
                 <?php else: ?>
                     <small class="text-success">

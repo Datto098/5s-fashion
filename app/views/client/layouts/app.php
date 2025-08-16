@@ -28,7 +28,7 @@
     <link href="<?= asset('css/brand-variables.css') ?>" rel="stylesheet">
 
     <!-- Base CSS - Always loaded after brand variables -->
-    
+
     <!-- Review styles for product detail page -->
     <?php if (isset($product)): ?>
     <style>
@@ -467,14 +467,11 @@
     <!-- Unified notification system -->
     <script src="<?= asset('js/notifications.js') ?>"></script>
 
-    <!-- Unified cart and wishlist systems - ENABLED but counters hidden via CSS -->
-    <script src="<?= asset('js/unified-cart.js') ?>"></script>
-    <script src="<?= asset('js/unified-wishlist.js') ?>"></script>
+    <!-- NEW UNIFIED MANAGERS - Clean Architecture -->
+    <script src="<?= asset('js/cart-manager.js') ?>"></script>
+    <script src="<?= asset('js/wishlist-manager.js') ?>"></script>
 
-    <!-- DISABLED VERSIONS NO LONGER NEEDED:
-    <script src="<?= asset('js/unified-cart-disabled.js') ?>"></script>
-    <script src="<?= asset('js/unified-wishlist-disabled.js') ?>"></script>
-    -->    <!-- Quick View Modal System -->
+    <!-- Quick View Modal System -->
     <script src="<?= asset('js/quick-view.js') ?>"></script>
 
     <!-- Main client JavaScript -->
@@ -512,21 +509,19 @@
         };
 
         // Initialize global cart manager - wait for unified system to be ready
-        let cartManager, wishlistManager;
+        window.cartManager = window.cartManager || null;
+        window.wishlistManager = window.wishlistManager || null;
+
         document.addEventListener('DOMContentLoaded', function() {
             // Wait for unified managers to be created
             const checkForUnified = () => {
                 if (typeof unifiedCartManager !== 'undefined' && typeof unifiedWishlistManager !== 'undefined') {
-                    cartManager = unifiedCartManager;
-                    wishlistManager = unifiedWishlistManager;
+                    window.cartManager = unifiedCartManager;
+                    window.wishlistManager = unifiedWishlistManager;
+                    window.unifiedCart = unifiedCartManager;
+                    window.unifiedWishlist = unifiedWishlistManager;
 
-                    // Global exports
-                    window.cartManager = cartManager;
-                    window.wishlistManager = wishlistManager;
-                    window.unifiedCart = cartManager;
-                    window.unifiedWishlist = wishlistManager;
-
-                    console.log('Unified managers initialized:', { cartManager, wishlistManager });
+                    console.log('Unified managers initialized:', { cartManager: window.cartManager, wishlistManager: window.wishlistManager });
                 } else {
                     // If not ready yet, wait a bit more
                     setTimeout(checkForUnified, 50);
@@ -570,7 +565,7 @@
             console.log('✅ Page initialized - counters hidden via CSS');
         });
     </script>
-    
+
     <!-- Review scripts for product detail page -->
     <?php if (isset($product)): ?>
     <script src="/5s-fashion/public/assets/js/review.js"></script>

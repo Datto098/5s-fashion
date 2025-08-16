@@ -301,27 +301,19 @@ class ProductsController extends BaseController
                 'category_id' => (int)$_POST['category_id'],
                 'price' => (float)$_POST['price'],
                 'sale_price' => !empty($_POST['sale_price']) ? (float)$_POST['sale_price'] : null,
-                'compare_price' => !empty($_POST['compare_price']) ? (float)$_POST['compare_price'] : null,
                 'cost_price' => !empty($_POST['cost_price']) ? (float)$_POST['cost_price'] : null,
                 'sku' => $_POST['sku'] ?? $existingProduct['sku'],
-                'barcode' => $_POST['barcode'] ?? null,
                 'weight' => !empty($_POST['weight']) ? (float)$_POST['weight'] : null,
                 'dimensions' => $_POST['dimensions'] ?? null,
-                'track_quantity' => isset($_POST['track_quantity']) ? 1 : 0,
-                'continue_selling_when_out_of_stock' => isset($_POST['continue_selling_when_out_of_stock']) ? 1 : 0,
-                'requires_shipping' => isset($_POST['requires_shipping']) ? 1 : 0,
-                'is_taxable' => isset($_POST['is_taxable']) ? 1 : 0,
-                'status' => $_POST['status'] ?? 'active',
-                'visibility' => $_POST['visibility'] ?? 'public',
+                'status' => $_POST['status'] ?? 'published',
                 'featured' => isset($_POST['is_featured']) ? 1 : 0,
                 'meta_title' => $_POST['meta_title'] ?? '',
                 'meta_description' => $_POST['meta_description'] ?? '',
-                'meta_keywords' => $_POST['meta_keywords'] ?? '',
                 // Add variant-related fields
                 'has_variants' => isset($_POST['has_variants']) ? 1 : 0,
                 'manage_stock' => isset($_POST['manage_stock']) ? 1 : 0,
-                'stock_quantity' => !empty($_POST['stock_quantity']) ? (int)$_POST['stock_quantity'] : 0,
-                'low_stock_threshold' => !empty($_POST['low_stock_threshold']) ? (int)$_POST['low_stock_threshold'] : 5
+                'stock_quantity' => isset($_POST['stock_quantity']) ? (int)$_POST['stock_quantity'] : 0,
+                'low_stock_threshold' => isset($_POST['low_stock_threshold']) ? (int)$_POST['low_stock_threshold'] : 5
             ];
 
             // Update slug if name changed
