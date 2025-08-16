@@ -18,6 +18,7 @@ class OrdersController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
+            error_log("Admin not authenticated for updatePaymentStatus");
             header('Location: /5s-fashion/admin/login');
             exit;
         }
@@ -37,6 +38,15 @@ class OrdersController extends BaseController
         if (preg_match('/\/admin\/orders\/update-status\/(\d+)/', $uri, $matches)) {
             $orderId = $matches[1];
             $this->updateStatus();
+            exit;
+        }
+
+        // Handle /admin/orders/update-payment-status/{id}
+        if (preg_match('/\/admin\/orders\/update-payment-status\/(\d+)/', $uri, $matches)) {
+            error_log("Matched update-payment-status route with order ID: " . $matches[1]);
+            $orderId = $matches[1];
+            $_GET['order_id'] = $orderId; // Pass order ID via $_GET for updatePaymentStatus method
+            $this->updatePaymentStatus();
             exit;
         }
     }
@@ -285,14 +295,17 @@ class OrdersController extends BaseController
 
     public function updatePaymentStatus()
     {
+        error_log("updatePaymentStatus called");
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                error_log("Not a POST request");
                 header('Location: /5s-fashion/admin/orders');
                 exit;
             }
 
             // Handle both JSON and form data
             $jsonInput = json_decode(file_get_contents('php://input'), true);
+            error_log("JSON Input: " . print_r($jsonInput, true));
             $orderId = null;
             $paymentStatus = null;
             $ajaxFlag = null;
@@ -302,13 +315,8 @@ class OrdersController extends BaseController
                 $paymentStatus = trim($jsonInput['payment_status'] ?? '');
                 $ajaxFlag = '1'; // JSON requests are always AJAX
 
-                // Extract order ID from URL
-                if (isset($_GET['url'])) {
-                    $urlParts = explode('/', $_GET['url']);
-                    if (count($urlParts) >= 4 && $urlParts[1] === 'orders' && $urlParts[2] === 'update-payment-status') {
-                        $orderId = trim($urlParts[3]);
-                    }
-                }
+                // Get order ID from $_GET (set by handleSpecialRoutes)
+                $orderId = $_GET['order_id'] ?? null;
             } else {
                 // Form data
                 $orderId = $_POST['order_id'] ?? null;
@@ -317,8 +325,11 @@ class OrdersController extends BaseController
             }
 
             if (!$orderId || !$paymentStatus) {
+                error_log("Missing data - Order ID: $orderId, Payment Status: $paymentStatus");
                 throw new Exception('Thiếu thông tin cần thiết');
             }
+
+            error_log("Processing update - Order ID: $orderId, Payment Status: $paymentStatus");
 
             // Check if order exists
             $order = $this->orderModel->find($orderId);

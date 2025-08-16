@@ -296,6 +296,280 @@ ob_start();
         </div>
     </div>
 </section>
+
+<!-- Product Details Tabs -->
+<section class="product-tabs-section">
+    <div class="container">
+        <div class="product-tabs">
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">
+                        <i class="fas fa-info-circle me-2"></i>Chi tiết sản phẩm
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">
+                        <i class="fas fa-star me-2"></i>Đánh giá sản phẩm
+                        <span class="badge bg-primary ms-1"><?= $reviewCount ?? 0 ?></span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab" aria-controls="shipping" aria-selected="false">
+                        <i class="fas fa-shipping-fast me-2"></i>Vận chuyển & Đổi trả
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="productTabsContent">
+                <!-- Description Tab -->
+                <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                    <div class="description-content">
+                        <h4>Mô tả sản phẩm</h4>
+                        <div class="product-description">
+                            <?php if (!empty($product['description'])): ?>
+                                <?= nl2br(htmlspecialchars($product['description'])) ?>
+                            <?php else: ?>
+                                <p>Thông tin mô tả sản phẩm đang được cập nhật...</p>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if (!empty($product['specifications'])): ?>
+                            <h5 class="mt-4">Thông số kỹ thuật</h5>
+                            <div class="specifications">
+                                <?= nl2br(htmlspecialchars($product['specifications'])) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Product Attributes -->
+                        <div class="product-attributes mt-4">
+                            <h5>Thông tin chi tiết</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><strong>Mã sản phẩm:</strong> <?= $product['sku'] ?? 'N/A' ?></li>
+                                        <li><strong>Danh mục:</strong> <?= $product['category_name'] ?? 'N/A' ?></li>
+                                        <li><strong>Trạng thái:</strong>
+                                            <span class="badge bg-success">Còn hàng</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><strong>Thương hiệu:</strong> 5S Fashion</li>
+                                        <li><strong>Xuất xứ:</strong> Việt Nam</li>
+                                        <li><strong>Bảo hành:</strong> 12 tháng</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews Tab -->
+                <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                    <div class="reviews-content">
+                        <div class="reviews-summary">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="rating-overview">
+                                        <div class="average-rating">
+                                            <span class="rating-number"><?= number_format($avgRating ?? 0, 1) ?></span>
+                                            <div class="rating-stars">
+                                                <?php
+                                                $avgRating = $avgRating ?? 0;
+                                                for ($i = 1; $i <= 5; $i++):
+                                                    if ($i <= floor($avgRating)) {
+                                                        echo '<i class="fas fa-star text-warning"></i>';
+                                                    } elseif ($i - $avgRating < 1 && $i - $avgRating > 0) {
+                                                        echo '<i class="fas fa-star-half-alt text-warning"></i>';
+                                                    } else {
+                                                        echo '<i class="far fa-star text-warning"></i>';
+                                                    }
+                                                endfor;
+                                                ?>
+                                            </div>
+                                            <div class="rating-count">(<?= $reviewCount ?? 0 ?> đánh giá)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="rating-breakdown">
+                                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                                            <div class="rating-bar">
+                                                <span class="rating-label"><?= $i ?> sao</span>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                                <span class="rating-percentage">0%</span>
+                                            </div>
+                                        <?php endfor; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Write Review Button -->
+                        <div class="write-review-section">
+                            <?php if (isLoggedIn()): ?>
+                                <?php if ($canReview): ?>
+                                    <button class="btn btn-primary" onclick="showReviewForm()">
+                                        <i class="fas fa-edit me-2"></i>Viết đánh giá
+                                    </button>
+                                <?php elseif ($hasReviewed): ?>
+                                    <button class="btn btn-secondary" disabled>
+                                        <i class="fas fa-check me-2"></i>Bạn đã đánh giá sản phẩm này
+                                    </button>
+                                <?php elseif (!$hasCompletedOrders): ?>
+                                    <button class="btn btn-outline-secondary" disabled>
+                                        <i class="fas fa-shopping-cart me-2"></i>Bạn cần mua và nhận sản phẩm để đánh giá
+                                    </button>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <a href="/auth/login" class="btn btn-outline-primary">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập để đánh giá
+                                </a>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Review Form (Hidden by default) -->
+                        <div id="reviewForm" class="review-form-container" style="display: none;">
+                            <form id="submitReviewForm" class="review-form">
+                                <h5>Đánh giá sản phẩm</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Đánh giá của bạn</label>
+                                    <div class="rating-input">
+                                        <input type="radio" name="rating" value="5" id="star5">
+                                        <label for="star5"><i class="fas fa-star"></i></label>
+                                        <input type="radio" name="rating" value="4" id="star4">
+                                        <label for="star4"><i class="fas fa-star"></i></label>
+                                        <input type="radio" name="rating" value="3" id="star3">
+                                        <label for="star3"><i class="fas fa-star"></i></label>
+                                        <input type="radio" name="rating" value="2" id="star2">
+                                        <label for="star2"><i class="fas fa-star"></i></label>
+                                        <input type="radio" name="rating" value="1" id="star1">
+                                        <label for="star1"><i class="fas fa-star"></i></label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reviewTitle" class="form-label">Tiêu đề đánh giá</label>
+                                    <input type="text" class="form-control" id="reviewTitle" name="title" placeholder="Tóm tắt đánh giá của bạn" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reviewContent" class="form-label">Nội dung đánh giá</label>
+                                    <textarea class="form-control" id="reviewContent" name="content" rows="4" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..." required></textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="hideReviewForm()">
+                                        <i class="fas fa-times me-2"></i>Hủy
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Reviews List -->
+                        <div class="reviews-list">
+                            <?php if (!empty($reviews)): ?>
+                                <?php foreach ($reviews as $review): ?>
+                                    <div class="review-item">
+                                        <div class="review-header">
+                                            <div class="reviewer-info">
+                                                <div class="reviewer-avatar">
+                                                    <?php if (!empty($review['customer_avatar'])): ?>
+                                                        <img src="<?= $review['customer_avatar'] ?>" alt="<?= htmlspecialchars($review['customer_name']) ?>">
+                                                    <?php else: ?>
+                                                        <div class="avatar-placeholder">
+                                                            <i class="fas fa-user"></i>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <div class="reviewer-details">
+                                                    <h6 class="reviewer-name"><?= htmlspecialchars($review['customer_name']) ?></h6>
+                                                    <div class="review-rating">
+                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                            <i class="fas fa-star <?= $i <= $review['rating'] ? 'text-warning' : 'text-muted' ?>"></i>
+                                                        <?php endfor; ?>
+                                                    </div>
+                                                    <div class="review-date"><?= date('d/m/Y', strtotime($review['created_at'])) ?></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="review-content">
+                                            <p><?= nl2br(htmlspecialchars($review['content'])) ?></p>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="no-reviews">
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-star-o fa-3x text-muted mb-3"></i>
+                                        <h5>Chưa có đánh giá nào</h5>
+                                        <p class="text-muted">Hãy là người đầu tiên đánh giá sản phẩm này!</p>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Tab -->
+                <div class="tab-pane fade" id="shipping" role="tabpanel" aria-labelledby="shipping-tab">
+                    <div class="shipping-content">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-shipping-fast me-2"></i>Chính sách vận chuyển</h5>
+                                <ul class="shipping-policy">
+                                    <li><i class="fas fa-check text-success me-2"></i>Miễn phí vận chuyển cho đơn hàng từ 500.000đ</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Giao hàng nhanh trong 1-2 ngày</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Hỗ trợ giao hàng toàn quốc</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Đóng gói cẩn thận, chống ẩm</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-undo-alt me-2"></i>Chính sách đổi trả</h5>
+                                <ul class="return-policy">
+                                    <li><i class="fas fa-check text-success me-2"></i>Đổi trả miễn phí trong 7 ngày</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Sản phẩm còn nguyên tem, mác</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Hoàn tiền 100% nếu lỗi nhà sản xuất</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Hỗ trợ đổi size miễn phí</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="shipping-zones mt-4">
+                            <h5>Khu vực giao hàng</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="shipping-zone">
+                                        <h6>Nội thành TP.HCM</h6>
+                                        <p>1-2 ngày | 25.000đ</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="shipping-zone">
+                                        <h6>Tỉnh thành khác</h6>
+                                        <p>2-3 ngày | 35.000đ</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="shipping-zone">
+                                        <h6>Vùng xa, hải đảo</h6>
+                                        <p>3-5 ngày | 50.000đ</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <script>
     // Global quantity tracker
     window.currentQuantity = 1;
@@ -553,6 +827,59 @@ ob_start();
             alert('Đã sao chép link sản phẩm!');
         });
     }
+
+    function showReviewForm() {
+        document.getElementById('reviewForm').style.display = 'block';
+        document.getElementById('reviewForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideReviewForm() {
+        document.getElementById('reviewForm').style.display = 'none';
+    }
+
+    // Handle review form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const reviewForm = document.getElementById('submitReviewForm');
+        if (reviewForm) {
+            reviewForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                formData.append('product_id', <?= $product['id'] ?>);
+
+                // Check if rating is selected
+                const rating = formData.get('rating');
+                if (!rating) {
+                    alert('Vui lòng chọn số sao đánh giá');
+                    return;
+                }
+
+                // Submit review
+                fetch('http://localhost/5s-fashion/api/reviews', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Cảm ơn bạn đã đánh giá sản phẩm!');
+                        hideReviewForm();
+                        // Reload page to show new review
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Có lỗi xảy ra, vui lòng thử lại');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra, vui lòng thử lại');
+                });
+            });
+        }
+    });
 </script>
 
 <?php
