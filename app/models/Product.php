@@ -12,7 +12,8 @@ class Product extends BaseModel
         'name', 'slug', 'sku', 'short_description', 'description', 'price', 'sale_price',
         'cost_price', 'category_id', 'brand_id', 'featured_image', 'gallery', 'status',
         'featured', 'weight', 'dimensions', 'material', 'care_instructions',
-        'gender', 'season', 'style', 'meta_title', 'meta_description', 'views'
+        'gender', 'season', 'style', 'meta_title', 'meta_description', 'views',
+        'stock_quantity', 'manage_stock', 'low_stock_threshold', 'has_variants'
     ];
 
     /**
@@ -47,7 +48,8 @@ class Product extends BaseModel
         try {
             $db = Database::getInstance();
 
-            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
+            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
+                           p.stock_quantity as stock
                     FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
                     WHERE p.status = 'published'
@@ -59,13 +61,19 @@ class Product extends BaseModel
 
             // If no featured products, get latest published products
             if (empty($products)) {
-                $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
+                $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
+                               p.stock_quantity as stock
                         FROM products p
                         LEFT JOIN categories c ON p.category_id = c.id
                         WHERE p.status = 'published'
                         ORDER BY p.created_at DESC
                         LIMIT ?";
                 $products = $db->fetchAll($sql, [$limit]);
+            }
+
+            // Load variants for each product
+            foreach ($products as &$product) {
+                $product['variants'] = $this->getVariants($product['id']);
             }
 
             return $products;
@@ -84,7 +92,8 @@ class Product extends BaseModel
         try {
             $db = Database::getInstance();
 
-            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug
+            $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
+                           p.stock_quantity as stock
                     FROM products p
                     LEFT JOIN categories c ON p.category_id = c.id
                     WHERE p.status = 'published'
@@ -92,6 +101,11 @@ class Product extends BaseModel
                     LIMIT ?";
 
             $products = $db->fetchAll($sql, [$limit]);
+
+            // Load variants for each product
+            foreach ($products as &$product) {
+                $product['variants'] = $this->getVariants($product['id']);
+            }
 
             return $products;
 
@@ -375,7 +389,10 @@ class Product extends BaseModel
     public function search($query, $filters = [])
     {
         $sql = "SELECT p.*, c.name as category_name, b.name as brand_name,
-                       COALESCE(SUM(pv.stock_quantity), 0) as total_stock
+                       CASE
+                           WHEN p.has_variants = 1 THEN COALESCE(SUM(pv.stock_quantity), 0)
+                           ELSE p.stock_quantity
+                       END as total_stock
                 FROM {$this->table} p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN brands b ON p.brand_id = b.id
@@ -428,11 +445,20 @@ class Product extends BaseModel
         // Stock status filter
         if (!empty($filters['stock_status'])) {
             if ($filters['stock_status'] === 'in_stock') {
-                $sql .= " AND EXISTS (SELECT 1 FROM product_variants pv2 WHERE pv2.product_id = p.id AND pv2.stock_quantity > 0)";
+                $sql .= " AND (
+                    (p.has_variants = 1 AND EXISTS (SELECT 1 FROM product_variants pv2 WHERE pv2.product_id = p.id AND pv2.stock_quantity > 0))
+                    OR (p.has_variants = 0 AND p.stock_quantity > 0)
+                )";
             } elseif ($filters['stock_status'] === 'low_stock') {
-                $sql .= " AND EXISTS (SELECT 1 FROM product_variants pv2 WHERE pv2.product_id = p.id AND pv2.stock_quantity > 0 AND pv2.stock_quantity <= 10)";
+                $sql .= " AND (
+                    (p.has_variants = 1 AND EXISTS (SELECT 1 FROM product_variants pv2 WHERE pv2.product_id = p.id AND pv2.stock_quantity > 0 AND pv2.stock_quantity <= 10))
+                    OR (p.has_variants = 0 AND p.stock_quantity > 0 AND p.stock_quantity <= 10)
+                )";
             } elseif ($filters['stock_status'] === 'out_of_stock') {
-                $sql .= " AND NOT EXISTS (SELECT 1 FROM product_variants pv2 WHERE pv2.product_id = p.id AND pv2.stock_quantity > 0)";
+                $sql .= " AND (
+                    (p.has_variants = 1 AND NOT EXISTS (SELECT 1 FROM product_variants pv2 WHERE pv2.product_id = p.id AND pv2.stock_quantity > 0))
+                    OR (p.has_variants = 0 AND p.stock_quantity <= 0)
+                )";
             }
         }
 

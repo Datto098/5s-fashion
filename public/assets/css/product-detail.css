@@ -196,10 +196,7 @@
 .quantity-controls {
     display: flex;
     align-items: center;
-    border: 2px solid #e9ecef;
     border-radius: 50px;
-    /* UI Standard for buttons */
-    overflow: hidden;
     background: #fff;
 }
 
@@ -216,6 +213,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
+    outline: none;
+}
+
+.quantity-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.quantity-btn:active {
+    transform: scale(0.95);
+}
+
+.quantity-btn i {
+    font-size: 0.9rem;
+    pointer-events: none;
 }
 
 .quantity-btn:hover {
@@ -431,7 +445,7 @@
 
 .variant-option.selected {
     border-color: var(--primary-color);
-    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    background: linear-gradient(135deg, var(--primary-color), #ff7675);
     color: white;
 }
 

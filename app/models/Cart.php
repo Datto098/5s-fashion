@@ -20,16 +20,21 @@ class Cart extends BaseModel {
         $userId = $this->getCurrentUserId();
         $sessionId = $this->getSessionId();
 
+        // Debug: Log input parameters
+        error_log("Cart::addToCart - Product ID: $productId, Quantity: $quantity (type: " . gettype($quantity) . "), Variant ID: $variantId, User ID: $userId");
+
         // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
         $existingItem = $this->getExistingCartItem($productId, $variantId, $userId, $sessionId);
 
         if ($existingItem) {
             // Cập nhật số lượng nếu đã có
             $newQuantity = $existingItem['quantity'] + $quantity;
+            error_log("Cart::addToCart - Existing item found with quantity: {$existingItem['quantity']}, new total: $newQuantity");
             return $this->updateQuantity($existingItem['id'], $newQuantity);
         } else {
             // Thêm mới nếu chưa có
             $price = $this->getProductPrice($productId, $variantId);
+            error_log("Cart::addToCart - Creating new cart item with quantity: $quantity");
 
             return $this->create([
                 'user_id' => $userId,
