@@ -157,7 +157,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white px-4 py-3" href="/5s-fashion/shop?sale=1">
+                        <a class="nav-link text-white px-4 py-3" href="<?= url('shop?sale=1') ?>">
                             <i class="fas fa-tags me-2"></i>Sale
                         </a>
                     </li>
