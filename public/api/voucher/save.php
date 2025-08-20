@@ -37,7 +37,7 @@ try {
     if (!isLoggedIn()) {
         $response = [
             'success' => false,
-            'message' => 'Authentication required',
+            'message' => 'Vui lòng đăng nhập để lưu voucher!',
             'errors' => null,
             'timestamp' => date('c'),
             'status_code' => 401
@@ -55,7 +55,7 @@ try {
     if (!$couponId) {
         $response = [
             'success' => false,
-            'message' => 'Coupon ID is required',
+            'message' => 'Thiếu thông tin voucher!',
             'errors' => null,
             'timestamp' => date('c'),
             'status_code' => 422
@@ -74,7 +74,7 @@ try {
     if (!$coupon) {
         $response = [
             'success' => false,
-            'message' => 'Voucher not found',
+            'message' => 'Voucher không tồn tại!',
             'errors' => null,
             'timestamp' => date('c'),
             'status_code' => 404
@@ -89,7 +89,7 @@ try {
     if ($coupon['valid_until'] && $coupon['valid_until'] < $now) {
         $response = [
             'success' => false,
-            'message' => 'Voucher has expired',
+            'message' => 'Voucher đã hết hạn sử dụng!',
             'errors' => null,
             'timestamp' => date('c'),
             'status_code' => 422
@@ -102,7 +102,7 @@ try {
     if ($coupon['status'] !== 'active') {
         $response = [
             'success' => false,
-            'message' => 'Voucher is not active',
+            'message' => 'Voucher không còn hiệu lực!',
             'errors' => null,
             'timestamp' => date('c'),
             'status_code' => 422
@@ -122,7 +122,7 @@ try {
     if ($stmt->fetch()) {
         $response = [
             'success' => false,
-            'message' => 'Bạn đã lưu mã giảm giá này rồi',
+            'message' => 'Bạn đã lưu voucher này rồi!',
             'errors' => null,
             'timestamp' => date('c'),
             'status_code' => 422
@@ -145,7 +145,7 @@ try {
                 'voucher' => $coupon,
                 'saved_at' => date('Y-m-d H:i:s')
             ],
-            'message' => 'Voucher saved successfully',
+            'message' => 'Lưu voucher thành công!',
             'timestamp' => date('c'),
             'status_code' => 200
         ];
@@ -153,7 +153,7 @@ try {
     } else {
         $response = [
             'success' => false,
-            'message' => 'Failed to save voucher',
+            'message' => 'Lưu voucher thất bại. Vui lòng thử lại!',
             'errors' => null,
             'timestamp' => date('c'),
             'status_code' => 500
@@ -165,7 +165,7 @@ try {
 } catch (Exception $e) {
     $response = [
         'success' => false,
-        'message' => 'Failed to save voucher: ' . $e->getMessage(),
+    'message' => 'Có lỗi xảy ra khi lưu voucher!',
         'errors' => null,
         'timestamp' => date('c'),
         'status_code' => 500

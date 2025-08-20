@@ -132,9 +132,18 @@ ob_start();
             </div>
         </div>
         <div class="row justify-content-center">
-            <?php foreach ($featured_vouchers as $index => $voucher): ?>
+            <?php
+            // Đảm bảo mảng voucher IDs đã được khởi tạo
+            if (!isset($saved_voucher_ids)) $saved_voucher_ids = [];
+            if (!isset($used_voucher_ids)) $used_voucher_ids = [];
+            
+            foreach ($featured_vouchers as $index => $voucher):
+                $is_saved = in_array($voucher['id'], $saved_voucher_ids);
+                $is_used = in_array($voucher['id'], $used_voucher_ids);
+                $has_saved = $is_saved || $is_used; // Voucher is either saved or used
+            ?>
                 <div class="col-lg-5 col-md-6 mb-4">
-                    <div class="voucher-card <?= $voucher['type'] === 'fixed' ? 'fixed' : '' ?>" data-voucher-id="<?= $voucher['id'] ?>">
+                    <div class="voucher-card <?= $voucher['type'] === 'fixed' ? 'fixed' : '' ?><?= $has_saved ? ' saved' : '' ?><?= $is_used ? ' used' : '' ?>" data-voucher-id="<?= $voucher['id'] ?>">
                         <!-- Decorative elements -->
                         <div class="decoration-1"></div>
                         <div class="decoration-2"></div>
@@ -177,9 +186,15 @@ ob_start();
                                 HSD: <?= date('d.m.Y', strtotime($voucher['valid_until'])) ?>
                             </div>
                             <div class="voucher-actions">
-                                <button class="btn-save-voucher" data-coupon-id="<?= $voucher['id'] ?>">
+                                <button class="btn-save-voucher<?= $has_saved ? ' disabled' : '' ?>" data-coupon-id="<?= $voucher['id'] ?>"<?= $has_saved ? ' disabled' : '' ?>>
                                     <i class="fas fa-bookmark"></i>
-                                    Lưu mã
+                                    <?php if ($is_used): ?>
+                                        <span title="Bạn đã sử dụng voucher này">Đã dùng</span>
+                                    <?php elseif ($is_saved): ?>
+                                        <span>Đã lưu</span>
+                                    <?php else: ?>
+                                        <span>Lưu mã</span>
+                                    <?php endif; ?>
                                 </button>
                                 <button class="btn-copy-code" data-code="<?= $voucher['code'] ?>">
                                     <i class="fas fa-copy"></i>
@@ -392,6 +407,106 @@ $inline_css = "
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+/* Saved voucher styling */
+.voucher-card.saved {
+    border: 3px solid #28a745;
+    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.4);
+    position: relative;
+}
+
+.voucher-card.saved::before {
+    content: '✓';
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 40px;
+    height: 40px;
+    background-color: #28a745;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    transform: scale(0);
+    animation: popIn 0.5s forwards;
+    z-index: 2;
+}
+
+/* Used voucher styling */
+.voucher-card.used {
+    border: 3px solid #6c757d;
+    box-shadow: 0 10px 25px rgba(108, 117, 125, 0.4);
+    position: relative;
+}
+
+.voucher-card.used::before {
+    content: '✓';
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 40px;
+    height: 40px;
+    background-color: #6c757d;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    transform: scale(0);
+    animation: popIn 0.5s forwards;
+    z-index: 2;
+}
+
+.voucher-card.used {
+    position: relative;
+}
+
+.voucher-card.used::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    border-radius: 17px;
+    pointer-events: none;
+}
+
+.voucher-card.used .btn-save-voucher {
+    background-color: #6c757d !important;
+    cursor: default;
+}
+
+/* Badge for used vouchers */
+.voucher-card.used:before {
+    content: 'Đã sử dụng';
+    position: absolute;
+    top: 40px;
+    right: -40px;
+    background: #6c757d;
+    color: white;
+    padding: 5px 40px;
+    transform: rotate(45deg);
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 3;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
 }
 
 .voucher-card::before {
@@ -631,85 +746,163 @@ $inline_css = "
         font-size: 16px;
     }
 }
-";// Inline JavaScript for voucher functionality
-$inline_js = "
+";
+
+// Inline JavaScript for voucher functionality
+$inline_js = <<<'JS'
 // Save voucher functionality
 document.querySelectorAll('.btn-save-voucher').forEach(button => {
-    button.addEventListener('click', function() {
-        const couponId = this.getAttribute('data-coupon-id');
-
-        // Check if user is logged in
-        fetch('/5s-fashion/api/auth/check')
-            .then(response => response.json())
-            .then(data => {
-                if (!data.data.authenticated) {
-                    showToast('Vui lòng đăng nhập để lưu voucher', 'warning');
-                    return;
-                }
-
-                // Save voucher
-                return fetch('/5s-fashion/api/voucher/save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ coupon_id: couponId })
-                });
-            })
-            .then(response => {
-                if (response) return response.json();
-            })
-            .then(result => {
-                if (result) {
-                    if (result.success) {
-                        this.innerHTML = '<i class=\"fas fa-check\"></i> Đã lưu';
-                        this.disabled = true;
-                        this.classList.add('disabled');
-                        showToast('Voucher đã được lưu vào tài khoản của bạn!', 'success');
-                    } else {
-                        showToast(result.message || 'Không thể lưu voucher', 'error');
+    const couponId = button.getAttribute('data-coupon-id');
+    const voucherCard = button.closest('.voucher-card');
+    
+    // If the voucher is already marked as saved or used from server-side, update the button
+    if (voucherCard.classList.contains('used')) {
+        // Do nothing, the server-side rendering has already set the button text to "Đã dùng"
+        button.disabled = true;
+        button.classList.add('disabled');
+    } else if (voucherCard.classList.contains('saved')) {
+        // Do nothing, the server-side rendering has already set the button text to "Đã lưu"
+        button.disabled = true;
+        button.classList.add('disabled');
+    } else if (!button.disabled) {
+        // Only add click handlers to buttons that aren't already saved
+        button.addEventListener('click', function() {
+            const btn = this;
+            
+            // Check if user is logged in
+            fetch('/5s-fashion/api/auth/check')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.data.authenticated) {
+                        showToast('Vui lòng đăng nhập để lưu voucher', 'warning');
+                        return Promise.reject('not-auth');
                     }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Có lỗi xảy ra, vui lòng thử lại', 'error');
-            });
-    });
+                    
+                    // Show saving indicator
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+                    btn.disabled = true;
+                    
+                    // Save voucher
+                    return fetch('/5s-fashion/api/voucher/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ coupon_id: couponId })
+                    });
+                })
+                .then(response => {
+                    // Remove any existing 'success' alert on the page 
+                    const existingAlerts = document.querySelectorAll('.alert');
+                    existingAlerts.forEach(alert => {
+                        if (alert.parentNode) {
+                            alert.parentNode.removeChild(alert);
+                        }
+                    });
+                    
+                    return response ? response.json() : null;
+                })
+                .then(result => {
+                    if (!result) return;
+                    if (result.success) {
+                        btn.innerHTML = '<i class="fas fa-bookmark"></i> Đã lưu';
+                        btn.disabled = true;
+                        btn.classList.add('disabled');
+                        voucherCard.classList.add('saved');
+                        showToast(result.message || 'Voucher đã được lưu vào tài khoản của bạn!', 'success');
+                    } else {
+                        // Nếu đã lưu rồi thì đổi nút luôn
+                        if (result.code === 'ALREADY_SAVED' || (result.message && result.message.includes('đã lưu'))) {
+                            btn.innerHTML = '<i class="fas fa-bookmark"></i> Đã lưu';
+                            btn.disabled = true;
+                            btn.classList.add('disabled');
+                            voucherCard.classList.add('saved');
+                            // Use info type for already saved messages
+                            showToast(result.message || 'Bạn đã lưu voucher này rồi', 'info');
+                        } else {
+                            // Reset button if there was an error
+                            btn.innerHTML = '<i class="far fa-bookmark"></i> Lưu mã';
+                            btn.disabled = false;
+                            showToast(result.message || 'Không thể lưu voucher', 'error');
+                        }
+                    }
+                })
+                .catch(error => {
+                    if (error !== 'not-auth') {
+                        console.error('Error:', error);
+                        showToast('Có lỗi xảy ra, vui lòng thử lại', 'error');
+                        // Reset button
+                        btn.innerHTML = '<i class="far fa-bookmark"></i> Lưu mã';
+                        btn.disabled = false;
+                    }
+                });
+        });
+    }
 });
 
 // Copy voucher code functionality
 document.querySelectorAll('.btn-copy-code').forEach(button => {
     button.addEventListener('click', function() {
         const code = this.getAttribute('data-code');
+        const btn = this;
+        
+        // Change button appearance immediately for better feedback
+        const originalText = btn.innerHTML;
+        const originalBackground = btn.style.background;
+        const originalColor = btn.style.color;
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang sao chép...';
+        
+        const copyCode = () => {
+            // Show successful copy effect
+            btn.innerHTML = '<i class="fas fa-check"></i> Đã sao chép!';
+            btn.style.background = '#28a745';
+            btn.style.color = 'white';
+            
+            // Show toast notification
+            showToast('<strong>' + code + '</strong> đã được sao chép vào clipboard', 'success');
+            
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = originalBackground;
+                btn.style.color = originalColor;
+            }, 2000);
+        };
 
         if (navigator.clipboard) {
-            navigator.clipboard.writeText(code).then(() => {
-                const originalText = this.innerHTML;
-                this.innerHTML = '<i class=\"fas fa-check\"></i> Đã sao chép';
-                showToast('Đã sao chép mã voucher: ' + code, 'success');
-
-                setTimeout(() => {
-                    this.innerHTML = originalText;
-                }, 2000);
-            });
+            navigator.clipboard.writeText(code)
+                .then(copyCode)
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                    showToast('Không thể sao chép, vui lòng thử lại!', 'error');
+                    btn.innerHTML = originalText;
+                });
         } else {
-            // Fallback for older browsers
-            const textArea = document.createElement('textarea');
-            textArea.value = code;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class=\"fas fa-check\"></i> Đã sao chép';
-            showToast('Đã sao chép mã voucher: ' + code, 'success');
-
-            setTimeout(() => {
-                this.innerHTML = originalText;
-            }, 2000);
+            try {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                textArea.style.position = 'fixed';  // Prevent scrolling to the element
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    copyCode();
+                } else {
+                    throw new Error('Copy command was unsuccessful');
+                }
+            } catch (err) {
+                console.error('Could not copy text: ', err);
+                showToast('Không thể sao chép, vui lòng thử lại!', 'error');
+                btn.innerHTML = originalText;
+            }
         }
     });
 });
@@ -727,39 +920,111 @@ function showToast(message, type = 'info') {
     let iconClass = 'info-circle';
     if (type === 'success') iconClass = 'check-circle';
     else if (type === 'warning') iconClass = 'exclamation-triangle';
-    else if (type === 'error') iconClass = 'x-circle';
+    else if (type === 'error') iconClass = 'times-circle';
 
-    toast.innerHTML = '<div class=\"toast-content\">' +
-        '<i class=\"fas fa-' + iconClass + '\"></i>' +
+    // Add close button to toast
+    toast.innerHTML = '<div class="toast-content">' +
+        '<i class="fas fa-' + iconClass + '"></i>' +
         '<span>' + message + '</span>' +
-        '</div>';
+        '</div>' +
+        '<button class="toast-close"><i class="fas fa-times"></i></button>';
 
     // Add toast styles
     let bgColor = '#17a2b8';
-    if (type === 'success') bgColor = '#28a745';
-    else if (type === 'warning') bgColor = '#ffc107';
-    else if (type === 'error') bgColor = '#dc3545';
+    let textColor = 'white';
+    let borderColor = '#0f8599';
+    
+    if (type === 'success') {
+        bgColor = '#d4edda';
+        textColor = '#155724';
+        borderColor = '#c3e6cb';
+    } else if (type === 'warning') {
+        bgColor = '#fff3cd';
+        textColor = '#856404';
+        borderColor = '#ffeeba';
+    } else if (type === 'error') {
+        bgColor = '#f8d7da';
+        textColor = '#721c24';
+        borderColor = '#f5c6cb';
+    } else { // info
+        bgColor = '#d1ecf1';
+        textColor = '#0c5460';
+        borderColor = '#bee5eb';
+    }
 
-    toast.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 15px 20px; background: ' + bgColor + '; color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateX(100%); transition: transform 0.3s ease; font-size: 14px; max-width: 300px;';
+    toast.style.cssText = `
+        position: fixed; 
+        top: 20px; 
+        right: 20px; 
+        z-index: 9999; 
+        padding: 15px 20px; 
+        background: ${bgColor}; 
+        color: ${textColor}; 
+        border-left: 4px solid ${borderColor};
+        border-radius: 8px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        transform: translateY(-20px); 
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease; 
+        font-size: 16px; 
+        font-weight: 500;
+        max-width: 350px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+    
+    // Style for toast content
+    const toastContent = toast.querySelector('.toast-content');
+    toastContent.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    `;
+    
+    // Style for close button
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.style.cssText = `
+        background: transparent;
+        border: none;
+        color: ${textColor};
+        cursor: pointer;
+        padding: 0;
+        margin-left: 15px;
+        opacity: 0.7;
+    `;
+    
+    // Add click handler to close button
+    closeBtn.addEventListener('click', () => {
+        hideToast(toast);
+    });
 
     document.body.appendChild(toast);
 
     // Animate in
     setTimeout(() => {
-        toast.style.transform = 'translateX(0)';
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
     }, 100);
 
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
+    // Remove after 5 seconds (longer display time for better visibility)
+    const toastTimeout = setTimeout(() => {
+        hideToast(toast);
+    }, 5000);
+    
+    // Function to hide toast with animation
+    function hideToast(toastElement) {
+        toastElement.style.transform = 'translateY(-20px)';
+        toastElement.style.opacity = '0';
         setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
+            if (toastElement.parentNode) {
+                toastElement.parentNode.removeChild(toastElement);
             }
         }, 300);
-    }, 3000);
+        clearTimeout(toastTimeout);
+    }
 }
-";
+JS;
 
 // Add chatbot CSS and JS
 $custom_css[] = 'css/chatbot.css';

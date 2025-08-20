@@ -45,6 +45,24 @@ class HomeController extends Controller
 
         // Get featured vouchers for homepage
         $featuredVouchers = $this->couponModel->getFeaturedVouchers(2);
+        
+        // Get saved and used vouchers for the logged-in user
+        $saved_voucher_ids = [];
+        $used_voucher_ids = [];
+        if (isset($_SESSION['user']['id'])) {
+            $userCouponModel = $this->model('UserCoupon');
+            // Get saved vouchers
+            $savedVouchers = $userCouponModel->getUserCoupons($_SESSION['user']['id'], 'saved');
+            foreach ($savedVouchers as $voucher) {
+                $saved_voucher_ids[] = $voucher['coupon_id'];
+            }
+            
+            // Get used vouchers
+            $usedVouchers = $userCouponModel->getUserCoupons($_SESSION['user']['id'], 'used');
+            foreach ($usedVouchers as $voucher) {
+                $used_voucher_ids[] = $voucher['coupon_id'];
+            }
+        }
 
         $data = [
             'title' => '5S Fashion - Thời trang nam nữ cao cấp',
@@ -53,7 +71,9 @@ class HomeController extends Controller
             'new_arrivals' => $newArrivals,
             'best_sellers' => $bestSellers,
             'sale_products' => $saleProducts,
-            'featured_vouchers' => $featuredVouchers
+            'featured_vouchers' => $featuredVouchers,
+            'saved_voucher_ids' => $saved_voucher_ids,
+            'used_voucher_ids' => $used_voucher_ids
         ];
 
         $this->view('client/home/index', $data);

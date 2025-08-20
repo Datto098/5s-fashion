@@ -595,5 +595,3 @@ if (!document.querySelector('#toast-animations')) {
     document.head.appendChild(style);
 }
 </script>
-
-

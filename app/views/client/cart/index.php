@@ -71,15 +71,13 @@ ob_start();
 
                                         <div class="col-md-2">
                                             <div class="quantity-controls">
-                                                <button type="button" class="quantity-btn" onclick="updateCartItemQuantity(this, 'decrease')">
+                                                <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'decrease')">
                                                     <i class="fas fa-minus"></i>
                                                 </button>
                                                 <input type="number" class="quantity-input cart-quantity-input"
                                                     min="1" max="99" value="<?= $item['quantity'] ?>"
-                                                    data-cart-id="<?= $item['id'] ?>"
-                                                    data-debug-cart-id="<?= $item['id'] ?>">
-                                                <!-- Debug: Cart ID = <?= $item['id'] ?? 'NULL' ?> -->
-                                                <button type="button" class="quantity-btn" onclick="updateCartItemQuantity(this, 'increase')">
+                                                    data-cart-id="<?= $item['id'] ?>">
+                                                <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'increase')">
                                                     <i class="fas fa-plus"></i>
                                                 </button>
                                             </div>
@@ -313,98 +311,15 @@ ob_start();
     // Custom CSS following UI guidelines
     $custom_css = ['css/cart.css'];
 
-    // Custom JS for cart page functionality - works with global CartManager
-    $custom_js = ['js/cart-page-manager.js'];
+    // Custom JS for cart functionality
+    $custom_js = ['js/cart-page.js'];
 
     // Include main layout
     include VIEW_PATH . '/client/layouts/app.php';
     ?>
 
     <script>
-    // Function to handle quantity updates on cart page
-    function updateCartItemQuantity(buttonElement, action) {
-        console.log('=== updateCartItemQuantity START ===');
-        console.log('Button element:', buttonElement);
-        console.log('Action:', action);
-        console.log('Button parent:', buttonElement.parentElement);
-
-        const quantityInput = buttonElement.parentElement.querySelector('.cart-quantity-input');
-        console.log('Quantity input found:', quantityInput);
-
-        if (!quantityInput) {
-            console.error('Quantity input not found!');
-            alert('Không tìm thấy input quantity');
-            return;
-        }
-
-        const cartId = quantityInput.getAttribute('data-cart-id');
-        const currentValue = quantityInput.value;
-
-        console.log('=== DEBUGGING ATTRIBUTES ===');
-        console.log('Cart ID:', cartId);
-        console.log('Current value:', currentValue);
-        console.log('All dataset:', quantityInput.dataset);
-        console.log('All attributes:');
-        for (let attr of quantityInput.attributes) {
-            console.log(`  ${attr.name}: ${attr.value}`);
-        }
-        console.log('HTML:', quantityInput.outerHTML);
-        console.log('=== END DEBUG ===');
-
-        console.log('updateCartQuantity called:', {
-            cartId: cartId,
-            action: action,
-            quantityInput: quantityInput,
-            currentValue: currentValue,
-            dataCartId: quantityInput.dataset.cartId
-        });
-
-        if (!cartId) {
-            console.error('Cart ID is null or empty!');
-            alert('Không tìm thấy ID giỏ hàng');
-            return;
-        }
-
-        let currentQty = parseInt(currentValue) || 1;
-        let newQty = action === 'increase' ? currentQty + 1 : Math.max(1, currentQty - 1);
-
-        // Update input value immediately for better UX
-        quantityInput.value = newQty;
-
-        const requestData = {
-            cart_key: cartId,
-            quantity: newQty
-        };
-
-        console.log('Sending request:', requestData);
-
-        // Send update to server with cart_key
-        fetch('/5s-fashion/ajax/cart/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Server response:', data);
-            if (data.success) {
-                // Update cart totals and UI
-                location.reload(); // Simple solution - reload page to refresh totals
-            } else {
-                // Revert quantity on error
-                quantityInput.value = currentQty;
-                alert(data.message || 'Có lỗi khi cập nhật số lượng');
-            }
-        })
-        .catch(error => {
-            console.error('Update quantity error:', error);
-            // Revert quantity on error
-            quantityInput.value = currentQty;
-            alert('Có lỗi xảy ra. Vui lòng thử lại.');
-        });
-    }    function removeVoucher() {
+    function removeVoucher() {
         const promoInput = document.getElementById('promo-code');
         const promoBtn = document.querySelector('.promo-btn');
         const removeBtn = document.getElementById('remove-voucher-btn');
