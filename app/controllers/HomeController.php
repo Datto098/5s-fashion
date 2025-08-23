@@ -31,17 +31,25 @@ class HomeController extends Controller
         // Get featured categories
         $featuredCategories = $this->categoryModel->getFeaturedCategories(6);
 
-        // Get featured products
+        // Get featured products with rating
         $featuredProducts = $this->productModel->getFeaturedProducts(8);
 
-        // Get new arrivals
+        // Get new arrivals with rating
         $newArrivals = $this->productModel->getNewArrivals(8);
 
-        // Get best sellers
-        $bestSellers = $this->productModel->getBestSellers(8);
+        // Get best sellers with rating
+        if (method_exists($this->productModel, 'getBestSellersWithRating')) {
+            $bestSellers = $this->productModel->getBestSellersWithRating(8);
+        } else {
+            $bestSellers = $this->productModel->getBestSellers(8);
+        }
 
-        // Get sale products
-        $saleProducts = $this->productModel->getSaleProducts(8);
+        // Get sale products with rating
+        if (method_exists($this->productModel, 'getSaleProductsWithRating')) {
+            $saleProducts = $this->productModel->getSaleProductsWithRating(8);
+        } else {
+            $saleProducts = $this->productModel->getSaleProducts(8);
+        }
 
         // Get featured vouchers for homepage
         $featuredVouchers = $this->couponModel->getFeaturedVouchers(2);
@@ -114,14 +122,16 @@ class HomeController extends Controller
         $totalPages = ceil($totalProducts / $limit);
         $currentPage = (int)$page;
 
-        // Build query string for pagination
+        // Build query string for pagination (giữ cả featured và sale nếu có)
         $queryParams = array_filter([
             'category' => $category,
             'brand' => $brand,
             'min_price' => $minPrice,
             'max_price' => $maxPrice,
             'search' => $search,
-            'sort' => $sort
+            'sort' => $sort,
+            'featured' => $_GET['featured'] ?? null,
+            'sale' => $_GET['sale'] ?? null
         ]);
         $queryString = $queryParams ? '&' . http_build_query($queryParams) : '';
 
@@ -194,8 +204,9 @@ class HomeController extends Controller
 
         // Get product reviews from database
         $userId = isLoggedIn() ? $_SESSION['user']['id'] : null;
-        $reviews = $this->reviewModel->getProductReviews($product['id'], 10, $userId);
-        $reviewCount = count($reviews);
+    $reviews = $this->reviewModel->getProductReviews($product['id'], 10, $userId);
+    $reviewCount = $this->reviewModel->getProductReviewCount($product['id']);
+    $ratingStats = $this->reviewModel->getProductRatingStats($product['id']);
         
         // Debug: Log reviews
         error_log("Reviews for product {$product['id']}: " . print_r($reviews, true));
@@ -240,6 +251,7 @@ class HomeController extends Controller
             'related_products' => $relatedProducts,
             'reviews' => $reviews,
             'reviewCount' => $reviewCount,
+            'ratingStats' => $ratingStats,
             'canReview' => $canReview,
             'hasOrderedProduct' => $hasOrderedProduct,
             'hasCompletedOrders' => $hasCompletedOrders,

@@ -144,8 +144,9 @@ ob_start();
                     <div class="product-rating mb-3">
                         <div class="stars">
                             <?php
-                            $avgRating = isset($product['rating']) ? round($product['rating'], 1) : 0;
-                            $reviewCount = isset($product['review_count']) ? (int)$product['review_count'] : 0;
+                            // Lấy điểm trung bình động từ controller
+                            $avgRating = isset($ratingStats['average']) ? $ratingStats['average'] : 0;
+                            // $reviewCount đã được truyền động từ controller
                             for ($i = 1; $i <= 5; $i++):
                                 if ($i <= floor($avgRating)) {
                                     echo '<i class="fas fa-star text-warning"></i>';
@@ -157,7 +158,7 @@ ob_start();
                             endfor;
                             ?>
                         </div>
-                        <span class="rating-text">(<?= $avgRating ?> / 5 - <?= $reviewCount ?> đánh giá)</span>
+                        <span class="rating-text">(<?= $reviewCount ?> đánh giá)</span>
                     </div>
 
                     <div class="product-meta">
@@ -397,12 +398,16 @@ ob_start();
                                 <div class="col-md-8">
                                     <div class="rating-breakdown">
                                         <?php for ($i = 5; $i >= 1; $i--): ?>
+                                            <?php
+                                            $starCount = isset($ratingStats['counts'][$i]) ? $ratingStats['counts'][$i] : 0;
+                                            $percent = $reviewCount > 0 ? round($starCount / $reviewCount * 100) : 0;
+                                            ?>
                                             <div class="rating-bar">
                                                 <span class="rating-label"><?= $i ?> sao</span>
                                                 <div class="progress">
-                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: <?= $percent ?>%" aria-valuenow="<?= $percent ?>" aria-valuemin="0" aria-valuemax="100"></div>
                                                 </div>
-                                                <span class="rating-percentage">0%</span>
+                                                <span class="rating-percentage"><?= $percent ?>% (<?= $starCount ?>)</span>
                                             </div>
                                         <?php endfor; ?>
                                     </div>
@@ -414,11 +419,11 @@ ob_start();
                         <div class="write-review-section">
                             <?php if (isLoggedIn()): ?>
                                 <?php if ($canReview): ?>
-                                    <button class="btn btn-primary" onclick="showReviewForm()">
+                                    <button id="btn-write-review" class="btn btn-primary" onclick="showReviewForm()">
                                         <i class="fas fa-edit me-2"></i>Viết đánh giá
                                     </button>
                                 <?php elseif ($hasReviewed): ?>
-                                    <button class="btn btn-secondary" disabled>
+                                    <button id="btn-reviewed" class="btn btn-secondary" disabled>
                                         <i class="fas fa-check me-2"></i>Bạn đã đánh giá sản phẩm này
                                     </button>
                                 <?php elseif (!$hasCompletedOrders): ?>
@@ -431,6 +436,20 @@ ob_start();
                                     <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập để đánh giá
                                 </a>
                             <?php endif; ?>
+                            <script>
+                                // Sau khi xóa review bằng AJAX, nếu không còn review nào thì cập nhật lại nút "Viết đánh giá"
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    // Lắng nghe sự kiện xóa review từ JS ngoài (review.js)
+                                    document.addEventListener('review:deleted', function(e) {
+                                        // Ẩn nút "Bạn đã đánh giá sản phẩm này"
+                                        var reviewedBtn = document.getElementById('btn-reviewed');
+                                        if (reviewedBtn) reviewedBtn.style.display = 'none';
+                                        // Hiện nút "Viết đánh giá"
+                                        var writeBtn = document.getElementById('btn-write-review');
+                                        if (writeBtn) writeBtn.style.display = '';
+                                    });
+                                });
+                            </script>
                         </div>
 
                         <!-- Review Form (Hidden by default) -->
@@ -475,12 +494,12 @@ ob_start();
                         <div class="reviews-list">
                             <?php if (!empty($reviews)): ?>
                                 <?php foreach ($reviews as $review): ?>
-                                    <div class="review-item">
+                                    <div class="review-item position-relative">
                                         <div class="review-header">
                                             <div class="reviewer-info">
                                                 <div class="reviewer-avatar">
                                                     <?php if (!empty($review['customer_avatar'])): ?>
-                                                        <img src="<?= $review['customer_avatar'] ?>" alt="<?= htmlspecialchars($review['customer_name']) ?>">
+                                                        <img src="<?= $review['customer_avatar'] ?>" alt="<?= htmlspecialchars($review['customer_name'] ?? '') ?>">
                                                     <?php else: ?>
                                                         <div class="avatar-placeholder">
                                                             <i class="fas fa-user"></i>
@@ -488,19 +507,42 @@ ob_start();
                                                     <?php endif; ?>
                                                 </div>
                                                 <div class="reviewer-details">
-                                                    <h6 class="reviewer-name"><?= htmlspecialchars($review['customer_name']) ?></h6>
-                                                    <div class="review-rating">
-                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                            <i class="fas fa-star <?= $i <= $review['rating'] ? 'text-warning' : 'text-muted' ?>"></i>
-                                                        <?php endfor; ?>
+                                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                                        <h6 class="reviewer-name mb-0"><?= htmlspecialchars($review['customer_name'] ?? '') ?></h6>
                                                     </div>
-                                                    <div class="review-date"><?= date('d/m/Y', strtotime($review['created_at'])) ?></div>
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div class="review-rating mb-0">
+                                                            <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                                <i class="fas fa-star <?= $i <= $review['rating'] ? 'text-warning' : 'text-muted' ?>"></i>
+                                                            <?php endfor; ?>
+                                                        </div>
+                                                        <div class="review-date mb-0"><?= date('d/m/Y', strtotime($review['created_at'])) ?></div>
+                                                    </div>
+                                                    <div class="review-action-buttons position-absolute end-0 d-flex flex-column align-items-end gap-2" style="top: 40px; margin-right: 19px; z-index: 2;">
+                                                        <button type="button" class="btn btn-sm btn-outline-success like-review-btn<?= !empty($review['liked_by_user']) ? ' liked' : '' ?>" data-review-id="<?= $review['id'] ?>">
+                                                            <i class="fas fa-thumbs-up"></i> Hữu ích <span class="helpful-count"><?= $review['helpful_count'] ?? 0 ?></span>
+                                                        </button>
+                                                        <?php if (isset($userId) && !empty($review['user_id']) && $review['user_id'] == $userId): ?>
+                                                            <!-- Nút sửa đã bị ẩn theo yêu cầu -->
+                                                            <button type="button" class="btn btn-sm btn-outline-danger delete-review-btn" data-review-id="<?= $review['id'] ?>">
+                                                                <i class="fas fa-trash"></i> Xóa
+                                                            </button>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="review-content">
+                                            <?php if (!empty($review['title'])): ?>
+                                                <div class="review-title fw-bold mb-1"><?= htmlspecialchars($review['title']) ?></div>
+                                            <?php endif; ?>
                                             <p><?= nl2br(htmlspecialchars($review['content'])) ?></p>
+                                           
+
+
+
                                         </div>
+
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -540,29 +582,7 @@ ob_start();
                             </div>
                         </div>
 
-                        <div class="shipping-zones mt-4">
-                            <h5>Khu vực giao hàng</h5>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="shipping-zone">
-                                        <h6>Nội thành TP.HCM</h6>
-                                        <p>1-2 ngày | 25.000đ</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="shipping-zone">
-                                        <h6>Tỉnh thành khác</h6>
-                                        <p>2-3 ngày | 35.000đ</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="shipping-zone">
-                                        <h6>Vùng xa, hải đảo</h6>
-                                        <p>3-5 ngày | 50.000đ</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                       
                     </div>
                 </div>
             </div>
@@ -717,7 +737,9 @@ ob_start();
             console.log('Using fallback method');
             addToCartFallback(productId, quantity);
         }
-    }    function getSelectedVariant() {
+    }
+
+    function getSelectedVariant() {
         const selectedVariantElement = document.querySelector('.variant-option.selected');
         if (selectedVariantElement) {
             return {
@@ -830,7 +852,9 @@ ob_start();
 
     function showReviewForm() {
         document.getElementById('reviewForm').style.display = 'block';
-        document.getElementById('reviewForm').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('reviewForm').scrollIntoView({
+            behavior: 'smooth'
+        });
     }
 
     function hideReviewForm() {
@@ -856,19 +880,63 @@ ob_start();
 
                 // Submit review
                 fetch('http://localhost/5s-fashion/api/reviews', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Cảm ơn bạn đã đánh giá sản phẩm!');
+                            hideReviewForm();
+                            // Reload page to show new review
+                            window.location.reload();
+                        } else {
+                            alert(data.message || 'Có lỗi xảy ra, vui lòng thử lại');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra, vui lòng thử lại');
+                    });
+            });
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        const button = e.target.closest('.btn-edit-review');
+        if (button) {
+            const reviewId = button.getAttribute('data-review-id');
+            const reviewItem = button.closest('.review-item');
+
+            // Fetch review data and populate the form
+            fetch(`http://localhost/5s-fashion/api/reviews/${reviewId}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        alert('Cảm ơn bạn đã đánh giá sản phẩm!');
-                        hideReviewForm();
-                        // Reload page to show new review
-                        window.location.reload();
+                    if (data.success && data.review) {
+                        const review = data.review;
+                        document.getElementById('reviewTitle').value = review.title;
+                        document.getElementById('reviewContent').value = review.content;
+
+                        // Set the rating
+                        const ratingInputs = document.querySelectorAll('input[name="rating"]');
+                        ratingInputs.forEach(input => {
+                            input.checked = false;
+                        });
+                        const reviewRating = Math.round(review.rating);
+                        if (reviewRating > 0 && reviewRating <= 5) {
+                            document.getElementById(`star${reviewRating}`).checked = true;
+                        }
+
+                        // Show the review form
+                        showReviewForm();
+
+                        // Scroll to the review form
+                        document.getElementById('reviewForm').scrollIntoView({
+                            behavior: 'smooth'
+                        });
                     } else {
                         alert(data.message || 'Có lỗi xảy ra, vui lòng thử lại');
                     }
@@ -877,7 +945,6 @@ ob_start();
                     console.error('Error:', error);
                     alert('Có lỗi xảy ra, vui lòng thử lại');
                 });
-            });
         }
     });
 </script>

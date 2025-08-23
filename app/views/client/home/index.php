@@ -416,26 +416,26 @@ $inline_css = "
     position: relative;
 }
 
-.voucher-card.saved::before {
-    content: '✓';
-    position: absolute;
-    top: -15px;
-    right: -15px;
-    width: 40px;
-    height: 40px;
-    background-color: #28a745;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 20px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    transform: scale(0);
-    animation: popIn 0.5s forwards;
-    z-index: 2;
-}
+// .voucher-card.saved::before {
+//     content: '✓';
+//     position: absolute;
+//     top: -15px;
+//     right: -15px;
+//     width: 40px;
+//     height: 40px;
+//     background-color: #28a745;
+//     color: white;
+//     border-radius: 50%;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     font-weight: bold;
+//     font-size: 20px;
+//     box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+//     transform: scale(0);
+//     animation: popIn 0.5s forwards;
+//     z-index: 2;
+// }
 
 /* Used voucher styling */
 .voucher-card.used {
@@ -444,26 +444,26 @@ $inline_css = "
     position: relative;
 }
 
-.voucher-card.used::before {
-    content: '✓';
-    position: absolute;
-    top: -15px;
-    right: -15px;
-    width: 40px;
-    height: 40px;
-    background-color: #6c757d;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 20px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    transform: scale(0);
-    animation: popIn 0.5s forwards;
-    z-index: 2;
-}
+// .voucher-card.used::before {
+//     content: '✓';
+//     position: absolute;
+//     top: -15px;
+//     right: -15px;
+//     width: 40px;
+//     height: 40px;
+//     background-color: #6c757d;
+//     color: white;
+//     border-radius: 50%;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     font-weight: bold;
+//     font-size: 20px;
+//     box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+//     transform: scale(0);
+//     animation: popIn 0.5s forwards;
+//     z-index: 2;
+// }
 
 .voucher-card.used {
     position: relative;
@@ -488,20 +488,6 @@ $inline_css = "
 }
 
 /* Badge for used vouchers */
-.voucher-card.used:before {
-    content: 'Đã sử dụng';
-    position: absolute;
-    top: 40px;
-    right: -40px;
-    background: #6c757d;
-    color: white;
-    padding: 5px 40px;
-    transform: rotate(45deg);
-    font-size: 12px;
-    font-weight: bold;
-    z-index: 3;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-}
 
 @keyframes popIn {
     0% { transform: scale(0); }
@@ -748,28 +734,19 @@ $inline_css = "
 }
 ";
 
-// Inline JavaScript for voucher functionality
 $inline_js = <<<'JS'
-// Save voucher functionality
 document.querySelectorAll('.btn-save-voucher').forEach(button => {
     const couponId = button.getAttribute('data-coupon-id');
     const voucherCard = button.closest('.voucher-card');
-    
-    // If the voucher is already marked as saved or used from server-side, update the button
     if (voucherCard.classList.contains('used')) {
-        // Do nothing, the server-side rendering has already set the button text to "Đã dùng"
         button.disabled = true;
         button.classList.add('disabled');
     } else if (voucherCard.classList.contains('saved')) {
-        // Do nothing, the server-side rendering has already set the button text to "Đã lưu"
         button.disabled = true;
         button.classList.add('disabled');
     } else if (!button.disabled) {
-        // Only add click handlers to buttons that aren't already saved
         button.addEventListener('click', function() {
             const btn = this;
-            
-            // Check if user is logged in
             fetch('/5s-fashion/api/auth/check')
                 .then(response => response.json())
                 .then(data => {
@@ -777,12 +754,8 @@ document.querySelectorAll('.btn-save-voucher').forEach(button => {
                         showToast('Vui lòng đăng nhập để lưu voucher', 'warning');
                         return Promise.reject('not-auth');
                     }
-                    
-                    // Show saving indicator
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
                     btn.disabled = true;
-                    
-                    // Save voucher
                     return fetch('/5s-fashion/api/voucher/save', {
                         method: 'POST',
                         headers: {
@@ -793,15 +766,15 @@ document.querySelectorAll('.btn-save-voucher').forEach(button => {
                     });
                 })
                 .then(response => {
-                    // Remove any existing 'success' alert on the page 
                     const existingAlerts = document.querySelectorAll('.alert');
                     existingAlerts.forEach(alert => {
                         if (alert.parentNode) {
                             alert.parentNode.removeChild(alert);
                         }
                     });
-                    
+                    console.log('Response:', response.json());
                     return response ? response.json() : null;
+
                 })
                 .then(result => {
                     if (!result) return;
@@ -812,16 +785,24 @@ document.querySelectorAll('.btn-save-voucher').forEach(button => {
                         voucherCard.classList.add('saved');
                         showToast(result.message || 'Voucher đã được lưu vào tài khoản của bạn!', 'success');
                     } else {
-                        // Nếu đã lưu rồi thì đổi nút luôn
                         if (result.code === 'ALREADY_SAVED' || (result.message && result.message.includes('đã lưu'))) {
                             btn.innerHTML = '<i class="fas fa-bookmark"></i> Đã lưu';
                             btn.disabled = true;
                             btn.classList.add('disabled');
                             voucherCard.classList.add('saved');
-                            // Use info type for already saved messages
                             showToast(result.message || 'Bạn đã lưu voucher này rồi', 'info');
-                        } else {
-                            // Reset button if there was an error
+                        }
+                        else if (result.code === 'NOT_LOGGED_IN') {
+                            showToast('Vui lòng đăng nhập để lưu voucher', 'warning');
+                        } 
+                        else if (result.code === 'ALREADY_USED'|| (result.message && result.message.includes('đã dùng'))) {
+                            btn.innerHTML = '<i class="fas fa-check"></i> Đã dùng';
+                            btn.disabled = true;
+                            btn.classList.add('disabled');
+                            voucherCard.classList.add('used');
+                            showToast(result.message || 'Voucher này đã được sử dụng', 'info');
+                        }
+                        else {
                             btn.innerHTML = '<i class="far fa-bookmark"></i> Lưu mã';
                             btn.disabled = false;
                             showToast(result.message || 'Không thể lưu voucher', 'error');

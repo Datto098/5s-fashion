@@ -6,6 +6,17 @@
 
 class Product extends BaseModel
 {
+    /**
+     * Default value for has_variants to avoid undefined property error
+     */
+    public $has_variants = 0;
+
+    /**
+     * Product price properties to avoid undefined property errors
+     */
+    public $sale_price = null;
+    public $price = null;
+
     protected $table = 'products';
     protected $primaryKey = 'id';
     protected $fillable = [
@@ -71,9 +82,13 @@ class Product extends BaseModel
                 $products = $db->fetchAll($sql, [$limit]);
             }
 
-            // Load variants for each product
+            // Load variants và rating/review count cho từng sản phẩm
+            $reviewModel = new \Review();
             foreach ($products as &$product) {
                 $product['variants'] = $this->getVariants($product['id']);
+                $stats = $reviewModel->getProductRatingStats($product['id']);
+                $product['rating'] = $stats['average'];
+                $product['review_count'] = (int)$reviewModel->getProductReviewCount($product['id']);
             }
 
             return $products;
@@ -102,9 +117,13 @@ class Product extends BaseModel
 
             $products = $db->fetchAll($sql, [$limit]);
 
-            // Load variants for each product
+            // Load variants và rating/review count cho từng sản phẩm
+            $reviewModel = new \Review();
             foreach ($products as &$product) {
                 $product['variants'] = $this->getVariants($product['id']);
+                $stats = $reviewModel->getProductRatingStats($product['id']);
+                $product['rating'] = $stats['average'];
+                $product['review_count'] = (int)$reviewModel->getProductReviewCount($product['id']);
             }
 
             return $products;
@@ -897,10 +916,11 @@ class Product extends BaseModel
      */
     public function hasVariants()
     {
-        if (isset($this->has_variants)) {
+        // Always check property first, fallback to DB if not set
+        if (property_exists($this, 'has_variants') && isset($this->has_variants)) {
             return (bool) $this->has_variants;
         }
-
+        // fallback: fetch from DB
         $sql = "SELECT has_variants FROM products WHERE id = :id";
         $result = $this->db->fetchOne($sql, ['id' => $this->id ?? 0]);
         return $result ? (bool) $result['has_variants'] : false;

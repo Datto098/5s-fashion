@@ -15,6 +15,8 @@ class ShopManager {
 			priceMax: null,
 			rating: null,
 			sort: 'newest',
+			featured: null,
+			sale: null,
 		};
 
 		this.currentView = 'grid';
@@ -425,7 +427,9 @@ class ShopManager {
 		// Reset sort
 		document.getElementById('sort-select').value = 'newest';
 
-		// Reset filters object
+		// Preserve featured/sale
+		const featured = this.currentFilters.featured;
+		const sale = this.currentFilters.sale;
 		this.currentFilters = {
 			search: '',
 			categories: [],
@@ -436,6 +440,8 @@ class ShopManager {
 			priceMax: null,
 			rating: null,
 			sort: 'newest',
+			featured: featured,
+			sale: sale,
 		};
 
 		this.applyFilters();
@@ -500,6 +506,14 @@ class ShopManager {
 	updateUrl() {
 		const params = new URLSearchParams();
 
+		// Always set featured and sale if present in currentFilters
+		if (this.currentFilters.featured) {
+			params.set('featured', this.currentFilters.featured);
+		}
+		if (this.currentFilters.sale) {
+			params.set('sale', this.currentFilters.sale);
+		}
+
 		if (this.currentFilters.search) {
 			params.set('search', this.currentFilters.search);
 		}
@@ -544,6 +558,16 @@ class ShopManager {
 
 	loadUrlParams() {
 		const params = new URLSearchParams(window.location.search);
+
+		// Load featured/sale
+		const featured = params.get('featured');
+		if (featured) {
+			this.currentFilters.featured = featured;
+		}
+		const sale = params.get('sale');
+		if (sale) {
+			this.currentFilters.sale = sale;
+		}
 
 		// Load search
 		const search = params.get('search');
