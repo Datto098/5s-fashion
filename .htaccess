@@ -21,8 +21,15 @@ RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{REQUEST_URI} ^/5s-fashion/api/ [NC]
 RewriteRule ^api/(.*)$ public/api/$1 [L]
 
+# Handle chatbot API requests
+RewriteRule ^chatbot-api.php$ public/chatbot-api.php [QSA,L]
+
 # API Routes - redirect remaining to api.php
 RewriteRule ^api/(.*)$ public/api.php [QSA,L]
+
+# Special handling for shop pages to preserve category parameter
+RewriteCond %{QUERY_STRING} (^|&)category=([^&]+)(&|$)
+RewriteRule ^shop/?$ public/index.php?url=shop [QSA,L]
 
 # Route all other requests to index.php
 RewriteCond %{REQUEST_FILENAME} !-f

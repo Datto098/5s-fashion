@@ -66,7 +66,7 @@
                 </div>
 
                 <!-- Image -->
-                <div class="card mb-4">
+                <!-- <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="fas fa-image"></i> Hình ảnh danh mục
@@ -93,10 +93,10 @@
                             <img id="imagePreviewImg" class="img-thumbnail" style="max-height: 200px;">
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- SEO -->
-                <div class="card mb-4">
+                <!-- <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="fas fa-search"></i> Tối ưu hóa SEO
@@ -115,7 +115,7 @@
                             <small class="text-muted">Tối đa 160 ký tự</small>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <!-- Sidebar -->

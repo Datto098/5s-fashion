@@ -4,12 +4,13 @@
  * 5S Fashion E-commerce Platform
  */
 
+require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/ProductVariant.php';
 require_once __DIR__ . '/../core/Database.php';
 require_once __DIR__ . '/../models/Review.php';
 require_once __DIR__ . '/../models/Order.php';
 
-class HomeController extends Controller
+class HomeController extends BaseController
 {
     private $productModel;
     private $categoryModel;
@@ -19,9 +20,19 @@ class HomeController extends Controller
 
     public function __construct()
     {
-        $this->productModel = $this->model('Product');
-        $this->categoryModel = $this->model('Category');
-        $this->couponModel = $this->model('Coupon');
+        // Initialize session
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Load required models
+        require_once __DIR__ . '/../models/Product.php';
+        require_once __DIR__ . '/../models/Category.php';
+        require_once __DIR__ . '/../models/Coupon.php';
+
+        $this->productModel = new Product();
+        $this->categoryModel = new Category();
+        $this->couponModel = new Coupon();
         $this->reviewModel = new Review();
         $this->orderModel = new Order();
     }
@@ -56,7 +67,7 @@ class HomeController extends Controller
             'featured_vouchers' => $featuredVouchers
         ];
 
-        $this->view('client/home/index', $data);
+        $this->render('client/home/index', $data, 'client/layouts/app');
     }
 
     public function shop()
@@ -69,6 +80,7 @@ class HomeController extends Controller
         $minPrice = $_GET['min_price'] ?? null;
         $maxPrice = $_GET['max_price'] ?? null;
         $brand = $_GET['brand'] ?? null;
+        $featured = isset($_GET['featured']) ? (int)$_GET['featured'] : null;
 
         // Get filters
         $filters = [
@@ -77,7 +89,8 @@ class HomeController extends Controller
             'sort' => $sort,
             'min_price' => $minPrice,
             'max_price' => $maxPrice,
-            'brand' => $brand
+            'brand' => $brand,
+            'featured' => $featured
         ];
 
         // Get products with pagination
@@ -117,7 +130,7 @@ class HomeController extends Controller
             'queryString' => $queryString
         ];
 
-        $this->view('client/shop/index', $data);
+        $this->render('client/shop/index', $data, 'client/layouts/app');
     }
 
     public function product($slug = null)
@@ -130,7 +143,7 @@ class HomeController extends Controller
         $product = $this->productModel->getProductBySlug($slug);
 
         if (!$product) {
-            $this->view('errors/404');
+            $this->render('errors/404', [], 'client/layouts/app');
             return;
         }
 
@@ -176,38 +189,38 @@ class HomeController extends Controller
         $userId = isLoggedIn() ? $_SESSION['user']['id'] : null;
         $reviews = $this->reviewModel->getProductReviews($product['id'], 10, $userId);
         $reviewCount = count($reviews);
-        
+
         // Debug: Log reviews
         error_log("Reviews for product {$product['id']}: " . print_r($reviews, true));
         error_log("Review count: " . $reviewCount);
-        
+
         // Check if the current user can review this product
         $canReview = false;
         $userId = null;
         $hasOrderedProduct = false;
         $hasCompletedOrders = false;
         $hasReviewed = false;
-        
+
         if (isLoggedIn()) {
             $userId = $_SESSION['user']['id'];
-            
+
             // Kiểm tra xem người dùng đã đặt hàng sản phẩm này chưa (bất kể trạng thái)
             $hasOrderedProduct = $this->orderModel->hasUserPurchasedProduct(
-                $userId, 
-                $product['id'], 
+                $userId,
+                $product['id'],
                 ['processing', 'shipped', 'delivered', 'completed']
             );
-            
+
             // Kiểm tra xem người dùng đã mua và nhận sản phẩm này chưa
             $hasCompletedOrders = $this->orderModel->hasUserPurchasedProduct(
-                $userId, 
-                $product['id'], 
+                $userId,
+                $product['id'],
                 ['delivered', 'completed']
             );
-            
+
             // Kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
             $hasReviewed = $this->reviewModel->hasUserReviewedProduct($userId, $product['id']);
-            
+
             // Người dùng có thể đánh giá nếu đã mua và nhận sản phẩm, và chưa đánh giá
             $canReview = $hasCompletedOrders && !$hasReviewed;
         }
@@ -227,7 +240,7 @@ class HomeController extends Controller
             'userId' => $userId
         ];
 
-        $this->view('client/product/detail', $data);
+        $this->render('client/product/detail', $data, 'client/layouts/app');
     }
 
     public function cart()
@@ -255,10 +268,12 @@ class HomeController extends Controller
                 'cartCount' => 0
             ];
 
-            $this->view('client/cart/index', $data);
+            $this->render('client/cart/index', $data, 'client/layouts/app');
             return;
-        }        // Initialize Cart model
-        $cartModel = $this->model('Cart');
+        }
+        // Initialize Cart model
+        require_once __DIR__ . '/../models/Cart.php';
+        $cartModel = new Cart();
 
         $cartItems = $cartModel->getCartItems();
         $cartTotal = $cartModel->getCartTotal();
@@ -271,13 +286,14 @@ class HomeController extends Controller
             'cartCount' => $cartCount
         ];
 
-        $this->view('client/cart/index', $data);
+        $this->render('client/cart/index', $data, 'client/layouts/app');
     }
 
     public function checkout()
     {
         // Initialize Cart model
-        $cartModel = $this->model('Cart');
+        require_once __DIR__ . '/../models/Cart.php';
+        $cartModel = new Cart();
 
         // Get cart data
         $cartItems = $cartModel->getCartItems();
@@ -301,7 +317,8 @@ class HomeController extends Controller
 
         // Load user addresses if logged in
         if (isset($_SESSION['user'])) {
-            $customerModel = $this->model('Customer');
+            require_once __DIR__ . '/../models/Customer.php';
+            $customerModel = new Customer();
             $addresses = $customerModel->getAddressesByUserId($_SESSION['user']['id']);
         }
 
@@ -313,7 +330,7 @@ class HomeController extends Controller
             'addresses' => $addresses
         ];
 
-        $this->view('client/checkout/index', $data);
+        $this->render('client/checkout/index', $data, 'client/layouts/app');
     }
 
     public function contact()
@@ -322,7 +339,7 @@ class HomeController extends Controller
             'title' => 'Liên Hệ - 5S Fashion'
         ];
 
-        $this->view('client/contact/index', $data);
+        $this->render('client/contact/index', $data, 'client/layouts/app');
     }
 
     public function about()
@@ -331,7 +348,7 @@ class HomeController extends Controller
             'title' => 'Về Chúng Tôi - 5S Fashion'
         ];
 
-        $this->view('client/about/index', $data);
+        $this->render('client/about/index', $data, 'client/layouts/app');
     }
 }
 ?>

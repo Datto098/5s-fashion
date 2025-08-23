@@ -1,0 +1,64 @@
+/* Các sửa đổi để khắc phục thanh cuộn ngang */
+
+/* Đảm bảo tất cả các phần tử đều sử dụng box-sizing: border-box */
+.chatbot-container *,
+.chatbot-container *::before,
+.chatbot-container *::after {
+    box-sizing: border-box;
+}
+
+/* Ngăn chặn thanh cuộn ngang */
+.chatbot-container {
+    overflow-x: hidden;
+}
+
+.chatbot-messages {
+    overflow-x: hidden;
+}
+
+/* Giới hạn chiều rộng tối đa cho tất cả các thành phần trong tin nhắn bot */
+.bot-message .message-content {
+    max-width: 100%;
+}
+
+/* Đảm bảo các sản phẩm không vượt quá chiều rộng */
+.product-card-mini {
+    width: 100%;
+    max-width: 100%;
+}
+
+.product-card-mini .product-info {
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Giảm kích thước phần giá */
+.product-card-mini .product-price {
+    font-size: 12px;
+}
+
+.product-card-mini .current-price {
+    font-size: 13px;
+}
+
+.product-card-mini .original-price {
+    font-size: 11px;
+}
+
+/* Giảm kích thước ảnh sản phẩm */
+.product-card-mini .product-image {
+    min-width: 50px;
+    width: 50px;
+    height: 50px;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    .message {
+        max-width: 95%;
+    }
+
+    .product-card-mini {
+        padding: 6px;
+    }
+}

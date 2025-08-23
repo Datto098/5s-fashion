@@ -223,6 +223,11 @@ class Product extends BaseModel
             $params[] = $filters['max_price'];
         }
 
+        // Filter by featured products
+        if (!empty($filters['featured']) && $filters['featured'] == 1) {
+            $whereConditions[] = "p.featured = 1";
+        }
+
         // Order by
         $orderBy = "p.created_at DESC";
         switch ($filters['sort'] ?? 'latest') {

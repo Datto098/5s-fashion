@@ -217,6 +217,13 @@ class ProductsController extends BaseController
             // Get product variants if exist
             $variants = $this->getProductVariants($id);
 
+            // Calculate total stock from variants
+            $totalStock = 0;
+            foreach ($variants as $variant) {
+                $totalStock += (int)($variant['stock_quantity'] ?? 0);
+            }
+            $product['total_variant_stock'] = $totalStock;
+
             // Get product images gallery
             $galleryImages = [];
             if (!empty($product['gallery'])) {
@@ -907,7 +914,20 @@ class ProductsController extends BaseController
     {
         try {
             $db = Database::getInstance();
-            $query = "SELECT * FROM product_variants WHERE product_id = ? ORDER BY id ASC";
+
+            // Lấy variant cùng với thuộc tính màu sắc và kích cỡ
+            $query = "SELECT pv.*,
+                      MAX(CASE WHEN pa.type = 'color' THEN pav.value END) as color,
+                      MAX(CASE WHEN pa.type = 'color' THEN pav.color_code END) as color_code,
+                      MAX(CASE WHEN pa.type = 'size' THEN pav.value END) as size
+                      FROM product_variants pv
+                      LEFT JOIN product_variant_attributes pva ON pv.id = pva.variant_id
+                      LEFT JOIN product_attribute_values pav ON pva.attribute_value_id = pav.id
+                      LEFT JOIN product_attributes pa ON pav.attribute_id = pa.id
+                      WHERE pv.product_id = ?
+                      GROUP BY pv.id
+                      ORDER BY pv.sort_order, pv.id ASC";
+
             $stmt = $db->query($query, [$productId]);
             return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         } catch (Exception $e) {

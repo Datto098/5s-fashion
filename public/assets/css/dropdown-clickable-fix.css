@@ -1,0 +1,57 @@
+/**
+ * Dropdown Clickable Fix CSS
+ * Đảm bảo các liên kết trong dropdown menu có thể click được
+ */
+
+/* Đảm bảo các dropdown items luôn ở trên cùng và có thể click được */
+.dropdown-menu .dropdown-item {
+    position: relative;
+    /* Thiết lập vị trí tương đối */
+    z-index: 1050 !important;
+    /* Z-index cao để đảm bảo ở trên cùng */
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    /* Bắt các sự kiện con trỏ */
+}
+
+/* Đảm bảo dropdown menu hiển thị đúng */
+.dropdown-menu {
+    display: none;
+    /* Ẩn mặc định */
+}
+
+.dropdown-menu.show {
+    display: block !important;
+    /* Hiển thị khi có class show */
+}
+
+/* Đặc biệt cho user dropdown */
+.user-dropdown .dropdown-menu {
+    z-index: 1060 !important;
+    /* Z-index cao hơn cho user dropdown */
+}
+
+/* Đảm bảo dropdown menu không bị che bởi các phần tử khác */
+.dropdown-menu.show {
+    overflow: visible !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+}
+
+/* Đảm bảo icon trong dropdown items hiển thị đúng */
+.dropdown-item i,
+.dropdown-item svg {
+    pointer-events: none;
+    /* Không cản trở sự kiện click trên dropdown item */
+}
+
+/* Đặc biệt cho dropdown toggle */
+.dropdown-toggle {
+    cursor: pointer !important;
+}
+
+/* Đảm bảo khi hover không làm che mất dropdown-item */
+.dropdown-item:hover {
+    overflow: visible;
+    position: relative;
+}

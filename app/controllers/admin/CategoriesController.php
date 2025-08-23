@@ -44,7 +44,7 @@ class CategoriesController extends BaseController
                 'breadcrumb' => ['Danh mục']
             ];
 
-            $this->render('admin/categories/index', $data, 'admin/layouts/main');
+            $this->render('admin/categories/index', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
             error_log("Error in CategoriesController::index - " . $e->getMessage());
@@ -58,7 +58,7 @@ class CategoriesController extends BaseController
                 'error' => 'Có lỗi xảy ra khi tải danh mục'
             ];
 
-            $this->render('admin/categories/index', $data, 'admin/layouts/main');
+            $this->render('admin/categories/index', $data, 'admin/layouts/main-inline');
         }
     }
 
@@ -77,7 +77,7 @@ class CategoriesController extends BaseController
                 'breadcrumb' => ['Danh mục', 'Thêm mới']
             ];
 
-            $this->render('admin/categories/create', $data, 'admin/layouts/main');
+            $this->render('admin/categories/create', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
             error_log("Error in CategoriesController::create - " . $e->getMessage());
@@ -208,7 +208,7 @@ class CategoriesController extends BaseController
                 'breadcrumb' => ['Danh mục', 'Chi tiết']
             ];
 
-            $this->render('admin/categories/show', $data, 'admin/layouts/main');
+            $this->render('admin/categories/show', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
             error_log("Error in CategoriesController::show - " . $e->getMessage());

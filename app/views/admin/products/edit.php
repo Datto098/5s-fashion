@@ -403,7 +403,7 @@ $visibilityOptions = [
                 </div>
 
                 <!-- Shipping & Attributes -->
-                <div class="card mb-4">
+                <!-- <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="fas fa-shipping-fast"></i> Vận chuyển & Thuộc tính
@@ -457,10 +457,10 @@ $visibilityOptions = [
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- SEO -->
-                <div class="card mb-4">
+                <!-- <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="fas fa-search"></i> Tối ưu hóa công cụ tìm kiếm (SEO)
@@ -485,7 +485,7 @@ $visibilityOptions = [
                                    placeholder="từ khóa 1, từ khóa 2, từ khóa 3">
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <!-- Sidebar -->
