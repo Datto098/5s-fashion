@@ -108,6 +108,32 @@ class Category extends BaseModel
     }
 
     /**
+     * Get categories for navigation menu
+     * Returns only active parent categories with their children
+     */
+    public function getNavigationCategories()
+    {
+        $db = Database::getInstance();
+
+        // Get active parent categories
+        $sql = "SELECT * FROM {$this->table}
+                WHERE parent_id IS NULL
+                AND status = 'active'
+                ORDER BY sort_order ASC";
+        $parents = $db->fetchAll($sql);
+
+        // Get all active categories for building the tree
+        $allCategories = $this->getActive();
+
+        // For each parent, attach its children
+        foreach ($parents as &$parent) {
+            $parent['children'] = $this->buildTree($allCategories, $parent['id']);
+        }
+
+        return $parents;
+    }
+
+    /**
      * Build hierarchical tree from flat array
      */
     private function buildTree($categories, $parentId = null)

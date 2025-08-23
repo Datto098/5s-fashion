@@ -149,7 +149,10 @@ $statusClass = [
                             <td class="fw-bold">Tồn kho:</td>
                             <td>
                                 <?php
-                                $totalStock = $product['stock_quantity'] ?? 0;
+                                $baseStock = $product['stock_quantity'] ?? 0;
+                                $variantStock = $product['total_variant_stock'] ?? 0;
+                                $totalStock = $product['has_variants'] ? $variantStock : $baseStock;
+
                                 if ($totalStock > 0): ?>
                                     <span class="text-success"><?= $totalStock ?> sản phẩm</span>
                                 <?php else: ?>
@@ -239,11 +242,13 @@ $statusClass = [
                                 <tr>
                                     <td><?= htmlspecialchars($variant['size'] ?? 'N/A') ?></td>
                                     <td>
-                                        <?php if (!empty($variant['color'])): ?>
+                                        <?php if (!empty($variant['color']) && !empty($variant['color_code'])): ?>
                                             <span class="d-inline-flex align-items-center">
-                                                <span class="color-circle me-2" style="background-color: <?= htmlspecialchars($variant['color']) ?>; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ddd;"></span>
+                                                <span class="color-circle me-2" style="background-color: <?= htmlspecialchars($variant['color_code']) ?>; width: 20px; height: 20px; border-radius: 50%; border: 1px solid #ddd;"></span>
                                                 <?= htmlspecialchars($variant['color']) ?>
                                             </span>
+                                        <?php elseif (!empty($variant['color'])): ?>
+                                            <?= htmlspecialchars($variant['color']) ?>
                                         <?php else: ?>
                                             N/A
                                         <?php endif; ?>
@@ -256,10 +261,14 @@ $statusClass = [
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php if ($variant['additional_price'] > 0): ?>
-                                            +<?= number_format($variant['additional_price'], 0, ',', '.') ?>đ
-                                        <?php elseif ($variant['additional_price'] < 0): ?>
-                                            <?= number_format($variant['additional_price'], 0, ',', '.') ?>đ
+                                        <?php if (isset($variant['additional_price'])): ?>
+                                            <?php if ($variant['additional_price'] > 0): ?>
+                                                +<?= number_format($variant['additional_price'], 0, ',', '.') ?>đ
+                                            <?php elseif ($variant['additional_price'] < 0): ?>
+                                                <?= number_format($variant['additional_price'], 0, ',', '.') ?>đ
+                                            <?php else: ?>
+                                                -
+                                            <?php endif; ?>
                                         <?php else: ?>
                                             -
                                         <?php endif; ?>

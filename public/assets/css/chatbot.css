@@ -1,26 +1,44 @@
 /**
  * 5S Fashion Chatbot Styles
  * Modern chatbot interface with smooth animations
+ * Cập nhật: Thiết kế responsive, hiệu ứng mượt mà hơn, hiển thị sản phẩm đẹp hơn
  */
 
 /* Chat Toggle Button */
 .chatbot-toggle {
     position: fixed;
     bottom: 30px;
-    left: 30px;
+    right: 30px;
+    /* Đã đổi từ left thành right để phù hợp với thiết kế UX hiện đại */
     z-index: 1000;
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #007bff, #0056b3);
+    background: linear-gradient(135deg, var(--primary-color, #007bff), var(--primary-color, #0056b3));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Easing animation */
     border: none;
     outline: none;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+    }
 }
 
 .chatbot-toggle:hover {
@@ -30,29 +48,47 @@
 
 .chatbot-toggle.active {
     background: linear-gradient(135deg, #28a745, #20c997);
+    animation: none;
 }
 
 .chatbot-toggle i {
     color: white;
     font-size: 24px;
+    animation: wiggle 1s ease-in-out infinite alternate;
+}
+
+@keyframes wiggle {
+    0% {
+        transform: rotate(-5deg);
+    }
+
+    100% {
+        transform: rotate(5deg);
+    }
+}
+
+.chatbot-toggle.active i {
+    animation: none;
 }
 
 /* Chat Container */
 .chatbot-container {
     position: fixed;
     bottom: 100px;
-    left: 30px;
+    right: 30px;
+    /* Đã đổi từ left thành right */
     width: 350px;
     height: 500px;
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     opacity: 0;
     visibility: hidden;
     transform: translateY(20px) scale(0.9);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    /* Bouncy effect */
     z-index: 999;
     overflow: hidden;
 }
@@ -65,12 +101,13 @@
 
 /* Chat Header */
 .chatbot-header {
-    background: linear-gradient(135deg, #007bff, #0056b3);
+    background: linear-gradient(135deg, var(--primary-color, #007bff), var(--primary-color, #0056b3));
     color: white;
     padding: 15px 20px;
     display: flex;
     align-items: center;
     gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .chatbot-avatar {
@@ -82,10 +119,12 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
 
 .chatbot-avatar i {
     font-size: 18px;
+    color: #ffffff;
 }
 
 .chatbot-info {
@@ -127,10 +166,13 @@
     flex: 1;
     padding: 15px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 15px;
     background: #f8f9fa;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .chatbot-messages::-webkit-scrollbar {
@@ -156,6 +198,8 @@
     gap: 10px;
     max-width: 80%;
     animation: fadeInUp 0.3s ease;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .bot-message {
@@ -224,34 +268,69 @@
     flex-direction: column;
     gap: 8px;
     margin-top: 10px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .product-card-mini {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     background: white;
     border-radius: 8px;
     padding: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+    overflow: hidden;
 }
 
 .product-card-mini:hover {
     transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.product-card-mini .product-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.product-card-mini .discount-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #e74c3c;
+    color: white;
+    font-size: 10px;
+    padding: 2px 4px;
+    border-radius: 0 0 4px 0;
+    font-weight: bold;
+    z-index: 1;
 }
 
 .product-card-mini .product-image {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     border-radius: 6px;
     overflow: hidden;
     flex-shrink: 0;
+    position: relative;
+    background-color: #f9f9f9;
 }
 
 .product-card-mini .product-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: all 0.3s ease;
 }
 
 .product-card-mini .product-info {
@@ -262,14 +341,16 @@
 }
 
 .product-card-mini .product-name {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     margin: 0 0 4px 0;
     line-height: 1.2;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    word-break: break-word;
 }
 
 .product-card-mini .product-price {
@@ -292,9 +373,11 @@
 }
 
 .product-card-mini .btn {
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 4px;
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    max-width: 80px;
+    margin: 0 auto;
 }
 
 /* Quick Actions */
@@ -501,4 +584,9 @@
     .chatbot-input {
         padding: 10px;
     }
+}
+
+/* Thêm hiệu ứng hover cho product image trong chatbot */
+.product-card-mini:hover .product-image img {
+    transform: scale(1.1);
 }

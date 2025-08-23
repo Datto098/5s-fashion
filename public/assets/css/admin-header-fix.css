@@ -1,0 +1,92 @@
+/* Admin header fix - ensures consistent header display across all admin pages */
+.admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    padding: 0 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.admin-content {
+    padding: 24px;
+    flex: 1;
+    min-height: calc(100vh - 64px);
+}
+
+/* Fix for any layout inconsistencies */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: calc(100% - 250px);
+    background: #f8fafc;
+}
+
+/* Fix for mobile responsiveness */
+@media (max-width: 991px) {
+    .admin-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1050;
+    }
+
+    .admin-sidebar.show {
+        transform: translateX(0);
+    }
+
+    .admin-main {
+        max-width: 100%;
+    }
+}
+
+/* Ensure consistent breadcrumb styling */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+}
+
+.breadcrumb-separator {
+    margin: 0 8px;
+    color: #9ca3af;
+}
+
+/* Fade-in animation for content */
+.fade-in {
+    animation: fadeInAnimation 0.3s ease-in-out;
+}
+
+@keyframes fadeInAnimation {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

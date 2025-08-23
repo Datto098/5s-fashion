@@ -8,7 +8,33 @@ class ChatbotApiController extends ApiController
 {
     public function __construct()
     {
-        parent::__construct();
+        try {
+            parent::__construct();
+        } catch (Exception $e) {
+            // Direct access mode - set up manually
+            // Enable CORS
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+
+            // Get request method
+            $this->requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+            // Parse JSON input
+            $json = file_get_contents('php://input');
+            $this->requestData = json_decode($json, true) ?: [];
+
+            // Initialize database
+            require_once ROOT_PATH . '/app/core/Database.php';
+            $config = require ROOT_PATH . '/app/config/database.php';
+            $db = $config['connections']['mysql'];
+            $this->db = new PDO(
+                "mysql:host={$db['host']};dbname={$db['database']};charset=utf8mb4",
+                $db['username'],
+                $db['password'],
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+            );
+        }
 
         // Ensure UTF-8 encoding
         header('Content-Type: application/json; charset=utf-8');
@@ -205,27 +231,49 @@ class ChatbotApiController extends ApiController
         try {
             switch ($type) {
                 case 'best_selling':
-                    $sql = "SELECT p.*, COALESCE(SUM(oi.quantity), 0) as total_sold
+                    $sql = "SELECT p.*, COALESCE(SUM(oi.quantity), 0) as total_sold,
+                            CASE
+                                WHEN p.sale_price IS NOT NULL AND p.sale_price > 0 AND p.sale_price < p.price
+                                THEN ROUND(((p.price - p.sale_price) / p.price) * 100)
+                                ELSE 0
+                            END as discount_percentage
                             FROM products p
                             LEFT JOIN order_items oi ON p.id = oi.product_id
-                            WHERE p.status = 'active'
+                            WHERE p.status = 'active' OR p.status = ''
                             GROUP BY p.id
-                            ORDER BY total_sold DESC
-                            LIMIT 3";
+                            ORDER BY total_sold DESC, p.created_at DESC
+                            LIMIT 5";
                     break;
 
                 case 'discounted':
-                    $sql = "SELECT * FROM products
-                            WHERE status = 'active' AND discount_percentage > 0
-                            ORDER BY discount_percentage DESC
-                            LIMIT 3";
+                    $sql = "SELECT *,
+                            CASE
+                                WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                                THEN ROUND(((price - sale_price) / price) * 100)
+                                WHEN discount_percentage IS NOT NULL AND discount_percentage > 0
+                                THEN discount_percentage
+                                ELSE 0
+                            END as calculated_discount
+                            FROM products
+                            WHERE (status = 'active' OR status = '') AND
+                                  (discount_percentage > 0 OR (sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price))
+                            ORDER BY calculated_discount DESC
+                            LIMIT 5";
                     break;
 
                 case 'new_products':
-                    $sql = "SELECT * FROM products
-                            WHERE status = 'active'
+                    $sql = "SELECT *,
+                            CASE
+                                WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                                THEN ROUND(((price - sale_price) / price) * 100)
+                                WHEN discount_percentage IS NOT NULL AND discount_percentage > 0
+                                THEN discount_percentage
+                                ELSE 0
+                            END as discount_percentage
+                            FROM products
+                            WHERE status = 'active' OR status = ''
                             ORDER BY created_at DESC
-                            LIMIT 3";
+                            LIMIT 5";
                     break;
 
                 default:
@@ -247,21 +295,36 @@ class ChatbotApiController extends ApiController
     private function formatProducts($products)
     {
         return array_map(function($product) {
-            $finalPrice = $product['price'];
-            if ($product['discount_percentage'] > 0) {
-                $finalPrice = $product['price'] * (100 - $product['discount_percentage']) / 100;
+            // Xử lý giá cuối cùng và kiểm tra xem discount_percentage có tồn tại không
+            $discount = isset($product['discount_percentage']) ? (float)$product['discount_percentage'] : 0;
+            $price = isset($product['price']) ? (float)$product['price'] : 0;
+            $finalPrice = $price;
+
+            // Chỉ tính giảm giá nếu discount > 0
+            if ($discount > 0) {
+                $finalPrice = $price * (100 - $discount) / 100;
+            } else if (isset($product['sale_price']) && $product['sale_price'] > 0) {
+                // Nếu không có discount_percentage nhưng có sale_price, sử dụng sale_price
+                $finalPrice = $product['sale_price'];
+                // Tính phần trăm giảm giá
+                if ($price > 0) {
+                    $discount = round((($price - (float)$product['sale_price']) / $price) * 100);
+                }
             }
 
+            // Đảm bảo các trường dữ liệu không bị null
             return [
                 'id' => (int)$product['id'],
-                'name' => $product['name'],
-                'slug' => $product['slug'],
-                'price' => (float)$product['price'],
-                'discount_percentage' => (float)($product['discount_percentage'] ?? 0),
-                'final_price' => $finalPrice,
-                'image' => $product['image'] ? UPLOAD_URL . '/products/' . $product['image'] : null,
-                'short_description' => substr($product['description'] ?? '', 0, 100) . '...',
-                'url' => BASE_URL . '/product/' . $product['slug']
+                'name' => $product['name'] ?? 'Sản phẩm',
+                'slug' => $product['slug'] ?? '',
+                'price' => $price,
+                'discount_percentage' => $discount,
+                'final_price' => number_format($finalPrice, 2, '.', ''),
+                'image' => isset($product['featured_image']) && $product['featured_image']
+                    ? BASE_URL . '/serve-file.php?file=products/' . urlencode($product['featured_image'])
+                    : BASE_URL . '/assets/images/placeholder.jpg',
+                'short_description' => isset($product['description']) ? substr($product['description'], 0, 100) . '...' : 'Không có mô tả.',
+                'url' => BASE_URL . '/product/' . ($product['slug'] ?? 'san-pham')
             ];
         }, $products);
     }

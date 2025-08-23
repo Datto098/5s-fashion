@@ -1,0 +1,56 @@
+/**
+ * CSS cho Category Navigation
+ * Các style đặc biệt cho việc đánh dấu category đang active
+ */
+
+/* Style cho simple menu */
+.simple-category-nav .category-link.active {
+    color: var(--bs-primary) !important;
+    font-weight: bold;
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 3px;
+}
+
+.simple-category-nav .subcategory-link.active {
+    color: var(--bs-primary) !important;
+    font-weight: bold;
+}
+
+/* Style cho mega menu */
+.category-megamenu .dropdown-header a.active {
+    color: var(--bs-primary) !important;
+    font-weight: bold;
+}
+
+.category-megamenu .dropdown-item.active,
+.category-megamenu .category-child-link.active {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary) !important;
+    font-weight: bold;
+}
+
+/* Style cho các dropdown chính (Nam, Nữ) */
+.nav-menu .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    font-weight: bold;
+}
+
+.nav-menu .nav-link.parent-active {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Hiệu ứng hover */
+.simple-category-nav .category-link:hover,
+.simple-category-nav .subcategory-link:hover {
+    color: var(--bs-primary) !important;
+}
+
+.category-megamenu .dropdown-header a:hover {
+    color: var(--bs-primary) !important;
+}
+
+.category-megamenu .dropdown-item:hover,
+.category-megamenu .category-child-link:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    color: var(--bs-primary) !important;
+}

@@ -1,0 +1,66 @@
+/* Hover dropdown enhancements */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    display: none;
+    transition: opacity 0.3s, transform 0.3s;
+    transform-origin: top center;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.dropdown-menu.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Ensure links inside dropdowns are properly clickable */
+.dropdown-menu a,
+.dropdown-item,
+.dropdown-header a {
+    cursor: pointer;
+    position: relative;
+    z-index: 1200;
+}
+
+/* Allow a small gap between dropdown and its toggle for better UX */
+.dropdown-menu::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: transparent;
+}
+
+/* Animation for dropdown appearance */
+@keyframes fadeInDropdown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu.show {
+    animation: fadeInDropdown 0.2s ease-out;
+}
+
+/* Ensure proper z-index layering for nested dropdowns */
+.dropdown .dropdown {
+    z-index: 1300;
+}
+
+.dropdown .dropdown .dropdown-menu {
+    z-index: 1301;
+}
