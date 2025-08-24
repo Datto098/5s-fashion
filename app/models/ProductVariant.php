@@ -183,8 +183,28 @@ class ProductVariant extends BaseModel
             $db->execute($sql, $variantData);
             $variantId = $db->lastInsertId();
 
-            // Add attribute mappings
+            // Đảm bảo không lưu nhiều thuộc tính cùng loại
+            $attributesByType = [];
+
+            // Lấy type của từng attribute value và nhóm theo type
             foreach ($attributeValueIds as $attributeValueId) {
+                $sql = "SELECT pav.id, pa.type
+                        FROM product_attribute_values pav
+                        JOIN product_attributes pa ON pav.attribute_id = pa.id
+                        WHERE pav.id = :id";
+                $attributeInfo = $db->fetchOne($sql, ['id' => $attributeValueId]);
+
+                if ($attributeInfo) {
+                    $type = $attributeInfo['type'] ?? 'other';
+                    // Chỉ lưu một thuộc tính cho mỗi loại
+                    if (!isset($attributesByType[$type])) {
+                        $attributesByType[$type] = $attributeValueId;
+                    }
+                }
+            }
+
+            // Lưu các thuộc tính đã được lọc
+            foreach ($attributesByType as $attributeValueId) {
                 $sql = "INSERT INTO product_variant_attributes (variant_id, attribute_value_id) VALUES (:variant_id, :attribute_value_id)";
                 $db->execute($sql, [
                     'variant_id' => $variantId,

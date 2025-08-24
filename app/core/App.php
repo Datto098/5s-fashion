@@ -43,6 +43,19 @@ class App
                 $productId = $url[1];
                 $action = $url[3];
 
+                // Special case for /admin/products/{productId}/variants/fix-duplicates
+                if ($action === 'fix-duplicates') {
+                    $controllerFile = APP_PATH . '/controllers/admin/' . $this->controller . '.php';
+                    if (file_exists($controllerFile)) {
+                        require_once $controllerFile;
+                        $this->controller = new $this->controller;
+                        $this->method = 'fixDuplicateAttributes';
+                        $this->params = [$productId];
+                        call_user_func_array([$this->controller, $this->method], $this->params);
+                        return;
+                    }
+                }
+
                 // Check for 5-parameter route: /admin/products/{productId}/variants/{variantId}/{action}
                 if (isset($url[4])) {
                     $variantId = $url[3];
