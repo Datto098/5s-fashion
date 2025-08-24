@@ -24,18 +24,27 @@ class VoucherController extends BaseController
      */
     public function index()
     {
-        $userId = $_SESSION['user']['id']  ?? null;
+        $userId = $_SESSION['user']['id'] ?? null;
 
-        // Get available coupons (not saved by user yet)
+        // Get available coupons
         $availableCoupons = [];
         $savedCoupons = [];
-
-
+        $usedCoupons = [];
+        
+        // Get coupons based on status
         if ($userId) {
             // Lấy tất cả coupon còn hạn, active
             $availableCoupons = $this->couponModel->getActiveCoupons();
-            // Lấy tất cả trạng thái user đã lưu (saved, used)
-            $savedCoupons = $this->userCouponModel->getUserCoupons($userId, null); // null để lấy tất cả trạng thái
+            
+            // Lấy coupon đã lưu (trạng thái 'saved')
+            $savedCoupons = $this->userCouponModel->getUserCoupons($userId, 'saved');
+            
+            // Lấy coupon đã sử dụng (trạng thái 'used')
+            $usedCoupons = $this->userCouponModel->getUserCoupons($userId, 'used');
+            
+            // Tạo danh sách ID voucher đã lưu và đã sử dụng để dễ kiểm tra
+            $savedCouponIds = array_column($savedCoupons, 'coupon_id');
+            $usedCouponIds = array_column($usedCoupons, 'coupon_id');
         } else {
             $availableCoupons = $this->couponModel->getActiveCoupons();
         }
@@ -46,6 +55,9 @@ class VoucherController extends BaseController
         $this->render('client/vouchers/index', [
             'availableCoupons' => $availableCoupons,
             'savedCoupons' => $savedCoupons,
+            'usedCoupons' => $usedCoupons,
+            'savedCouponIds' => $savedCouponIds ?? [],
+            'usedCouponIds' => $usedCouponIds ?? [],
             'trendingCoupons' => $trendingCoupons,
             'userId' => $userId
         ], 'client/layouts/app');

@@ -248,6 +248,29 @@
             <?= $inline_css ?>
         </style>
     <?php endif; ?>
+    
+    <!-- Toast Notification CSS -->
+    <style>
+        /* Toast Animation */
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Toast notification styles will be added inline by JS */
+        .toast-notification {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .toast-notification .toast-content i {
+            font-size: 20px;
+        }
+        
+        .toast-notification .toast-close:hover {
+            opacity: 1;
+        }
+    </style>
 
     <style>
         /* Cart Sidebar Styles */
@@ -550,15 +573,12 @@
             <?php include_once VIEW_PATH . '/client/layouts/breadcrumb.php'; ?>
         <?php endif; ?>
 
-        <!-- Flash Messages -->
+        <!-- Flash Messages - These will be converted to toast notifications by JS -->
         <?php if (hasFlash()): ?>
-            <div class="container">
+            <div id="flash-messages" style="display: none;">
                 <?php foreach (getFlash() as $type => $message): ?>
-                    <div class="alert alert-<?= $type === 'error' ? 'danger' : $type ?> alert-dismissible fade show" role="alert">
-                        <i class="fas fa-<?= $type === 'success' ? 'check-circle' : ($type === 'error' ? 'exclamation-circle' : 'info-circle') ?>"></i>
-                        <?= htmlspecialchars($message) ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
+                    <div data-type="<?= $type === 'error' ? 'error' : ($type === 'success' ? 'success' : ($type === 'warning' ? 'warning' : 'info')) ?>" 
+                         data-message="<?= htmlspecialchars($message) ?>"></div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
@@ -775,12 +795,161 @@
 
 
     <script>
+        // Improved Toast Notification System
+        function showToast(message, type = 'info') {
+            // Remove existing toasts
+            const existingToasts = document.querySelectorAll('.toast-notification');
+            existingToasts.forEach(toast => toast.remove());
+
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification toast-' + type;
+
+            let iconClass = 'info-circle';
+            if (type === 'success') iconClass = 'check-circle';
+            else if (type === 'warning') iconClass = 'exclamation-triangle';
+            else if (type === 'error') iconClass = 'times-circle';
+
+            // Add close button to toast
+            toast.innerHTML = '<div class="toast-content">' +
+                '<i class="fas fa-' + iconClass + '"></i>' +
+                '<span>' + message + '</span>' +
+                '</div>' +
+                '<button class="toast-close"><i class="fas fa-times"></i></button>';
+
+            // Add toast styles
+            let bgColor = '#17a2b8';
+            let textColor = 'white';
+            let borderColor = '#0f8599';
+            
+            if (type === 'success') {
+                bgColor = '#d4edda';
+                textColor = '#155724';
+                borderColor = '#c3e6cb';
+            } else if (type === 'warning') {
+                bgColor = '#fff3cd';
+                textColor = '#856404';
+                borderColor = '#ffeeba';
+            } else if (type === 'error') {
+                bgColor = '#f8d7da';
+                textColor = '#721c24';
+                borderColor = '#f5c6cb';
+            } else { // info
+                bgColor = '#d1ecf1';
+                textColor = '#0c5460';
+                borderColor = '#bee5eb';
+            }
+
+            toast.style.cssText = `
+                position: fixed; 
+                top: 20px; 
+                right: 20px; 
+                z-index: 9999; 
+                padding: 15px 20px; 
+                background: ${bgColor}; 
+                color: ${textColor}; 
+                border-left: 4px solid ${borderColor};
+                border-radius: 8px; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+                transform: translateY(-20px); 
+                opacity: 0;
+                transition: transform 0.3s ease, opacity 0.3s ease; 
+                font-size: 16px; 
+                font-weight: 500;
+                max-width: 350px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            `;
+            
+            // Style for toast content
+            const toastContent = toast.querySelector('.toast-content');
+            toastContent.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            `;
+            
+            // Style for close button
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.style.cssText = `
+                background: transparent;
+                border: none;
+                color: ${textColor};
+                cursor: pointer;
+                padding: 0;
+                margin-left: 15px;
+                opacity: 0.7;
+            `;
+            
+            // Add click handler to close button
+            closeBtn.addEventListener('click', () => {
+                hideToast(toast);
+            });
+
+            document.body.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            }, 100);
+
+            // Remove after 5 seconds (longer display time for better visibility)
+            const toastTimeout = setTimeout(() => {
+                hideToast(toast);
+            }, 5000);
+            
+            // Function to hide toast with animation
+            function hideToast(toastElement) {
+                toastElement.style.transform = 'translateY(-20px)';
+                toastElement.style.opacity = '0';
+                setTimeout(() => {
+                    if (toastElement.parentNode) {
+                        toastElement.parentNode.removeChild(toastElement);
+                    }
+                }, 300);
+                clearTimeout(toastTimeout);
+            }
+        }
+        
+        // Make showToast globally available
+        window.showToast = showToast;
+        
         // Initialize systems on page load"></script>
 
     <!-- Specific fix for user dropdown menus -->
     <script src="<?= asset('js/user-dropdown-fix.js') ?>"></script>    <script>
         // Initialize systems on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Process flash messages and convert to toast notifications
+            const flashMessages = document.getElementById('flash-messages');
+            if (flashMessages) {
+                const messages = flashMessages.querySelectorAll('div');
+                messages.forEach(msg => {
+                    const type = msg.getAttribute('data-type');
+                    const message = msg.getAttribute('data-message');
+                    if (message) {
+                        showToast(message, type);
+                    }
+                });
+            }
+            
+            // Remove any hard-coded success/error alerts that might be present
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert:not(.alert-important)');
+                alerts.forEach(alert => {
+                    // Fade out and remove
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        if (alert.parentNode) {
+                            alert.parentNode.removeChild(alert);
+                        }
+                    }, 500);
+                });
+            }, 1000); // Wait a second to ensure page is fully loaded
+            
             // Clear old localStorage data that might interfere
             console.log('🧹 Clearing old localStorage data...');
             localStorage.removeItem('wishlist'); // Remove old localStorage wishlist

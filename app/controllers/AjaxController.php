@@ -766,6 +766,7 @@ class AjaxController extends Controller
         $rating = isset($_POST['rating']) ? (int)$_POST['rating'] : 0;
         $title = isset($_POST['title']) ? trim($_POST['title']) : '';
         $content = isset($_POST['content']) ? trim($_POST['content']) : '';
+        $reviewId = isset($_POST['review_id']) ? (int)$_POST['review_id'] : 0;
 
         // Validate input
         if (!$productId) {
@@ -773,13 +774,11 @@ class AjaxController extends Controller
             echo json_encode(['success' => false, 'message' => 'ID sản phẩm không hợp lệ']);
             return;
         }
-
         if ($rating < 1 || $rating > 5) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Đánh giá phải từ 1-5 sao']);
             return;
         }
-
         if (empty($content)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Vui lòng nhập nội dung đánh giá']);
@@ -792,13 +791,48 @@ class AjaxController extends Controller
         $reviewModel = new Review();
         $orderModel = new Order();
 
+        if ($reviewId) {
+            // Sửa review
+            $review = $reviewModel->findById($reviewId);
+            if (!$review || $review['user_id'] != $userId) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Bạn không có quyền sửa đánh giá này']);
+                return;
+            }
+            // Cập nhật review
+            $updateData = [
+                'rating' => $rating,
+                'title' => $title,
+                'content' => $content,
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+            try {
+                $result = $reviewModel->update($reviewId, $updateData);
+                if ($result) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Đã cập nhật đánh giá thành công!',
+                        'review_id' => $reviewId
+                    ]);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi khi cập nhật đánh giá']);
+                }
+            } catch (Exception $e) {
+                error_log("Error updating review: " . $e->getMessage());
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi: ' . $e->getMessage()]);
+            }
+            return;
+        }
+
+        // Thêm mới review (giữ nguyên logic cũ)
         // Check if user has already reviewed this product
         if ($reviewModel->hasUserReviewedProduct($userId, $productId)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Bạn đã đánh giá sản phẩm này rồi']);
             return;
         }
-
         // Check if user has purchased this product
         $hasPurchased = $orderModel->hasUserPurchasedProduct($userId, $productId);
         if (!$hasPurchased) {
@@ -806,7 +840,6 @@ class AjaxController extends Controller
             echo json_encode(['success' => false, 'message' => 'Bạn chỉ có thể đánh giá sản phẩm mà bạn đã mua']);
             return;
         }
-
         // Create the review
         $reviewData = [
             'product_id' => $productId,
@@ -816,10 +849,8 @@ class AjaxController extends Controller
             'content' => $content,
             'status' => 'approved'
         ];
-
         try {
             $result = $reviewModel->create($reviewData);
-
             if ($result) {
                 echo json_encode([
                     'success' => true,

@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
             likeReview(reviewId, this);
         });
     });
-    
+
     // Xử lý sự kiện khi nhấn nút Delete
     document.querySelectorAll('.delete-review-btn').forEach(button => {
         button.addEventListener('click', function() {
@@ -15,6 +15,64 @@ document.addEventListener('DOMContentLoaded', function() {
             if (confirm('Bạn có chắc chắn muốn xóa đánh giá này không?')) {
                 deleteReview(reviewId, this);
             }
+        });
+    });
+
+    // Xử lý sự kiện khi nhấn nút Sửa
+    document.querySelectorAll('.btn-edit-review').forEach(button => {
+        button.addEventListener('click', function() {
+            const reviewId = this.getAttribute('data-review-id');
+            const reviewItem = this.closest('.review-item');
+            if (!reviewItem) return;
+
+            // Lấy tiêu đề và nội dung cũ
+            let title = '';
+            const titleElem = reviewItem.querySelector('.review-title');
+            if (titleElem) {
+                title = titleElem.innerText.trim();
+            } else {
+                // Nếu không có class review-title, thử lấy thẳng từ thẻ strong/h6 đầu đoạn nội dung
+                const strong = reviewItem.querySelector('.review-content strong');
+                if (strong) title = strong.innerText.trim();
+            }
+            const content = reviewItem.querySelector('.review-content p')?.innerText || '';
+            const rating = reviewItem.querySelectorAll('.review-rating .fa-star.text-warning').length;
+            // Scroll tới form
+            const reviewFormDiv = document.getElementById('reviewForm');
+            if (reviewFormDiv && reviewFormDiv.style.display === 'none') {
+                reviewFormDiv.style.display = '';
+            }
+            reviewFormDiv?.scrollIntoView({ behavior: 'smooth' });
+
+            // Điền lại nội dung và rating vào form (form id submitReviewForm, textarea name=content, input name=rating)
+            setTimeout(function() {
+                const form = document.getElementById('submitReviewForm');
+                if (form) {
+                    // Điền tiêu đề
+                    const titleInput = form.querySelector('input[name="title"]');
+                    if (titleInput) titleInput.value = title;
+                    // Điền nội dung
+                    const textarea = form.querySelector('textarea[name="content"]');
+                    if (textarea) textarea.value = content;
+                    // Nếu có input hidden review_id thì set để biết là đang sửa
+                    let reviewIdInput = form.querySelector('input[name="review_id"]');
+                    if (!reviewIdInput) {
+                        reviewIdInput = document.createElement('input');
+                        reviewIdInput.type = 'hidden';
+                        reviewIdInput.name = 'review_id';
+                        form.appendChild(reviewIdInput);
+                    }
+                    reviewIdInput.value = reviewId;
+                    // Set rating nếu có
+                    if (typeof setReviewFormRating === 'function') {
+                        setReviewFormRating(rating);
+                    } else {
+                        // Nếu không có hàm, thử set input radio
+                        const ratingInput = form.querySelector('input[name="rating"][value="' + rating + '"]');
+                        if (ratingInput) ratingInput.checked = true;
+                    }
+                }
+            }, 300);
         });
     });
 });

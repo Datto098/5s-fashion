@@ -1,3 +1,4 @@
+ 
 <?php
 
 class Review extends BaseModel
@@ -7,6 +8,41 @@ class Review extends BaseModel
     protected $fillable = [
         'product_id', 'user_id', 'rating', 'title', 'content', 'status'
     ];
+
+    /**
+     * Get total number of reviews for a product
+     * @param int $productId
+     * @return int
+     */
+    public function getProductReviewCount($productId)
+    {
+        $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE product_id = ?";
+        $result = $this->db->fetchOne($sql, [$productId]);
+        return (int)($result['count'] ?? 0);
+    }
+       /**
+     * Get average rating and per-star breakdown for a product
+     * @param int $productId
+     * @return array ['average' => float, 'counts' => [1=>int,2=>int,3=>int,4=>int,5=>int]]
+     */
+    public function getProductRatingStats($productId)
+    {
+        $sql = "SELECT rating, COUNT(*) as count FROM {$this->table} WHERE product_id = ? GROUP BY rating";
+        $rows = $this->db->fetchAll($sql, [$productId]);
+        $counts = [1=>0,2=>0,3=>0,4=>0,5=>0];
+        $total = 0;
+        $sum = 0;
+        foreach ($rows as $row) {
+            $r = (int)$row['rating'];
+            if ($r >= 1 && $r <= 5) {
+                $counts[$r] = (int)$row['count'];
+                $total += (int)$row['count'];
+                $sum += $r * (int)$row['count'];
+            }
+        }
+        $average = $total > 0 ? round($sum / $total, 1) : 0;
+        return ['average' => $average, 'counts' => $counts];
+    }
     
     /**
      * Check if user has already reviewed a product
@@ -213,37 +249,32 @@ class Review extends BaseModel
             // Tạo mảng các review id để lấy thông tin like trong 1 lần truy vấn
             $reviewIds = array_column($result, 'id');
             $placeholders = implode(',', array_fill(0, count($reviewIds), '?'));
-            
+
             // Lấy danh sách các review mà user đã like
             $likesSql = "
                 SELECT review_id 
                 FROM review_likes 
                 WHERE review_id IN ($placeholders) AND user_id = ?
             ";
-            
+
             // Tạo params cho truy vấn likes
             $likeParams = array_merge($reviewIds, [$userId]);
             $likedReviews = $this->db->fetchAll($likesSql, $likeParams);
-            
+
             // Chuyển kết quả thành mảng đơn giản các ID review đã like
             $likedReviewIds = array_column($likedReviews, 'review_id');
-            
-            // Debug
-            error_log("Liked review IDs for user $userId: " . implode(', ', $likedReviewIds));
-            
-            // Đánh dấu các review đã like trong kết quả
+
+            // Đánh dấu các review đã like trong kết quả (đổi tên trường thành liked_by_user)
             foreach ($result as &$review) {
-                $review['user_has_liked'] = in_array($review['id'], $likedReviewIds);
+                $review['liked_by_user'] = in_array($review['id'], $likedReviewIds);
             }
         } else {
             // Nếu không có userId, đánh dấu tất cả là chưa like
             foreach ($result as &$review) {
-                $review['user_has_liked'] = false;
+                $review['liked_by_user'] = false;
             }
         }
-        
-        error_log("Final review result: " . print_r($result, true));
-        
+
         return $result;
     }
 

@@ -65,23 +65,16 @@
                 $btnText = '<i class="fas fa-plus"></i> Lưu';
                 $btnClass = 'btn-primary';
                 $btnDisabled = '';
-                if (!empty($savedCoupons)) {
-                    foreach ($savedCoupons as $saved) {
-                        if ($saved['coupon_id'] == $coupon['id']) {
-                            if ($saved['status'] === 'used') {
-                                $btnType = 'used';
-                                $btnText = '<i class="fas fa-check"></i> Đã sử dụng';
-                                $btnClass = 'btn-secondary';
-                                $btnDisabled = 'disabled';
-                            } elseif ($saved['status'] === 'saved') {
-                                $btnType = 'saved';
-                                $btnText = '<i class="fas fa-bookmark"></i> Đã lưu';
-                                $btnClass = 'btn-success';
-                                $btnDisabled = 'disabled';
-                            }
-                            break;
-                        }
-                    }
+                if (!empty($usedCouponIds) && in_array($coupon['id'], $usedCouponIds)) {
+                    $btnType = 'used';
+                    $btnText = '<i class="fas fa-check"></i> Đã sử dụng';
+                    $btnClass = 'btn-secondary';
+                    $btnDisabled = 'disabled';
+                } elseif (!empty($savedCouponIds) && in_array($coupon['id'], $savedCouponIds)) {
+                    $btnType = 'saved';
+                    $btnText = '<i class="fas fa-bookmark"></i> Đã lưu';
+                    $btnClass = 'btn-success';
+                    $btnDisabled = 'disabled';
                 }
                 ?>
                 <div class="col-md-6 col-lg-4 mb-4 voucher-item" data-type="<?= $coupon['type'] ?>">
@@ -290,7 +283,7 @@
 
 .voucher-actions {
     display: flex;
-    gap: 5px;
+    gap: 2px;
 }
 
 .voucher-filters {

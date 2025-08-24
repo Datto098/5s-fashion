@@ -147,17 +147,17 @@
                                                 <?php endif; ?>
                                             </div>
 
-                                            <div class="voucher-actions">
+                                            <div class="voucher-actions d-flex gap-2">
                                                 <button class="btn btn-primary btn-sm copy-code"
                                                         data-code="<?= htmlspecialchars($coupon['code']) ?>">
-                                                    <i class="fas fa-copy"></i> Copy mã
+                                                    <i class="fas fa-copy"></i>
                                                 </button>
                                                 <button class="btn btn-outline-danger btn-sm remove-voucher"
                                                         data-coupon-id="<?= $coupon['coupon_id'] ?>">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                                 <a href="/5s-fashion/shop" class="btn btn-success btn-sm">
-                                                    <i class="fas fa-shopping-cart"></i> Mua sắm
+                                                    <i class="fas fa-shopping-cart"></i>
                                                 </a>
                                             </div>
                                         </div>
@@ -400,11 +400,10 @@
 }
 
 .voucher-footer {
-    padding: 15px 20px;
+    padding: 13px 0px;
     border-top: 1px solid #e9ecef;
     background: #f8f9fa;
 }
-
 .voucher-dates {
     margin-bottom: 15px;
 }
@@ -413,15 +412,17 @@
     font-size: 12px;
     color: #6c757d;
     margin-bottom: 5px;
+    margin-left: 10px;
 }
 
 .voucher-actions {
     display: flex;
     gap: 5px;
+    justify-content: center;
 }
 
 .voucher-actions .btn-sm {
-    min-width: auto;
+    min-width: max-content;
 }
 
 .empty-state {
@@ -595,5 +596,3 @@ if (!document.querySelector('#toast-animations')) {
     document.head.appendChild(style);
 }
 </script>
-
-
