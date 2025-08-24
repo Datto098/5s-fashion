@@ -1266,18 +1266,17 @@ function renderQuickViewContent(product) {
       .join("");
 
     // Render color buttons (Chọn Màu Sắc): hiển thị đúng tên màu và mã màu
-    const colorButtons = colorList
-      .map((colorObj, index) => {
-        // colorObj: { name: "Đỏ", color_code: "#ff0000" }
-        return `
-          <button type="button" class="btn btn-outline-secondary color-option ${index === 0 ? "active" : ""}"
-            data-color="${colorObj.name}" onclick="selectColor('${colorObj.name}')">
-            <span class="color-swatch" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${colorObj.color_code};border:1px solid #ccc;margin-right:6px;vertical-align:middle;"></span>
-            ${colorObj.name}
-          </button>
-        `;
-      })
-      .join("");
+   const colorButtons = colorList
+  .map((colorObj, index) => {
+    return `
+      <button type="button" class="btn btn-outline-secondary color-option ${index === 0 ? "active" : ""}"
+        data-color="${colorObj.name}" onclick="selectColor('${colorObj.name}')"
+        title="${colorObj.name}">
+        <span class="color-swatch" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${colorObj.color_code};border:1px solid #ccc;vertical-align:middle;"></span>
+      </button>
+    `;
+  })
+  .join("");
 
     variantsHTML = `
 			<div class="variant-selection mb-3">

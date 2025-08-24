@@ -562,8 +562,8 @@ class Product extends BaseModel
                 // Variant name format: "Product Name - Color - Size"
                 $parts = explode(' - ', $variant['variant_name']);
                 if (count($parts) >= 3) {
-                    $variant['color'] = $parts[count($parts) - 1]; // Second to last part is color
-                    $variant['size'] = $parts[count($parts) - 2];  // Last part is size
+                    $variant['color'] = $parts[count($parts) - 2]; // Second to last part is color
+                    $variant['size'] = $parts[count($parts) - 1];  // Last part is size
                 } else {
                     $variant['color'] = 'Default';
                     $variant['size'] = 'One Size';
