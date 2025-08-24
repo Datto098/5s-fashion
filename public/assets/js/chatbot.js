@@ -12,11 +12,24 @@ class FSFashionChatbot {
 		this.isTyping = false;
 		this.conversation = []; // Lưu lịch sử hội thoại
 		this.currentProductType = null; // Loại sản phẩm hiện tại (best_selling, discounted, newest)
+		this.sessionId = this.generateSessionId(); // Session ID for conversation tracking
 
 		this.init();
 	}
 
+	// Generate a random session ID
+	generateSessionId() {
+		return (
+			'chatbot_' +
+			Math.random().toString(36).substring(2, 15) +
+			Math.random().toString(36).substring(2, 15)
+		);
+	}
+
 	init() {
+		// Thêm CSS cho các thành phần đặc biệt như bảng size
+		this.injectCustomCSS();
+
 		// Kiểm tra hội thoại đã lưu trong local storage
 		const savedChat = localStorage.getItem('5s_fashion_chatbot_history');
 		if (savedChat) {
@@ -172,7 +185,10 @@ class FSFashionChatbot {
 					'Content-Type': 'application/json',
 					Accept: 'application/json',
 				},
-				body: JSON.stringify({ message: message }),
+				body: JSON.stringify({
+					message: message,
+					sessionId: this.sessionId, // Send session ID for context tracking
+				}),
 			});
 
 			const data = await response.json();
@@ -188,9 +204,19 @@ class FSFashionChatbot {
 					this.currentProductType = data.data.type;
 				}
 
-				// Add products if any
+				// Handle different types of responses
 				if (data.data.products && data.data.products.length > 0) {
+					// Products data available
 					this.addProductMessage(data.data.products);
+				}
+
+				// If it's a search result, remember for context
+				if (
+					data.data.type === 'product_search' ||
+					data.data.type === 'price_range_search'
+				) {
+					// Could add specific UI elements for searches
+					console.log('Search results displayed');
 				}
 			} else {
 				this.addMessage(
@@ -215,8 +241,17 @@ class FSFashionChatbot {
 		const messageDiv = document.createElement('div');
 		messageDiv.className = `message ${type}-message`;
 
-		// Nhận dạng URL và chuyển đổi thành liên kết có thể click
-		const linkedMessage = this.linkify(message);
+		// Kiểm tra xem message có chứa HTML hay không
+		// Nếu chứa HTML, sử dụng trực tiếp, ngược lại xử lý URL
+		let processedMessage = message;
+
+		// Kiểm tra xem message có phải là HTML không
+		const containsHTML = /<[a-z][\s\S]*>/i.test(message);
+
+		if (!containsHTML) {
+			// Chỉ xử lý linkify nếu không phải HTML
+			processedMessage = this.linkify(message);
+		}
 
 		if (type === 'bot') {
 			messageDiv.innerHTML = `
@@ -224,14 +259,14 @@ class FSFashionChatbot {
                     <i class="fas fa-robot"></i>
                 </div>
                 <div class="message-content">
-                    <div class="message-text">${linkedMessage}</div>
+                    <div class="message-text">${processedMessage}</div>
                     <div class="message-time">${this.getCurrentTime()}</div>
                 </div>
             `;
 		} else {
 			messageDiv.innerHTML = `
                 <div class="message-content">
-                    <div class="message-text">${linkedMessage}</div>
+                    <div class="message-text">${processedMessage}</div>
                     <div class="message-time">${this.getCurrentTime()}</div>
                 </div>
                 <div class="message-avatar">
@@ -288,11 +323,8 @@ class FSFashionChatbot {
 						product.url
 					}" class="product-link" target="_blank">
                         <div class="product-image">
-                            <img src="${
-								product.image ||
-								'/5s-fashion/serve-file.php?file=products/no-image.jpg'
-							}" alt="${product.name}"
-                                onerror="this.src='/5s-fashion/serve-file.php?file=products/no-image.jpg'"
+                            <img src="${product.image}" alt="${product.name}"
+                                onerror="this.src=window.location.origin + '/5s-fashion/public/assets/images/no-image.jpg'"
                                 class="product-image img-fluid">
                         </div>
                         <div class="product-info">
@@ -423,15 +455,144 @@ class FSFashionChatbot {
 				.replace(/\n/g, '<br>')
 		);
 	}
-}
 
-// Initialize chatbot when DOM is loaded
-document.addEventListener('DOMContentLoaded', function () {
-	// Check if chatbot elements exist
-	if (document.getElementById('chatbot-toggle')) {
-		window.chatbot = new FSFashionChatbot();
+	// Thêm CSS tùy chỉnh để hiển thị bảng size và các thành phần khác đẹp hơn
+	injectCustomCSS() {
+		const styleElement = document.createElement('style');
+		styleElement.innerHTML = `
+			/* CSS cho bảng size trong chatbot */
+			.size-guide-table {
+				margin: 8px 0;
+				padding: 10px;
+				border-radius: 8px;
+				background-color: #f7f8fc;
+			}
+
+			.size-guide-table h4 {
+				margin-top: 0;
+				margin-bottom: 10px;
+				color: #333;
+				font-size: 16px;
+				font-weight: 600;
+			}
+
+			.size-guide-table table {
+				width: 100%;
+				border-collapse: collapse;
+				margin-bottom: 10px;
+				border: none;
+			}
+
+			.size-guide-table th {
+				background-color: #e3e6f3;
+				color: #333;
+				text-align: left;
+				padding: 6px 8px;
+				font-size: 14px;
+				font-weight: 600;
+				border: 1px solid #c6cde5;
+			}
+
+			.size-guide-table td {
+				padding: 6px 8px;
+				border: 1px solid #e3e6f3;
+				font-size: 13px;
+			}
+
+			.size-guide-table tr:nth-child(even) {
+				background-color: #f2f4fa;
+			}
+
+			.size-guide-table p {
+				margin: 8px 0 0 0;
+				font-size: 13px;
+				font-style: italic;
+				color: #666;
+			}
+
+			/* CSS cho thông tin cửa hàng */
+			.store-info-card {
+				margin: 8px 0;
+				padding: 12px;
+				border-radius: 8px;
+				background-color: #f8f9ff;
+				border: 1px solid #e3e6f3;
+			}
+
+			.store-info-header {
+				display: flex;
+				align-items: center;
+				margin-bottom: 10px;
+				border-bottom: 1px solid #e3e6f3;
+				padding-bottom: 8px;
+			}
+
+			.store-info-header i {
+				font-size: 18px;
+				color: #4a60a1;
+				margin-right: 8px;
+			}
+
+			.store-info-header h4 {
+				margin: 0;
+				color: #333;
+				font-size: 16px;
+				font-weight: 600;
+			}
+
+			.store-branches {
+				margin-bottom: 10px;
+			}
+
+			.branch-item {
+				margin-bottom: 8px;
+				padding: 6px 8px;
+				border-radius: 6px;
+				background-color: white;
+				border-left: 3px solid #4a60a1;
+			}
+
+			.branch-name {
+				font-weight: 600;
+				color: #333;
+				font-size: 14px;
+				margin-bottom: 2px;
+			}
+
+			.branch-name i {
+				color: #e74c3c;
+				margin-right: 5px;
+			}
+
+			.branch-address {
+				font-size: 13px;
+				color: #555;
+				padding-left: 20px;
+			}
+
+			.store-info-footer {
+				margin-top: 10px;
+				padding-top: 8px;
+				border-top: 1px solid #e3e6f3;
+			}
+
+			.info-item {
+				display: flex;
+				align-items: center;
+				margin-bottom: 5px;
+				font-size: 13px;
+				color: #444;
+			}
+
+			.info-item i {
+				width: 16px;
+				margin-right: 8px;
+				color: #4a60a1;
+			}
+		`;
+		document.head.appendChild(styleElement);
 	}
-});
+}
 
 // Thêm hàm toàn cục để hiển thị chatbot từ các nơi khác
 window.openChatbot = function () {
