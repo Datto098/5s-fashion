@@ -386,7 +386,8 @@
 
 #quickViewModal .modal-dialog {
     margin: 0.5rem;
-    max-width: calc(100% - 1rem);
+    justify-self: center;
+    max-width: calc(100% - 44rem);
 }
 
 #quickViewModal .modal-header {
