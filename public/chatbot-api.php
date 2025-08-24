@@ -15,17 +15,21 @@ if (!function_exists('safe_require_once')) {
     }
 }
 
-// Include database connection
+// Include database connection and API response
 safe_require_once(ROOT_PATH . "/app/core/Database.php");
 safe_require_once(ROOT_PATH . "/app/core/ApiResponse.php");
+safe_require_once(ROOT_PATH . "/app/core/ApiController.php"); // Add this line to include the ApiController
+safe_require_once(ROOT_PATH . "/app/controllers/api/ChatbotApiController.php");
 
 // Define BASE_URL manually to avoid including constants.php
 if (!defined("BASE_URL")) {
     define("BASE_URL", "http://localhost/5s-fashion");
 }
 
-// No need to include constants.php as ROOT_PATH and BASE_URL are already defined
-// We will just require other files that might be needed
+// Start session if not started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Get JSON request data
 $json = file_get_contents("php://input");
@@ -65,116 +69,19 @@ if (empty($message)) {
 }
 
 try {
-    // Connect to database
-    $config = require ROOT_PATH . "/app/config/database.php";
-    $db = $config["connections"]["mysql"];
-    $pdo = new PDO(
-        "mysql:host={$db["host"]};dbname={$db["database"]};charset=utf8mb4",
-        $db["username"],
-        $db["password"],
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
+    // Initialize ChatbotApiController
+    $chatbotController = new ChatbotApiController();
+
+    // Extract previous context from session
+    $previousContext = isset($_SESSION['chatbot_context']) ? $_SESSION['chatbot_context'] : [];
 
     // Process message
-    $response = [];
+    $response = $chatbotController->processMessage($message, $previousContext);
 
-    // Simple keyword processing
-    $message = strtolower($message);
-
-    if (strpos($message, "sản phẩm hot") !== false ||
-        strpos($message, "bán chạy") !== false ||
-        strpos($message, "phổ biến") !== false) {
-
-        // Get best selling products that have images
-        $sql = "SELECT p.*,
-                    COALESCE(SUM(oi.quantity), 0) as total_sold,
-                    COALESCE(AVG(r.rating), 0) as avg_rating
-                FROM products p
-                LEFT JOIN order_items oi ON p.id = oi.product_id
-                LEFT JOIN reviews r ON p.id = r.product_id
-                WHERE p.status = \"active\" AND p.featured_image IS NOT NULL AND p.featured_image != ''
-                GROUP BY p.id
-                ORDER BY total_sold DESC
-                LIMIT 8";
-
-                $stmt = $pdo->query($sql);
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Nếu không tìm thấy sản phẩm nào có hình ảnh, lấy các sản phẩm có ID từ 4-9
-        // (đã xác nhận có hình ảnh từ truy vấn trước đó)
-        if (count($products) == 0) {
-            $fallbackSql = "SELECT p.*,
-                    COALESCE(SUM(oi.quantity), 0) as total_sold,
-                    COALESCE(AVG(r.rating), 0) as avg_rating
-                FROM products p
-                LEFT JOIN order_items oi ON p.id = oi.product_id
-                LEFT JOIN reviews r ON p.id = r.product_id
-                WHERE p.id BETWEEN 4 AND 9
-                GROUP BY p.id
-                LIMIT 8";
-            $stmt = $pdo->query($fallbackSql);
-            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
-
-        // Debug log products
-        error_log("Chatbot Products: " . json_encode(array_map(function($p) {
-            // Check if image file exists
-            $imagePath = "";
-            if (isset($p["featured_image"]) && $p["featured_image"]) {
-                $uploadPath = ROOT_PATH . "/public/uploads/products/" . $p["featured_image"];
-                $imagePath = file_exists($uploadPath) ? $uploadPath : "not_found";
-            }
-
-            return [
-                "id" => $p["id"],
-                "name" => $p["name"],
-                "featured_image" => $p["featured_image"] ?? 'no_image',
-                "image_exists" => $imagePath
-            ];
-        }, $products)));
-
-        // Format products
-        $formattedProducts = array_map(function($product) {
-            // Calculate discount
-            $discount = isset($product["discount_percentage"]) ? (float)$product["discount_percentage"] : 0;
-            $price = isset($product["price"]) ? (float)$product["price"] : 0;
-            $finalPrice = $price;
-
-            if ($discount > 0) {
-                $finalPrice = $price * (100 - $discount) / 100;
-            } else if (isset($product["sale_price"]) && $product["sale_price"] > 0) {
-                $finalPrice = $product["sale_price"];
-                if ($price > 0) {
-                    $discount = round((($price - (float)$product["sale_price"]) / $price) * 100);
-                }
-            }
-
-            return [
-                "id" => (int)$product["id"],
-                "name" => $product["name"] ?? "Sản phẩm",
-                "slug" => $product["slug"] ?? "",
-                "price" => $price,
-                "discount_percentage" => $discount,
-                "final_price" => number_format($finalPrice, 2, ".", ""),
-                "image" => isset($product["featured_image"]) && !empty($product["featured_image"])
-                    ? BASE_URL . "/serve-file.php?file=" . urlencode(ltrim($product["featured_image"], '/'))
-                    : BASE_URL . "/serve-file.php?file=products/no-image.jpg",
-                "short_description" => isset($product["description"]) ? substr($product["description"], 0, 100) . "..." : "Không có mô tả.",
-                "url" => BASE_URL . "/product/" . ($product["slug"] ?? "san-pham")
-            ];
-        }, $products);
-
-        $response = [
-            "message" => "Đây là những sản phẩm bán chạy nhất hiện nay:",
-            "products" => $formattedProducts,
-            "type" => "best_selling"
-        ];
-    } else {
-        // Default response
-        $response = [
-            "message" => "Xin chào! Tôi có thể giúp bạn tìm sản phẩm bán chạy, khuyến mãi, hàng mới, hoặc hỗ trợ đơn hàng. Bạn cần hỗ trợ gì?",
-            "products" => []
-        ];
+    // Save context to session
+    if (isset($response['context'])) {
+        $_SESSION['chatbot_context'] = $response['context'];
+        unset($response['context']); // Don't send context to frontend
     }
 
     // Return success response

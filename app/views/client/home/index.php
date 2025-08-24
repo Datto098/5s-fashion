@@ -1056,14 +1056,26 @@ $content .= '
             <i class="fas fa-tags"></i>
             Khuyến mãi
         </button>
+        <button class="quick-action" data-message="Sản phẩm mới">
+            <i class="fas fa-star"></i>
+            Mới về
+        </button>
         <button class="quick-action" data-message="Tư vấn thời trang">
             <i class="fas fa-magic"></i>
             Tư vấn
         </button>
+        <button class="quick-action" data-message="Hướng dẫn chọn size">
+            <i class="fas fa-ruler"></i>
+            Size
+        </button>
+        <button class="quick-action" data-message="Thông tin cửa hàng">
+            <i class="fas fa-store"></i>
+            Cửa hàng
+        </button>
     </div>
 
-    <div class="chatbot-input">
-        <input type="text" id="chatbot-input" placeholder="Nhập tin nhắn...">
+    <div class="chatbot-input" ">
+        <input type="text" id="chatbot-input" placeholder="Nhập tin nhắn..." style="max-width: 260px">
         <button id="chatbot-send">
             <i class="fas fa-paper-plane"></i>
         </button>
@@ -1072,7 +1084,11 @@ $content .= '
 
 // Add chatbot initialization script
 $inline_js .= "
-// Additional chatbot functionality can be added here if needed
+document.addEventListener('DOMContentLoaded', function() {
+    // Khởi tạo chatbot
+    window.chatbot = new FSFashionChatbot();
+    console.log('Chatbot initialized on page load');
+});
 ";
 
 // Include main layout
