@@ -1,109 +1,197 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
-mb_internal_encoding('UTF-8');
+/**
+ * Standalone Chatbot API Handler
+ */
 
-// Get request method and data
-$method = $_SERVER['REQUEST_METHOD'];
-$input = json_decode(file_get_contents('php://input'), true);
-
-if ($method === 'POST' && isset($input['message'])) {
-    $message = trim($input['message']);
-    $message_lower = mb_strtolower($message, 'UTF-8');
-
-    // Simple pattern matching
-    if (preg_match('/(?:xin chào|hello|hi|chào)/i', $message_lower)) {
-        $response = [
-            'success' => true,
-            'message' => 'Phản hồi thành công',
-            'data' => [
-                'message' => 'Xin chào! Tôi là trợ lý ảo 5S Fashion. Tôi có thể giúp bạn:\n\n• Tìm sản phẩm bán chạy, giảm giá\n• Thông tin đơn hàng, thanh toán\n• Hướng dẫn chọn size\n• Chính sách đổi trả\n\nBạn cần hỗ trợ gì?',
-                'type' => 'greeting'
-            ]
-        ];
-    } else if (preg_match('/(?:sản phẩm|sp).*(?:bán chạy|hot|nổi bật)/i', $message_lower)) {
-        $response = [
-            'success' => true,
-            'message' => 'Phản hồi thành công',
-            'data' => [
-                'message' => 'Đây là những sản phẩm bán chạy nhất tại 5S Fashion:',
-                'type' => 'best_selling',
-                'products' => [
-                    [
-                        'id' => 1,
-                        'name' => 'Áo thun cotton basic',
-                        'price' => 299000,
-                        'discount_percentage' => 20,
-                        'final_price' => 239200,
-                        'image' => null,
-                        'url' => '#'
-                    ]
-                ]
-            ]
-        ];
-    } else if (preg_match('/(?:giảm giá|khuyến mãi|sale|discount)/i', $message_lower)) {
-        $response = [
-            'success' => true,
-            'message' => 'Phản hồi thành công',
-            'data' => [
-                'message' => 'Các sản phẩm đang được giảm giá tại 5S Fashion:',
-                'type' => 'discounted',
-                'products' => [
-                    [
-                        'id' => 2,
-                        'name' => 'Quần jeans skinny',
-                        'price' => 599000,
-                        'discount_percentage' => 25,
-                        'final_price' => 449250,
-                        'image' => null,
-                        'url' => '#'
-                    ]
-                ]
-            ]
-        ];
-    } else if (preg_match('/(?:đơn hàng|order)/i', $message_lower)) {
-        $response = [
-            'success' => true,
-            'message' => 'Phản hồi thành công',
-            'data' => [
-                'message' => 'Để kiểm tra đơn hàng, bạn có thể:\n• Đăng nhập vào tài khoản và xem "Đơn hàng của tôi"\n• Liên hệ hotline: 1900-xxxx với mã đơn hàng\n• Email: support@5sfashion.com',
-                'type' => 'order_info'
-            ]
-        ];
-    } else if (preg_match('/(?:thanh toán|payment)/i', $message_lower)) {
-        $response = [
-            'success' => true,
-            'message' => 'Phản hồi thành công',
-            'data' => [
-                'message' => '5S Fashion hỗ trợ các phương thức thanh toán:\n• Thanh toán khi nhận hàng (COD)\n• Chuyển khoản ngân hàng\n• Ví điện tử (Momo, ZaloPay)\n• Thẻ tín dụng/ghi nợ',
-                'type' => 'payment_info'
-            ]
-        ];
-    } else if (preg_match('/(?:size|kích cỡ)/i', $message_lower)) {
-        $response = [
-            'success' => true,
-            'message' => 'Phản hồi thành công',
-            'data' => [
-                'message' => 'Hướng dẫn chọn size:\n• S: 45-50kg, cao 1m50-1m60\n• M: 50-55kg, cao 1m55-1m65\n• L: 55-60kg, cao 1m60-1m70\n• XL: 60-65kg, cao 1m65-1m75\n\nBạn có thể xem bảng size chi tiết trong từng sản phẩm!',
-                'type' => 'size_guide'
-            ]
-        ];
-    } else {
-        $response = [
-            'success' => true,
-            'message' => 'Phản hồi thành công',
-            'data' => [
-                'message' => 'Cảm ơn bạn đã liên hệ! Tôi có thể giúp bạn:\n• Xem sản phẩm bán chạy, giảm giá\n• Thông tin về đơn hàng, thanh toán\n• Hướng dẫn đổi trả, vận chuyển\n• Tư vấn size\n\nBạn có thể hỏi cụ thể hơn nhé!',
-                'type' => 'default'
-            ]
-        ];
-    }
-} else {
-    $response = [
-        'success' => false,
-        'message' => 'Invalid request method or missing message',
-        'data' => null
-    ];
+// Define basic paths
+if (!defined("ROOT_PATH")) {
+    define("ROOT_PATH", dirname(__FILE__, 2));
 }
 
-echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-?>
+// Include necessary files - use custom include to avoid redefining constants
+if (!function_exists('safe_require_once')) {
+    function safe_require_once($file) {
+        require_once $file;
+    }
+}
+
+// Include database connection
+safe_require_once(ROOT_PATH . "/app/core/Database.php");
+safe_require_once(ROOT_PATH . "/app/core/ApiResponse.php");
+
+// Define BASE_URL manually to avoid including constants.php
+if (!defined("BASE_URL")) {
+    define("BASE_URL", "http://localhost/5s-fashion");
+}
+
+// No need to include constants.php as ROOT_PATH and BASE_URL are already defined
+// We will just require other files that might be needed
+
+// Get JSON request data
+$json = file_get_contents("php://input");
+$requestData = json_decode($json, true) ?: [];
+
+// Set response headers
+header("Content-Type: application/json; charset=utf-8");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+// Handle OPTIONS request (CORS preflight)
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+    http_response_code(200);
+    exit;
+}
+
+// Process only POST requests
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    http_response_code(405);
+    echo json_encode([
+        "success" => false,
+        "message" => "Method not allowed"
+    ]);
+    exit;
+}
+
+// Check for message
+$message = trim($requestData["message"] ?? "");
+if (empty($message)) {
+    http_response_code(400);
+    echo json_encode([
+        "success" => false,
+        "message" => "Tin nhắn không được để trống"
+    ]);
+    exit;
+}
+
+try {
+    // Connect to database
+    $config = require ROOT_PATH . "/app/config/database.php";
+    $db = $config["connections"]["mysql"];
+    $pdo = new PDO(
+        "mysql:host={$db["host"]};dbname={$db["database"]};charset=utf8mb4",
+        $db["username"],
+        $db["password"],
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+
+    // Process message
+    $response = [];
+
+    // Simple keyword processing
+    $message = strtolower($message);
+
+    if (strpos($message, "sản phẩm hot") !== false ||
+        strpos($message, "bán chạy") !== false ||
+        strpos($message, "phổ biến") !== false) {
+
+        // Get best selling products that have images
+        $sql = "SELECT p.*,
+                    COALESCE(SUM(oi.quantity), 0) as total_sold,
+                    COALESCE(AVG(r.rating), 0) as avg_rating
+                FROM products p
+                LEFT JOIN order_items oi ON p.id = oi.product_id
+                LEFT JOIN reviews r ON p.id = r.product_id
+                WHERE p.status = \"active\" AND p.featured_image IS NOT NULL AND p.featured_image != ''
+                GROUP BY p.id
+                ORDER BY total_sold DESC
+                LIMIT 8";
+
+                $stmt = $pdo->query($sql);
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Nếu không tìm thấy sản phẩm nào có hình ảnh, lấy các sản phẩm có ID từ 4-9
+        // (đã xác nhận có hình ảnh từ truy vấn trước đó)
+        if (count($products) == 0) {
+            $fallbackSql = "SELECT p.*,
+                    COALESCE(SUM(oi.quantity), 0) as total_sold,
+                    COALESCE(AVG(r.rating), 0) as avg_rating
+                FROM products p
+                LEFT JOIN order_items oi ON p.id = oi.product_id
+                LEFT JOIN reviews r ON p.id = r.product_id
+                WHERE p.id BETWEEN 4 AND 9
+                GROUP BY p.id
+                LIMIT 8";
+            $stmt = $pdo->query($fallbackSql);
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // Debug log products
+        error_log("Chatbot Products: " . json_encode(array_map(function($p) {
+            // Check if image file exists
+            $imagePath = "";
+            if (isset($p["featured_image"]) && $p["featured_image"]) {
+                $uploadPath = ROOT_PATH . "/public/uploads/products/" . $p["featured_image"];
+                $imagePath = file_exists($uploadPath) ? $uploadPath : "not_found";
+            }
+
+            return [
+                "id" => $p["id"],
+                "name" => $p["name"],
+                "featured_image" => $p["featured_image"] ?? 'no_image',
+                "image_exists" => $imagePath
+            ];
+        }, $products)));
+
+        // Format products
+        $formattedProducts = array_map(function($product) {
+            // Calculate discount
+            $discount = isset($product["discount_percentage"]) ? (float)$product["discount_percentage"] : 0;
+            $price = isset($product["price"]) ? (float)$product["price"] : 0;
+            $finalPrice = $price;
+
+            if ($discount > 0) {
+                $finalPrice = $price * (100 - $discount) / 100;
+            } else if (isset($product["sale_price"]) && $product["sale_price"] > 0) {
+                $finalPrice = $product["sale_price"];
+                if ($price > 0) {
+                    $discount = round((($price - (float)$product["sale_price"]) / $price) * 100);
+                }
+            }
+
+            return [
+                "id" => (int)$product["id"],
+                "name" => $product["name"] ?? "Sản phẩm",
+                "slug" => $product["slug"] ?? "",
+                "price" => $price,
+                "discount_percentage" => $discount,
+                "final_price" => number_format($finalPrice, 2, ".", ""),
+                "image" => isset($product["featured_image"]) && !empty($product["featured_image"])
+                    ? BASE_URL . "/serve-file.php?file=" . urlencode(ltrim($product["featured_image"], '/'))
+                    : BASE_URL . "/serve-file.php?file=products/no-image.jpg",
+                "short_description" => isset($product["description"]) ? substr($product["description"], 0, 100) . "..." : "Không có mô tả.",
+                "url" => BASE_URL . "/product/" . ($product["slug"] ?? "san-pham")
+            ];
+        }, $products);
+
+        $response = [
+            "message" => "Đây là những sản phẩm bán chạy nhất hiện nay:",
+            "products" => $formattedProducts,
+            "type" => "best_selling"
+        ];
+    } else {
+        // Default response
+        $response = [
+            "message" => "Xin chào! Tôi có thể giúp bạn tìm sản phẩm bán chạy, khuyến mãi, hàng mới, hoặc hỗ trợ đơn hàng. Bạn cần hỗ trợ gì?",
+            "products" => []
+        ];
+    }
+
+    // Return success response
+    echo json_encode([
+        "success" => true,
+        "data" => $response,
+        "message" => "Phản hồi thành công"
+    ]);
+
+} catch (Exception $e) {
+    // Log error
+    error_log("Chatbot API Error: " . $e->getMessage());
+
+    // Return error response
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Đã xảy ra lỗi trong quá trình xử lý yêu cầu: " . $e->getMessage()
+    ]);
+}

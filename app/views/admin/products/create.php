@@ -256,7 +256,7 @@
                 </div>
 
                 <!-- Product Details -->
-                <div class="admin-card">
+                <!-- <div class="admin-card">
                     <div class="admin-card-header">
                         <h3 class="admin-card-title">Chi tiết sản phẩm</h3>
                     </div>
@@ -303,10 +303,10 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- SEO -->
-                <div class="admin-card">
+                <!-- <div class="admin-card">
                     <div class="admin-card-header">
                         <h3 class="admin-card-title">SEO</h3>
                     </div>
@@ -329,7 +329,7 @@
                             <small class="form-help">Tối đa 160 ký tự</small>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>

@@ -1,0 +1,99 @@
+/* Dropdown item fixes */
+.dropdown-item {
+    display: block !important;
+    width: 100% !important;
+    padding: 0.625rem 1.25rem !important;
+    clear: both !important;
+    text-align: inherit !important;
+    white-space: nowrap !important;
+    background-color: transparent !important;
+    border: 0 !important;
+    text-decoration: none !important;
+    color: #212529 !important;
+    font-size: 0.95rem !important;
+    transition: color 0.15s ease, padding 0.15s ease !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 1100 !important;
+    /* Ensure it's above other elements */
+    pointer-events: auto !important;
+}
+
+/* Fix for links inside dropdown items */
+a.dropdown-item,
+.dropdown-item>a,
+.dropdown-header a {
+    display: inline-block !important;
+    width: 100% !important;
+    height: 100% !important;
+    text-decoration: none !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 1200 !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: #f8f9fa !important;
+    color: var(--bs-primary) !important;
+    text-decoration: none !important;
+    padding-left: 1.5rem !important;
+}
+
+/* Make sure links in dropdown are clickable */
+.dropdown-menu a.dropdown-item {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: auto !important;
+}
+
+/* Override any pointer-events that might be blocking clicks */
+.dropdown-menu,
+.dropdown-menu * {
+    pointer-events: auto !important;
+}
+
+/* Mega menu specific fixes */
+.category-megamenu a {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    z-index: 1300 !important;
+}
+
+/* Special higher z-index for mega menu links */
+.category-megamenu .dropdown-item,
+.category-megamenu a.dropdown-item,
+.category-megamenu .dropdown-header a,
+.category-link,
+.category-child-link,
+a.category-link,
+a.category-child-link {
+    z-index: 1300 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+/* Make sure the mega menu itself doesn't block clicks */
+.category-megamenu {
+    pointer-events: auto !important;
+}
+
+.category-megamenu .dropdown-header a {
+    color: #333 !important;
+    text-decoration: none !important;
+    font-weight: bold !important;
+    display: block !important;
+    position: relative !important;
+    z-index: 1200 !important;
+    pointer-events: auto !important;
+}
+
+.category-megamenu .dropdown-header a:hover {
+    color: var(--bs-primary) !important;
+}
+
+/* Ensure links work in mega menu */
+.dropdown-menu.category-megamenu {
+    z-index: 1050 !important;
+}

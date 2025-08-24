@@ -11,6 +11,9 @@ require_once APP_PATH . '/helpers/functions.php';
 require_once APP_PATH . '/core/Router.php';
 $router = new Router();
 
+// Include menu routes
+require_once APP_PATH . '/routes/menu_routes.php';
+
 // Home routes
 $router->get('/', 'HomeController@index');
 $router->get('/home', 'HomeController@index');

@@ -6,8 +6,31 @@
 
 class BaseController
 {
+    protected function loadCommonData()
+    {
+        // Load data needed for all client pages, such as categories for navigation
+        $data = [];
+
+        // Only load navigation categories for client pages (not admin)
+        if (strpos($_SERVER['REQUEST_URI'], '/admin/') === false) {
+            // Make sure Category model is loaded
+            if (!class_exists('Category')) {
+                require_once APP_PATH . '/models/Category.php';
+            }
+
+            $categoryModel = new Category();
+            $data['navCategories'] = $categoryModel->getNavigationCategories();
+        }
+
+        return $data;
+    }
+
     protected function render($view, $data = [], $layout = 'admin/layouts/app')
     {
+        // Load common data for all views
+        $commonData = $this->loadCommonData();
+        $data = array_merge($commonData, $data);
+
         // Start output buffering
         ob_start();
 

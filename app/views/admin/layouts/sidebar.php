@@ -137,6 +137,12 @@ function getActiveClass($menuPath, $currentPath) {
                 </a>
             </div>
             <div class="nav-item">
+                <a href="/5s-fashion/admin/settings/menu" class="nav-link <?= getActiveClass('/5s-fashion/admin/settings/menu', $currentPath) ?>">
+                    <i class="fas fa-bars nav-icon"></i>
+                    <span class="nav-text">Cài đặt Menu</span>
+                </a>
+            </div>
+            <div class="nav-item">
                 <a href="/5s-fashion/admin/users" class="nav-link <?= getActiveClass('/5s-fashion/admin/users', $currentPath) ?>">
                     <i class="fas fa-user-shield nav-icon"></i>
                     <span class="nav-text">Quản lý admin</span>

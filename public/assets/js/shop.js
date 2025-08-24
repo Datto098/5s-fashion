@@ -9,11 +9,8 @@ class ShopManager {
 			search: '',
 			categories: [],
 			brands: [],
-			sizes: [],
-			colors: [],
 			priceMin: null,
 			priceMax: null,
-			rating: null,
 			sort: 'newest',
 			featured: null,
 			sale: null,
@@ -47,30 +44,20 @@ class ShopManager {
 
 		// Filter checkboxes
 		document
-			.querySelectorAll(
-				'input[name="category"], input[name="brand"], input[name="size"], input[name="color"]'
-			)
+			.querySelectorAll('input[name="category"], input[name="brand"]')
 			.forEach((checkbox) => {
 				checkbox.addEventListener('change', () =>
 					this.handleFilterChange()
 				);
 			});
 
-		// Rating filter
-		document.querySelectorAll('input[name="rating"]').forEach((radio) => {
-			radio.addEventListener('change', () => this.handleFilterChange());
-		});
-
 		// Price range
-		document
-			.getElementById('min-price')
-			?.addEventListener('change', () => this.handlePriceChange());
-		document
-			.getElementById('max-price')
-			?.addEventListener('change', () => this.handlePriceChange());
 		document
 			.getElementById('price-slider')
 			?.addEventListener('input', (e) => this.handlePriceSlider(e));
+		document
+			.getElementById('price-slider')
+			?.addEventListener('change', (e) => this.handlePriceChange());
 
 		// View toggle
 		document.querySelectorAll('.view-btn').forEach((btn) => {
@@ -146,28 +133,39 @@ class ShopManager {
 		const slider = document.getElementById('price-slider');
 		const minInput = document.getElementById('min-price');
 		const maxInput = document.getElementById('max-price');
+		const displayElement = document.getElementById('current-price-display');
 
 		if (slider && minInput && maxInput) {
 			// Set initial values
 			minInput.value = 0;
-			maxInput.value = 5000000;
+			maxInput.value = 2500000;
 			slider.value = 2500000;
 
-			// Update display
-			this.updatePriceDisplay();
+			// Update the initial price display
+			if (displayElement) {
+				displayElement.textContent = this.formatPrice(slider.value);
+			}
 		}
 	}
 
 	handlePriceSlider(e) {
 		const value = parseInt(e.target.value);
+		const minInput = document.getElementById('min-price');
 		const maxInput = document.getElementById('max-price');
+		const sliderMax = parseInt(e.target.max);
+		const displayElement = document.getElementById('current-price-display');
 
-		if (maxInput) {
+		if (minInput && maxInput) {
+			// Simple approach: use the slider value as the max price
+			minInput.value = 0;
 			maxInput.value = value;
-			this.handlePriceChange();
+
+			// Update the price display
+			if (displayElement) {
+				displayElement.textContent = this.formatPrice(value);
+			}
 		}
 	}
-
 	handlePriceChange() {
 		const minPrice = document.getElementById('min-price')?.value;
 		const maxPrice = document.getElementById('max-price')?.value;
@@ -179,17 +177,20 @@ class ShopManager {
 	}
 
 	updatePriceDisplay() {
-		const minInput = document.getElementById('min-price');
-		const maxInput = document.getElementById('max-price');
+		const slider = document.getElementById('price-slider');
+		const maxPrice = slider ? slider.value : 5000000;
 
-		if (minInput && maxInput) {
-			const labels = document.querySelector('.price-labels');
-			if (labels) {
-				labels.innerHTML = `
-                    <span>${this.formatPrice(minInput.value || 0)}</span>
-                    <span>${this.formatPrice(maxInput.value || 5000000)}</span>
-                `;
-			}
+		const labels = document.querySelector('.price-labels');
+		if (labels) {
+			labels.innerHTML = `
+                <span>${this.formatPrice(0)}</span>
+                <span>${this.formatPrice(5000000)}</span>
+            `;
+		}
+
+		const displayElement = document.getElementById('current-price-display');
+		if (displayElement) {
+			displayElement.textContent = this.formatPrice(maxPrice);
 		}
 	}
 
@@ -210,24 +211,6 @@ class ShopManager {
 		this.currentFilters.brands = Array.from(
 			document.querySelectorAll('input[name="brand"]:checked')
 		).map((input) => input.value);
-
-		// Update size filters
-		this.currentFilters.sizes = Array.from(
-			document.querySelectorAll('input[name="size"]:checked')
-		).map((input) => input.value);
-
-		// Update color filters
-		this.currentFilters.colors = Array.from(
-			document.querySelectorAll('input[name="color"]:checked')
-		).map((input) => input.value);
-
-		// Update rating filter
-		const ratingInput = document.querySelector(
-			'input[name="rating"]:checked'
-		);
-		this.currentFilters.rating = ratingInput
-			? parseInt(ratingInput.value)
-			: null;
 
 		this.applyFilters();
 	}
@@ -266,8 +249,15 @@ class ShopManager {
 				}
 			}
 
-			// Category filter
-			if (this.currentFilters.categories.length > 0) {
+			// Category filter - handle both single category and categories array
+			if (this.currentFilters.category) {
+				// Single category parameter handling
+				const productCategorySlug = product.dataset.categorySlug;
+				if (productCategorySlug !== this.currentFilters.category) {
+					isVisible = false;
+				}
+			} else if (this.currentFilters.categories.length > 0) {
+				// Multiple categories handling
 				const productCategory = product.dataset.category;
 				if (!this.currentFilters.categories.includes(productCategory)) {
 					isVisible = false;
@@ -301,13 +291,7 @@ class ShopManager {
 				}
 			}
 
-			// Rating filter
-			if (this.currentFilters.rating) {
-				const productRating = parseFloat(product.dataset.rating || 0);
-				if (productRating < this.currentFilters.rating) {
-					isVisible = false;
-				}
-			}
+			// Rating filter removed
 
 			// Show/hide product
 			if (isVisible) {
@@ -434,11 +418,8 @@ class ShopManager {
 			search: '',
 			categories: [],
 			brands: [],
-			sizes: [],
-			colors: [],
 			priceMin: null,
 			priceMax: null,
-			rating: null,
 			sort: 'newest',
 			featured: featured,
 			sale: sale,
@@ -518,6 +499,16 @@ class ShopManager {
 			params.set('search', this.currentFilters.search);
 		}
 
+		// Preserve single category parameter if it exists
+		if (this.currentFilters.category) {
+			params.set('category', this.currentFilters.category);
+		}
+
+		// Preserve featured parameter if it exists
+		if (this.currentFilters.featured) {
+			params.set('featured', this.currentFilters.featured);
+		}
+
 		if (this.currentFilters.categories.length > 0) {
 			params.set('categories', this.currentFilters.categories.join(','));
 		}
@@ -526,24 +517,12 @@ class ShopManager {
 			params.set('brands', this.currentFilters.brands.join(','));
 		}
 
-		if (this.currentFilters.sizes.length > 0) {
-			params.set('sizes', this.currentFilters.sizes.join(','));
-		}
-
-		if (this.currentFilters.colors.length > 0) {
-			params.set('colors', this.currentFilters.colors.join(','));
-		}
-
 		if (this.currentFilters.priceMin) {
 			params.set('price_min', this.currentFilters.priceMin);
 		}
 
 		if (this.currentFilters.priceMax) {
 			params.set('price_max', this.currentFilters.priceMax);
-		}
-
-		if (this.currentFilters.rating) {
-			params.set('rating', this.currentFilters.rating);
 		}
 
 		if (this.currentFilters.sort !== 'newest') {
@@ -576,7 +555,27 @@ class ShopManager {
 			this.currentFilters.search = search;
 		}
 
-		// Load categories
+		// Load featured parameter
+		const featured = params.get('featured');
+		if (featured) {
+			this.currentFilters.featured = featured;
+			console.log('Featured parameter found:', featured);
+		}
+
+		// Load category from both category and categories parameters
+		const category = params.get('category');
+		if (category) {
+			// Save single category parameter
+			this.currentFilters.category = category;
+			// Mark checkbox for this category if it exists
+			const categoryCheckbox = document.querySelector(
+				`input[name="category"][value="${category}"]`
+			);
+			if (categoryCheckbox) categoryCheckbox.checked = true;
+			console.log('Category parameter found:', category);
+		}
+
+		// Also support multiple categories format
 		const categories = params.get('categories');
 		if (categories) {
 			this.currentFilters.categories = categories.split(',');

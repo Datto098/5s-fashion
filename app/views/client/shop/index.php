@@ -27,12 +27,36 @@ ob_start();
                     </div>
                 </div>
             </div>
+
+            <?php if (isset($filters['featured']) && $filters['featured'] == 1): ?>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="featured-banner alert alert-info">
+                        <i class="fas fa-star me-2"></i>
+                        <strong>Sản Phẩm Nổi Bật:</strong> Đang hiển thị các sản phẩm nổi bật của cửa hàng
+                        <a href="<?= url('shop') ?>" class="ms-2 btn btn-sm btn-outline-dark">
+                            <i class="fas fa-times me-1"></i>Xem tất cả sản phẩm
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </section>
 
     <!-- Shop Content -->
     <section class="shop-section py-5">
         <div class="container">
+            <!-- Hidden category mapping data for JavaScript -->
+            <script type="application/json" id="category-data">
+                <?php
+                    $categoryMapping = [];
+                    foreach ($categories as $category) {
+                        $categoryMapping[$category['slug']] = $category['id'];
+                    }
+                    echo json_encode($categoryMapping);
+                ?>
+            </script>
             <div class="row">
                 <!-- Sidebar Filters -->
                 <div class="col-lg-3">
@@ -122,76 +146,8 @@ ob_start();
                             </div>
                         </div>
 
-                        <!-- Size Filter -->
-                        <div class="filter-group">
-                            <h5 class="filter-title">
-                                <i class="fas fa-ruler me-2"></i>Kích thước
-                            </h5>
-                            <div class="filter-content">
-                                <div class="size-options">
-                                    <?php
-                                    $sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-                                    foreach ($sizes as $size):
-                                    ?>
-                                    <label class="size-option">
-                                        <input type="checkbox" name="size" value="<?= $size ?>">
-                                        <span class="size-label"><?= $size ?></span>
-                                    </label>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Color Filter -->
-                        <div class="filter-group">
-                            <h5 class="filter-title">
-                                <i class="fas fa-palette me-2"></i>Màu sắc
-                            </h5>
-                            <div class="filter-content">
-                                <div class="color-options">
-                                    <?php
-                                    $colors = [
-                                        ['name' => 'Đen', 'code' => '#000000'],
-                                        ['name' => 'Trắng', 'code' => '#FFFFFF'],
-                                        ['name' => 'Xám', 'code' => '#808080'],
-                                        ['name' => 'Đỏ', 'code' => '#FF0000'],
-                                        ['name' => 'Xanh dương', 'code' => '#0000FF'],
-                                        ['name' => 'Xanh lá', 'code' => '#008000'],
-                                        ['name' => 'Vàng', 'code' => '#FFFF00'],
-                                        ['name' => 'Hồng', 'code' => '#FFC0CB']
-                                    ];
-                                    foreach ($colors as $color):
-                                    ?>
-                                    <label class="color-option" title="<?= $color['name'] ?>">
-                                        <input type="checkbox" name="color" value="<?= $color['name'] ?>">
-                                        <span class="color-swatch" style="background-color: <?= $color['code'] ?>"></span>
-                                    </label>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Rating Filter -->
-                        <div class="filter-group">
-                            <h5 class="filter-title">
-                                <i class="fas fa-star me-2"></i>Đánh giá
-                            </h5>
-                            <div class="filter-content">
-                                <div class="rating-filter">
-                                    <?php for ($i = 5; $i >= 1; $i--): ?>
-                                    <label class="rating-option">
-                                        <input type="radio" name="rating" value="<?= $i ?>">
-                                        <div class="rating-stars">
-                                            <?php for ($j = 1; $j <= 5; $j++): ?>
-                                            <i class="fas fa-star <?= $j <= $i ? 'active' : '' ?>"></i>
-                                            <?php endfor; ?>
-                                            <span class="rating-text">từ <?= $i ?> sao</span>
-                                        </div>
-                                    </label>
-                                    <?php endfor; ?>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Clear Filters -->
                         <div class="filter-actions">
@@ -241,6 +197,7 @@ ob_start();
                                 <?php foreach ($products as $product): ?>
                                 <div class="col-xl-4 col-md-6 product-item"
                                      data-category="<?= $product['category_id'] ?>"
+                                     data-category-slug="<?= $product['category_slug'] ?? '' ?>"
                                      data-brand="<?= $product['brand_id'] ?>"
                                      data-price="<?= $product['price'] ?>"
                                      data-rating="<?= $product['rating'] ?? 0 ?>"

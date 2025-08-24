@@ -10,14 +10,6 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= asset('images/favicon.ico') ?>">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="<?= $meta_description ?? '5S Fashion - Thời trang nam nữ cao cấp, xu hướng mới nhất' ?>">
-    <meta name="keywords" content="<?= $meta_keywords ?? 'thời trang, nam, nữ, cao cấp, 5s fashion' ?>">
-    <title><?= $title ?? '5S Fashion - Thời trang cao cấp' ?></title>
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="<?= asset('images/favicon.ico') ?>">
 
     <!-- CSS - Load in correct order -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -26,8 +18,181 @@
 
     <!-- Brand Variables CSS - MUST load first -->
     <link href="<?= asset('css/brand-variables.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/user-dropdown.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/dropdown-clickable-fix.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/category-navigation.css') ?>" rel="stylesheet">
 
-    <!-- Base CSS - Always loaded after brand variables -->
+    <!-- Check for simple menu -->
+    <?php
+    $siteConfig = require_once APP_PATH . '/config/site.php';
+    $useSimpleMenu = $siteConfig['use_simple_menu'] ?? false;
+    ?>    <!-- Base CSS - Always loaded after brand variables -->
+
+    <!-- Custom dropdown styles -->
+    <style>
+        /* Dropdown container positioning */
+        .dropdown {
+            position: relative;
+        }
+
+        /* Dropdown toggle button styling */
+        .dropdown-toggle {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .dropdown-toggle::after {
+            display: inline-block;
+            margin-left: 0.255em;
+            vertical-align: 0.255em;
+            content: "";
+            border-top: 0.3em solid;
+            border-right: 0.3em solid transparent;
+            border-bottom: 0;
+            border-left: 0.3em solid transparent;
+        }
+
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            min-width: 220px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 0.5rem 0;
+            margin: 0.125rem 0 0;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 0.375rem;
+            animation: fadeIn 0.2s ease-out;
+            transform-origin: top center;
+            opacity: 0;
+        }
+
+        /* Mega menu for categories */
+        .category-megamenu {
+            width: 750px;
+            max-width: 100vw;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1.5rem !important;
+        }
+
+        .category-megamenu .dropdown-header {
+            padding: 0.5rem 0.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 0.5rem;
+        }
+
+        .category-megamenu .dropdown-header a {
+            color: #333;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
+            display: block;
+            position: relative;
+            z-index: 1200;
+        }
+
+        .category-megamenu .dropdown-header a:hover {
+            color: var(--bs-primary);
+        }
+
+        .category-megamenu .dropdown-item {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1200;
+        }
+
+        /* Make sure all megamenu links are clickable */
+        .category-megamenu a {
+            cursor: pointer;
+        }
+
+        .category-megamenu .dropdown-item:hover {
+            padding-left: 1rem;
+            background-color: rgba(0,0,0,0.03);
+        }        /* Ensure mega menu doesn't overflow viewport */
+        @media (max-width: 992px) {
+            .category-megamenu {
+                width: 100%;
+                left: 0;
+                transform: none;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-menu.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 0.625rem 1.25rem;
+            clear: both;
+            text-align: inherit;
+            white-space: nowrap;
+            background-color: transparent;
+            border: 0;
+            text-decoration: none;
+            color: #212529;
+            font-size: 0.95rem;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            position: relative;
+            z-index: 1100; /* Ensure it's above other elements */
+        }
+
+        .dropdown-item:hover, .dropdown-item:focus {
+            background-color: #f8f9fa;
+            color: #16181b;
+            text-decoration: none;
+            padding-left: 1.5rem;
+        }
+
+        /* Make sure links in dropdown are clickable */
+        .dropdown-menu a.dropdown-item {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }        .dropdown-item i, .dropdown-item svg {
+            margin-right: 0.5rem;
+            width: 1rem;
+            text-align: center;
+        }
+
+        /* Divider within dropdown menu */
+        .dropdown-divider {
+            height: 0;
+            margin: 0.5rem 0;
+            overflow: hidden;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* Header within dropdown menu */
+        .dropdown-header {
+            display: block;
+            padding: 0.5rem 1.25rem;
+            margin-bottom: 0;
+            font-size: 0.875rem;
+            color: #6c757d;
+            white-space: nowrap;
+        }
+    </style>
 
     <!-- Review styles for product detail page -->
     <?php if (isset($product)): ?>
@@ -71,6 +236,11 @@
 
     <!-- Layout fixes - Always loaded last to ensure consistency -->
     <link href="<?= asset('css/layout-fixes.css') ?>" rel="stylesheet">
+
+    <!-- Dropdown fix CSS - load after all other styles -->
+    <link href="<?= asset('css/dropdown-fix.css') ?>" rel="stylesheet">
+    <!-- Hover dropdown CSS -->
+    <link href="<?= asset('css/hover-dropdown.css') ?>" rel="stylesheet">
 
     <!-- Inline CSS -->
     <?php if (isset($inline_css)): ?>
@@ -480,22 +650,44 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
+    <!-- JavaScript - Core Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <!-- Bootstrap dropdown fix - load right after Bootstrap -->
+    <script src="<?= asset('js/bootstrap-dropdown-fix.js') ?>"></script>
 
-    <!-- Unified notification system -->
-    <script src="<?= asset('js/notifications.js') ?>"></script>
+    <!-- Define the file loading order and check for duplicates -->
+    <?php
+    // Define the shared scripts that should load first
+    $core_scripts = [
+        'js/notifications.js',
+        'js/cart-manager.js',
+        'js/wishlist-manager.js',
+        'js/quick-view.js',
+        'js/client.js?v=' . time()
+    ];
 
-    <!-- NEW UNIFIED MANAGERS - Clean Architecture -->
-    <script src="<?= asset('js/cart-manager.js') ?>"></script>
-    <script src="<?= asset('js/wishlist-manager.js') ?>"></script>
+    // Create/initialize $loaded_scripts to track what's been loaded
+    if (!isset($loaded_scripts)) $loaded_scripts = [];
 
-    <!-- Quick View Modal System -->
-    <script src="<?= asset('js/quick-view.js') ?>"></script>
+    // If custom_js isn't set, initialize it
+    if (!isset($custom_js)) $custom_js = [];
 
-    <!-- Main client JavaScript -->
-    <script src="<?= asset('js/client.js') ?>?v=<?= time() ?>"></script>
+    // Load core scripts first, avoiding duplicates
+    foreach ($core_scripts as $script) {
+        if (!in_array($script, $loaded_scripts)) {
+            $loaded_scripts[] = $script;
+            if (strpos($script, 'http') === 0) {
+                echo '<script src="' . $script . '"></script>' . PHP_EOL;
+            } else {
+                echo '<script src="' . asset($script) . '"></script>' . PHP_EOL;
+            }
+        }
+    }
+
+    // Mark any duplicates in custom_js as already loaded
+    $custom_js = array_diff($custom_js, $loaded_scripts);
+    ?>
 
     <!-- Initialize global cart manager -->
     <script>
@@ -551,13 +743,16 @@
         });
     </script>
 
-    <!-- Custom JS for current page -->
-    <?php if (isset($custom_js)): ?>
+    <!-- Custom JS for current page (only loads scripts not already loaded) -->
+    <?php if (isset($custom_js) && !empty($custom_js)): ?>
         <?php foreach ($custom_js as $js): ?>
-            <?php if (strpos($js, 'http') === 0): ?>
-                <script src="<?= $js ?>"></script>
-            <?php else: ?>
-                <script src="<?= asset($js) ?>"></script>
+            <?php if (!in_array($js, $loaded_scripts)): ?>
+                <?php $loaded_scripts[] = $js; ?>
+                <?php if (strpos($js, 'http') === 0): ?>
+                    <script src="<?= $js ?>"></script>
+                <?php else: ?>
+                    <script src="<?= asset($js) ?>"></script>
+                <?php endif; ?>
             <?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
@@ -568,6 +763,36 @@
             <?= $inline_js ?>
         </script>
     <?php endif; ?>
+
+    <!-- Special fix for category links -->
+    <?php if ($useSimpleMenu): ?>
+    <!-- Simple menu script -->
+    <script src="<?= asset('js/simple-category-nav.js') ?>"></script>
+    <?php else: ?>
+    <!-- Mega menu fix script -->
+    <script src="<?= asset('js/category-link-fix.js') ?>"></script>
+    <?php endif; ?>
+
+    <!-- Script to preserve category parameter in URLs -->
+        <!-- Script to preserve category parameter in URLs -->
+    <script src="<?= asset('js/preserve-category.js') ?>"></script>
+
+    <!-- Specific fix for user dropdown menus -->
+    <script src="<?= asset('js/user-dropdown-fix.js') ?>"></script>
+
+    <!-- Đảm bảo các dropdown items có thể click được -->
+    <script src="<?= asset('js/dropdown-clickable-fix.js') ?>"></script>
+
+    <!-- Đánh dấu active cho danh mục đang xem -->
+        <!-- Category active marker script -->
+    <script src="<?= asset('js/category-active-marker.js') ?>"></script>
+
+    <!-- Fix đặc biệt cho user menu dropdown -->
+    <script src="<?= asset('js/user-menu-fix.js') ?>"></script>
+
+    <!-- Category filter activator script for shop page -->
+    <script src="/5s-fashion/public/assets/js/category-filter-activator.js"></script>
+
 
     <script>
         // Improved Toast Notification System
@@ -691,6 +916,10 @@
         // Make showToast globally available
         window.showToast = showToast;
         
+        // Initialize systems on page load"></script>
+
+    <!-- Specific fix for user dropdown menus -->
+    <script src="<?= asset('js/user-dropdown-fix.js') ?>"></script>    <script>
         // Initialize systems on page load
         document.addEventListener('DOMContentLoaded', function() {
             // Process flash messages and convert to toast notifications
@@ -731,6 +960,13 @@
                 document.body.classList.add('page-loaded');
             }, 100);
 
+            // Initialize all dropdowns
+            console.log('🔍 Initializing Bootstrap dropdowns...');
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+              return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+
             console.log('✅ Page initialized - counters hidden via CSS');
         });
     </script>
@@ -739,6 +975,183 @@
     <?php if (isset($product)): ?>
     <script src="/5s-fashion/public/assets/js/review.js"></script>
     <?php endif; ?>
+
+    <!-- Force initialize all dropdowns to ensure they work -->
+    <script>
+            // Initialize dropdowns with hover functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                // First try Bootstrap's native way for initialization only
+                if (typeof bootstrap !== 'undefined') {
+                    try {
+                        console.log('🔄 Initializing dropdowns (for structure only)...');
+                        var dropdownTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+                        dropdownTriggerList.forEach(function(el) {
+                            // Just initialize but don't use click events
+                            var dropdownInstance = new bootstrap.Dropdown(el, {
+                                // Prevent the dropdown from showing on click (we'll handle with hover)
+                                autoClose: false
+                            });
+
+                            // Disable the click event that Bootstrap adds
+                            el.removeEventListener('click', dropdownInstance._clickEvent);
+                        });
+                    } catch(e) {
+                        console.error('Bootstrap dropdown initialization failed:', e);
+                    }
+                }
+
+                console.log('🔄 Setting up hover functionality for dropdowns...');
+
+                // Make sure dropdown-toggle links still work if they have an href
+                document.querySelectorAll('.dropdown-toggle').forEach(function(toggle) {
+                    if (toggle.tagName === 'A' && toggle.hasAttribute('href') && toggle.getAttribute('href') !== '#') {
+                        toggle.addEventListener('click', function(e) {
+                            // Allow direct navigation for links with real hrefs
+                            console.log('Navigating to:', this.href);
+                        });
+                    }
+                });            // We won't add any click handlers to dropdown items
+            // Let the browser's default behavior handle the clicks
+            console.log('🔄 Letting browser handle dropdown link clicks normally');
+
+            // Function to position dropdown properly
+            function positionDropdown(toggle, menu) {
+                // Reset any previous positioning
+                menu.style.top = '';
+                menu.style.left = '';
+                menu.style.right = '';
+
+                const toggleRect = toggle.getBoundingClientRect();
+                const menuRect = menu.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+
+                // Check if this is a mega menu
+                const isMegaMenu = menu.classList.contains('category-megamenu');
+
+                if (isMegaMenu) {
+                    // For mega menu, we don't need to set left/right as CSS handles it
+                    // Just position below the toggle
+                    menu.style.top = toggleRect.height + 'px';
+                    return;
+                }
+
+                // Check if dropdown would go off screen to the right
+                if (toggleRect.left + menuRect.width > viewportWidth) {
+                    // Align to right edge of toggle
+                    menu.style.right = '0';
+                } else {
+                    menu.style.left = '0';
+                }
+
+                // Position below the toggle
+                menu.style.top = toggleRect.height + 'px';
+            }
+
+            // Handle dropdowns on hover instead of click
+            document.querySelectorAll('.dropdown').forEach(function(dropdown) {
+                // Show dropdown on mouse enter
+                dropdown.addEventListener('mouseenter', function() {
+                    const menu = this.querySelector('.dropdown-menu');
+                    const toggle = this.querySelector('.dropdown-toggle');
+
+                    if (menu && toggle) {
+                        // Close all other dropdowns first
+                        document.querySelectorAll('.dropdown-menu.show').forEach(function(openMenu) {
+                            if (openMenu !== menu) {
+                                openMenu.classList.remove('show');
+                                if(openMenu.closest('.dropdown')) {
+                                    openMenu.closest('.dropdown').classList.remove('show');
+                                }
+                            }
+                        });
+
+                        // Show this dropdown
+                        menu.classList.add('show');
+                        this.classList.add('show');
+
+                        // Position dropdown
+                        positionDropdown(toggle, menu);
+                    }
+                });
+
+                // Hide dropdown on mouse leave
+                dropdown.addEventListener('mouseleave', function() {
+                    const menu = this.querySelector('.dropdown-menu');
+                    if (menu) {
+                        menu.classList.remove('show');
+                        this.classList.remove('show');
+                    }
+                });
+            });
+            // Reposition dropdowns on window resize
+            window.addEventListener('resize', function() {
+                document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+                    const toggle = menu.closest('.dropdown').querySelector('.dropdown-toggle');
+                    if (toggle) {
+                        positionDropdown(toggle, menu);
+                    }
+                });
+            });
+
+            // Remove any existing event handlers that might interfere with links
+            setTimeout(function() {
+                console.log('🔄 Removing problematic event handlers...');
+
+                // SIMPLIFIED: Just ensure links are directly clickable
+                document.querySelectorAll('.dropdown-menu a, .dropdown-item, .dropdown-header a, .category-link, .category-child-link').forEach(function(link) {
+                    // First, remove all existing click handlers to avoid conflicts
+                    const newLink = link.cloneNode(true);
+                    if (link.parentNode) {
+                        link.parentNode.replaceChild(newLink, link);
+                    }
+
+                    // Set essential styles
+                    newLink.style.pointerEvents = 'auto';
+                    newLink.style.cursor = 'pointer';
+
+                    // Add a single, simple click handler for debugging only
+                    if (newLink.tagName === 'A') {
+                        newLink.addEventListener('click', function(e) {
+                            // Don't interfere with navigation
+                            console.log('📌 Direct navigation to:', this.href);
+                        });
+                    }
+                });
+
+                // Simple "last resort" fix to ensure megamenu links work
+                setTimeout(function() {
+                    // Get all links within the mega menu
+                    var allLinks = document.querySelectorAll('.category-megamenu a, .dropdown-header a');
+                    console.log('Found ' + allLinks.length + ' category menu links');
+
+                    allLinks.forEach(function(link) {
+                        // Store the original href
+                        var originalHref = link.getAttribute('href');
+
+                        if (originalHref) {
+                            // Replace with completely new element to eliminate all handlers
+                            var wrapper = document.createElement('span');
+                            wrapper.innerHTML = link.innerHTML;
+                            wrapper.style.cursor = 'pointer';
+                            wrapper.style.color = link.style.color || 'inherit';
+                            wrapper.style.display = 'block';
+                            wrapper.style.padding = link.style.padding || 'inherit';
+                            wrapper.title = 'Click to navigate to: ' + originalHref;
+
+                            wrapper.addEventListener('click', function() {
+                                console.log('Direct wrapper navigation to:', originalHref);
+                                window.location.href = originalHref;
+                            });
+
+                            if (link.parentNode) {
+                                link.parentNode.replaceChild(wrapper, link);
+                            }
+                        }
+                    });
+                }, 1000);
+            }, 500);
+        });
+    </script>
 </body>
 
 </html>

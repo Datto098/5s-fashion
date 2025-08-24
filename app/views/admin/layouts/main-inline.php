@@ -12,7 +12,9 @@
     <!-- Google Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <!-- Admin CSS -->
-    <link rel="stylesheet" href="/5s-fashion/public/assets/css/admin.css">
+    <link rel="stylesheet" href="<?= defined('BASE_URL') ? BASE_URL : 'http://localhost/5s-fashion' ?>/public/assets/css/admin.css">
+    <!-- Admin Header Fix CSS -->
+    <link rel="stylesheet" href="<?= defined('BASE_URL') ? BASE_URL : 'http://localhost/5s-fashion' ?>/public/assets/css/admin-header-fix.css">
 
     <!-- Inline Admin CSS -->
     <style>
@@ -486,7 +488,9 @@
                 <?= $content ?? '<p>No content available</p>' ?>
             </div>
         </main>
-    </div>    <!-- Scripts -->
+    </div>
+
+    <!-- Scripts -->
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -503,11 +507,7 @@
             }
 
             // Add fade-in animation
-            document.querySelector('.admin-content').style.opacity = '0';
-            setTimeout(() => {
-                document.querySelector('.admin-content').style.transition = 'opacity 0.3s';
-                document.querySelector('.admin-content').style.opacity = '1';
-            }, 100);
+            document.querySelector('.admin-content').classList.add('fade-in');
         });
     </script>
 </body>

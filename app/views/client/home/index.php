@@ -1009,6 +1009,7 @@ JS;
 
 // Add chatbot CSS and JS
 $custom_css[] = 'css/chatbot.css';
+$custom_css[] = 'css/chatbot-fix.css';
 $custom_js[] = 'js/chatbot.js';
 
 // Add chatbot HTML after content

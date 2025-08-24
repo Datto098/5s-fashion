@@ -12,6 +12,7 @@
 
     <!-- Chatbot CSS -->
     <link rel="stylesheet" href="<?= ASSET_URL ?>/css/chatbot.css">
+    <link rel="stylesheet" href="<?= ASSET_URL ?>/css/chatbot-fix.css">
 
     <style>
         body {

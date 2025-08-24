@@ -14,10 +14,10 @@
         </div>
     </div>
     <div class="admin-header-actions">
-        <button class="btn btn-primary" onclick="openCreateModal()">
+        <a href="/5s-fashion/admin/categories/create" class="btn btn-primary">
             <i class="fas fa-plus"></i>
             Thêm danh mục
-        </button>
+        </a>
     </div>
 </div>
 
@@ -152,12 +152,12 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn btn-sm btn-primary" onclick="editCategory(<?= $category['id'] ?>)" title="Chỉnh sửa">
+                            <a href="/5s-fashion/admin/categories/edit/<?= $category['id'] ?>" class="btn btn-sm btn-primary" title="Chỉnh sửa">
                                 <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-info" onclick="viewCategory(<?= $category['id'] ?>)" title="Xem chi tiết">
+                            </a>
+                            <a href="/5s-fashion/admin/categories/show/<?= $category['id'] ?>" class="btn btn-sm btn-info" title="Xem chi tiết">
                                 <i class="fas fa-eye"></i>
-                            </button>
+                            </a>
                             <?php if ($category['products_count'] == 0): ?>
                                 <button class="btn btn-sm btn-danger" onclick="deleteCategory(<?= $category['id'] ?>, '<?= htmlspecialchars($category['name']) ?>')" title="Xóa">
                                     <i class="fas fa-trash"></i>
@@ -523,7 +523,14 @@
         document.getElementById('modalTitle').textContent = 'Thêm danh mục mới';
         document.getElementById('categoryForm').reset();
         document.getElementById('categoryForm').action = '/5s-fashion/admin/categories/store';
+        document.getElementById('categoryForm').method = 'POST';
         document.getElementById('submitBtn').textContent = 'Lưu danh mục';
+
+        // Đảm bảo các trường có giá trị mặc định
+        document.querySelector('input[name="status"][value="active"]').checked = true;
+        document.getElementById('categorySortOrder').value = '0';
+
+        // Reset image preview
         removeImage();
 
         // Hide current image container if exists
@@ -670,6 +677,15 @@
 
     function closeModal() {
         document.getElementById('categoryModal').style.display = 'none';
+        // Reset form để tránh dữ liệu cũ
+        document.getElementById('categoryForm').reset();
+
+        // Xóa các thông báo lỗi nếu có
+        const errorElements = document.querySelectorAll('.form-error');
+        errorElements.forEach(el => el.remove());
+
+        // Xóa preview hình ảnh
+        removeImage();
     }
 
     // Search and filter functionality
@@ -772,8 +788,33 @@
 
     // Notification helper
     function showNotification(message, type = 'info') {
-        // TODO: Implement notification system
-        alert(message);
+        const notificationContainer = document.getElementById('notificationContainer') || createNotificationContainer();
+
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            </div>
+            <div class="notification-content">${message}</div>
+            <button class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+        `;
+
+        notificationContainer.appendChild(notification);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('notification-hidden');
+            setTimeout(() => notification.remove(), 500);
+        }, 5000);
+    }
+
+    function createNotificationContainer() {
+        const container = document.createElement('div');
+        container.id = 'notificationContainer';
+        container.className = 'notification-container';
+        document.body.appendChild(container);
+        return container;
     }
 
     // Drag and drop for image upload
@@ -807,13 +848,52 @@
             closeModal();
         }
     });
+
+    // Xử lý submit form
+    document.getElementById('categoryForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Validate form
+        const name = document.getElementById('categoryName').value.trim();
+        if (!name) {
+            alert('Vui lòng nhập tên danh mục');
+            return false;
+        }
+
+        // Submit form qua AJAX để không cần reload trang
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeModal();
+                showNotification(data.message || 'Thao tác thành công!', 'success');
+
+                // Reload trang sau 1 giây để cập nhật danh sách
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showNotification('Lỗi: ' + (data.message || 'Đã có lỗi xảy ra!'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Có lỗi xảy ra khi gửi dữ liệu!', 'error');
+        });
+
+        return false;
+    });
 </script>
 
 <style>
     /* Fix admin header spacing */
     .admin-header {
-        /* margin-top: 20px !important; */
-        /* padding-top: 10px; */
+        margin-bottom: 20px;
     }
 
     .admin-content {
@@ -821,5 +901,107 @@
         padding-top: 88px;
         flex: 1;
         min-height: 100vh;
+    }
+
+    /* Notification System */
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 320px;
+        width: 100%;
+    }
+
+    .notification {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: flex-start;
+        animation: slideIn 0.3s ease;
+        position: relative;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .notification-hidden {
+        animation: slideOut 0.5s ease forwards;
+    }
+
+    .notification-success {
+        border-color: #10b981;
+    }
+
+    .notification-error {
+        border-color: #ef4444;
+    }
+
+    .notification-icon {
+        margin-right: 12px;
+        font-size: 20px;
+    }
+
+    .notification-success .notification-icon {
+        color: #10b981;
+    }
+
+    .notification-error .notification-icon {
+        color: #ef4444;
+    }
+
+    .notification-info .notification-icon {
+        color: #3b82f6;
+    }
+
+    .notification-content {
+        flex: 1;
+        padding-right: 20px;
+    }
+
+    .notification-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: #9ca3af;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    /* Modal improvements */
+    .modal-content.large {
+        width: 90%;
+        max-width: 800px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
     }
 </style>
