@@ -2,6 +2,7 @@
 
 class ProductVariant extends BaseModel
 {
+    protected $id;
     protected $table = 'product_variants';
     protected $fillable = [
         'product_id', 'sku', 'variant_name', 'price', 'sale_price', 'cost_price',
@@ -122,7 +123,7 @@ class ProductVariant extends BaseModel
         }
 
         $sql = "UPDATE product_variants SET reserved_quantity = reserved_quantity + :quantity WHERE id = :id";
-        return $this->db->execute($sql, ['quantity' => $quantity, 'id' => $this->id]);
+        return $this->db->execute($sql, ['quantity' => $quantity, 'id' => $this->id ?? $this->attributes['id'] ?? 0]);
     }
 
     /**
