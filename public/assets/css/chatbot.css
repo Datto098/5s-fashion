@@ -8,7 +8,7 @@
 .chatbot-toggle {
     position: fixed;
     bottom: 30px;
-    right: 30px;
+    left: 30px;
     /* Đã đổi từ left thành right để phù hợp với thiết kế UX hiện đại */
     z-index: 1000;
     width: 60px;
@@ -75,7 +75,7 @@
 .chatbot-container {
     position: fixed;
     bottom: 100px;
-    right: 30px;
+    left: 30px;
     /* Đã đổi từ left thành right */
     width: 350px;
     height: 500px;

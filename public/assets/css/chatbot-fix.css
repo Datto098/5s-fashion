@@ -62,3 +62,57 @@
         padding: 6px;
     }
 }
+
+/* Enhanced quick actions styling */
+.chatbot-quick-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    max-height: 80px;
+    overflow-y: auto;
+    padding: 8px 10px;
+}
+
+.quick-action {
+    margin-bottom: 5px;
+    font-size: 11px;
+    padding: 4px 8px;
+}
+
+/* Enhance product message display */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* Add styling for search results */
+.product-search-message .message-text {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #007bff;
+}
+
+/* Improve scrollbars */
+.chatbot-quick-actions::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+}
+
+.chatbot-quick-actions::-webkit-scrollbar-thumb {
+    background: rgba(0, 123, 255, 0.5);
+    border-radius: 10px;
+}
+
+/* Animation for new messages */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
