@@ -555,10 +555,8 @@ class ShopManager {
 			this.currentFilters.search = search;
 		}
 
-		// Load featured parameter
-		const featured = params.get('featured');
+		// Load featured parameter (already loaded above, just log if present)
 		if (featured) {
-			this.currentFilters.featured = featured;
 			console.log('Featured parameter found:', featured);
 		}
 

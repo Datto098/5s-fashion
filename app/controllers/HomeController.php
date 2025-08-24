@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Home Controller (Client)
@@ -42,46 +43,20 @@ class HomeController extends BaseController
         // Get featured categories
         $featuredCategories = $this->categoryModel->getFeaturedCategories(6);
 
-        // Get featured products with rating
+        // Get featured products
         $featuredProducts = $this->productModel->getFeaturedProducts(8);
 
-        // Get new arrivals with rating
+        // Get new arrivals
         $newArrivals = $this->productModel->getNewArrivals(8);
 
-        // Get best sellers with rating
-        if (method_exists($this->productModel, 'getBestSellersWithRating')) {
-            $bestSellers = $this->productModel->getBestSellersWithRating(8);
-        } else {
-            $bestSellers = $this->productModel->getBestSellers(8);
-        }
+        // Get best sellers
+        $bestSellers = $this->productModel->getBestSellers(8);
 
-        // Get sale products with rating
-        if (method_exists($this->productModel, 'getSaleProductsWithRating')) {
-            $saleProducts = $this->productModel->getSaleProductsWithRating(8);
-        } else {
-            $saleProducts = $this->productModel->getSaleProducts(8);
-        }
+        // Get sale products
+        $saleProducts = $this->productModel->getSaleProducts(8);
 
         // Get featured vouchers for homepage
         $featuredVouchers = $this->couponModel->getFeaturedVouchers(2);
-        
-        // Get saved and used vouchers for the logged-in user
-        $saved_voucher_ids = [];
-        $used_voucher_ids = [];
-        if (isset($_SESSION['user']['id'])) {
-            $userCouponModel = $this->model('UserCoupon');
-            // Get saved vouchers
-            $savedVouchers = $userCouponModel->getUserCoupons($_SESSION['user']['id'], 'saved');
-            foreach ($savedVouchers as $voucher) {
-                $saved_voucher_ids[] = $voucher['coupon_id'];
-            }
-            
-            // Get used vouchers
-            $usedVouchers = $userCouponModel->getUserCoupons($_SESSION['user']['id'], 'used');
-            foreach ($usedVouchers as $voucher) {
-                $used_voucher_ids[] = $voucher['coupon_id'];
-            }
-        }
 
         $data = [
             'title' => '5S Fashion - Thời trang nam nữ cao cấp',
@@ -90,9 +65,7 @@ class HomeController extends BaseController
             'new_arrivals' => $newArrivals,
             'best_sellers' => $bestSellers,
             'sale_products' => $saleProducts,
-            'featured_vouchers' => $featuredVouchers,
-            'saved_voucher_ids' => $saved_voucher_ids,
-            'used_voucher_ids' => $used_voucher_ids
+            'featured_vouchers' => $featuredVouchers
         ];
 
         $this->render('client/home/index', $data, 'client/layouts/app');
@@ -135,16 +108,14 @@ class HomeController extends BaseController
         $totalPages = ceil($totalProducts / $limit);
         $currentPage = (int)$page;
 
-        // Build query string for pagination (giữ cả featured và sale nếu có)
+        // Build query string for pagination
         $queryParams = array_filter([
             'category' => $category,
             'brand' => $brand,
             'min_price' => $minPrice,
             'max_price' => $maxPrice,
             'search' => $search,
-            'sort' => $sort,
-            'featured' => $_GET['featured'] ?? null,
-            'sale' => $_GET['sale'] ?? null
+            'sort' => $sort
         ]);
         $queryString = $queryParams ? '&' . http_build_query($queryParams) : '';
 
@@ -216,11 +187,11 @@ class HomeController extends BaseController
         $relatedProducts = $this->productModel->getRelatedProducts($product['id'], $product['category_id'], 8);
 
         // Get product reviews from database
-        $userId = isLoggedIn() ? $_SESSION['user']['id'] : null;
-    $reviews = $this->reviewModel->getProductReviews($product['id'], 10, $userId);
-    $reviewCount = $this->reviewModel->getProductReviewCount($product['id']);
-    $ratingStats = $this->reviewModel->getProductRatingStats($product['id']);
-        
+         $userId = isLoggedIn() ? $_SESSION['user']['id'] : null;
+         $reviews = $this->reviewModel->getProductReviews($product['id'], 10, $userId);
+         $reviewCount = $this->reviewModel->getProductReviewCount($product['id']);
+         $ratingStats = $this->reviewModel->getProductRatingStats($product['id']);
+
         // Debug: Log reviews
         error_log("Reviews for product {$product['id']}: " . print_r($reviews, true));
         error_log("Review count: " . $reviewCount);
@@ -264,8 +235,8 @@ class HomeController extends BaseController
             'related_products' => $relatedProducts,
             'reviews' => $reviews,
             'reviewCount' => $reviewCount,
-            'ratingStats' => $ratingStats,
             'canReview' => $canReview,
+            'ratingStats' => $ratingStats,
             'hasOrderedProduct' => $hasOrderedProduct,
             'hasCompletedOrders' => $hasCompletedOrders,
             'hasReviewed' => $hasReviewed,

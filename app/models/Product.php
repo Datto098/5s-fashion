@@ -556,18 +556,27 @@ class Product extends BaseModel
 
         $variants = $this->db->fetchAll($sql, [$productId]);
 
-        // Parse variant_name to extract color and size
+        // Parse variant_name to extract color and size, and get color_code
         foreach ($variants as &$variant) {
             if (!empty($variant['variant_name'])) {
                 // Variant name format: "Product Name - Color - Size"
                 $parts = explode(' - ', $variant['variant_name']);
                 if (count($parts) >= 3) {
-                    $variant['color'] = $parts[count($parts) - 2]; // Second to last part is color
-                    $variant['size'] = $parts[count($parts) - 1];  // Last part is size
+                    $variant['color'] = $parts[count($parts) - 1]; // Second to last part is color
+                    $variant['size'] = $parts[count($parts) - 2];  // Last part is size
                 } else {
                     $variant['color'] = 'Default';
                     $variant['size'] = 'One Size';
                 }
+            }
+
+            // Get color_code from product_attribute_values if color is set
+            if (!empty($variant['color']) && $variant['color'] !== 'Default') {
+                $colorCodeSql = "SELECT color_code FROM product_attribute_values WHERE value = ? LIMIT 1";
+                $colorRow = $this->db->fetchOne($colorCodeSql, [$variant['color']]);
+                $variant['color_code'] = $colorRow && !empty($colorRow['color_code']) ? $colorRow['color_code'] : null;
+            } else {
+                $variant['color_code'] = null;
             }
 
             // Use product price if variant price is null or 0
