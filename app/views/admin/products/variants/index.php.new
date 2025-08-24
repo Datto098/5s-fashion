@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Lấy reference đến modal và form
     const generateModal = document.getElementById('generateVariantsModal');
     const generateForm = generateModal.querySelector('form');
-    
+
     // Reset form khi modal đóng
     generateModal.addEventListener('hidden.bs.modal', function() {
         generateForm.reset();
@@ -353,17 +353,17 @@ document.addEventListener('DOMContentLoaded', function() {
             radio.checked = false;
         });
     });
-    
+
     // Xử lý form submission bằng AJAX thay vì submit thông thường
     generateForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         // Hiển thị loading state
         const submitBtn = document.getElementById('generateVariantsBtn');
         const originalText = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
-        
+
         // Gửi form data bằng Fetch API
         fetch(generateForm.action, {
             method: 'POST',
@@ -377,11 +377,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 // Hiển thị thông báo thành công
                 alert(data.message || 'Tạo biến thể thành công');
-                
+
                 // Đóng modal
                 const bsModal = bootstrap.Modal.getInstance(generateModal);
                 bsModal.hide();
-                
+
                 // Tải lại danh sách biến thể
                 loadVariants();
             } else {
@@ -405,13 +405,13 @@ document.addEventListener('DOMContentLoaded', function() {
 const loadVariants = function() {
     const variantsList = document.querySelector('.variants-list');
     if (!variantsList) return;
-    
+
     // Lấy product ID từ URL
     const pathParts = window.location.pathname.split('/');
     const productIdIndex = pathParts.indexOf('products') + 1;
     if (productIdIndex > 0 && productIdIndex < pathParts.length) {
         const productId = pathParts[productIdIndex];
-        
+
         // Tải lại danh sách biến thể
         fetch(`/5s-fashion/admin/products/${productId}/variants?format=json`, {
             headers: {
@@ -520,26 +520,26 @@ function editVariant(variantId, variantName, sku, price, salePrice, stockQuantit
     document.getElementById('edit_sale_price').value = salePrice || '';
     document.getElementById('edit_stock_quantity').value = stockQuantity;
     document.getElementById('edit_status').value = status;
-    
+
     // Lấy thuộc tính của biến thể
     const attributesDisplay = document.getElementById('edit_attributes_display');
     attributesDisplay.innerHTML = '<p class="text-muted mb-0">Đang tải thông tin thuộc tính...</p>';
-    
+
     // Set action cho form
     const form = document.getElementById('editVariantForm');
     const productId = window.location.pathname.split('/')[4]; // /admin/products/:productId/variants
     form.action = `/5s-fashion/admin/products/${productId}/variants/${variantId}/update`;
-    
+
     // Lấy thông tin thuộc tính
     fetch(`/5s-fashion/admin/products/${productId}/variants/${variantId}/attributes`)
         .then(response => response.json())
         .then(data => {
             if (data.attributes && data.attributes.length > 0) {
                 let attributesHtml = '<div class="d-flex flex-wrap gap-2 mt-1">';
-                
+
                 data.attributes.forEach(attr => {
                     const badgeClass = attr.isDuplicate ? 'bg-warning text-dark' : 'bg-light text-dark';
-                    
+
                     attributesHtml += `
                         <span class="badge ${badgeClass}">
                             ${attr.attribute_name}: ${attr.value}

@@ -44,6 +44,21 @@ class ProductAttributeValue extends BaseModel
     }
 
     /**
+     * Get attribute type for a value ID
+     */
+    public function getAttributeType($valueId)
+    {
+        $sql = "
+            SELECT pav.id, pa.id as attribute_id, pa.type, pa.name
+            FROM product_attribute_values pav
+            JOIN product_attributes pa ON pav.attribute_id = pa.id
+            WHERE pav.id = :value_id
+            LIMIT 1
+        ";
+        return $this->db->fetchOne($sql, ['value_id' => $valueId]);
+    }
+
+    /**
      * Get size values
      */
     public static function getSizes()
