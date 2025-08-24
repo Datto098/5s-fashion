@@ -76,10 +76,42 @@ class ProductVariantsController extends BaseController
                 ]
             ];
 
+            // Kiểm tra nếu là AJAX request để lấy danh sách biến thể
+            if (isset($_GET['format']) && $_GET['format'] === 'json' &&
+                isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+
+                // Render chỉ phần table variants vào buffer
+                ob_start();
+                extract($data);
+                include __DIR__ . '/../../views/admin/products/variants/partials/variants_list.php';
+                $html = ob_get_clean();
+
+                // Trả về JSON response
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'html' => $html
+                ]);
+                exit;
+            }
+
             $this->render('admin/products/variants/index', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
             error_log("Error in ProductVariantsController::index: " . $e->getMessage());
+
+            // Kiểm tra nếu là AJAX request
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
+                ]);
+                exit;
+            }
+
             header('Location: /5s-fashion/admin/products?error=' . urlencode('Có lỗi xảy ra: ' . $e->getMessage()));
             exit;
         }
@@ -113,9 +145,10 @@ class ProductVariantsController extends BaseController
                     throw new Exception('SKU và tên biến thể không được để trống');
                 }
 
-                // Check for duplicate SKU
-                if ($this->variantModel->getBySku($variantData['sku'])) {
-                    throw new Exception('SKU đã tồn tại');
+                // Check for duplicate SKU but ensure it's not from this product
+                $existingSku = $this->variantModel->getBySku($variantData['sku']);
+                if ($existingSku && $existingSku['product_id'] != $productId) {
+                    throw new Exception('SKU đã tồn tại cho sản phẩm khác');
                 }
 
                 // Get attribute value IDs
@@ -137,16 +170,45 @@ class ProductVariantsController extends BaseController
                 $product = $this->productModel->find($productId);
                 if (!$product['has_variants']) {
                     $productObj = new Product();
-                    $productObj->id = $productId;
-                    $productObj->enableVariants();
+                    // Sử dụng phương thức tĩnh hoặc phương thức instance phù hợp
+                    $productObj->update($productId, ['has_variants' => 1]);
                 }
 
                 $_SESSION['success'] = 'Tạo biến thể thành công';
+
+                // Kiểm tra nếu request là AJAX (XMLHttpRequest)
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                    // Trả về response cho AJAX request
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Tạo biến thể thành công',
+                        'variantId' => $variantId
+                    ]);
+                    exit;
+                }
+
+                // Chuyển hướng như thông thường nếu không phải AJAX
                 $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
 
             } catch (Exception $e) {
                 error_log("Error creating variant: " . $e->getMessage());
                 $_SESSION['error'] = $e->getMessage();
+
+                // Kiểm tra nếu request là AJAX (XMLHttpRequest)
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                    // Trả về response lỗi cho AJAX request
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'success' => false,
+                        'message' => $e->getMessage()
+                    ]);
+                    exit;
+                }
+
+                // Chuyển hướng như thông thường nếu không phải AJAX
                 $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
             }
         }
@@ -240,8 +302,7 @@ class ProductVariantsController extends BaseController
             if (empty($remainingVariants)) {
                 // Disable variants for product
                 $productObj = new Product();
-                $productObj->id = $productId;
-                $productObj->disableVariants();
+                $productObj->update($productId, ['has_variants' => 0]);
             }
 
             $_SESSION['success'] = 'Xóa biến thể thành công';
@@ -273,13 +334,13 @@ class ProductVariantsController extends BaseController
                 }
 
                 // Get selected attribute values
-                $selectedColors = $_POST['selected_colors'] ?? [];
-                $selectedSizes = $_POST['selected_sizes'] ?? [];
-                $selectedMaterials = $_POST['selected_materials'] ?? [];
+                $selectedColors = isset($_POST['selected_colors']) ? [$_POST['selected_colors']] : [];
+                $selectedSizes = isset($_POST['selected_sizes']) ? [$_POST['selected_sizes']] : [];
+                $selectedMaterials = isset($_POST['selected_materials']) ? [$_POST['selected_materials']] : [];
 
-                error_log("Selected attributes - Colors: " . implode(',', $selectedColors) .
-                         ", Sizes: " . implode(',', $selectedSizes) .
-                         ", Materials: " . implode(',', $selectedMaterials));
+                error_log("Selected attributes - Colors: " . ($selectedColors[0] ?? 'none') .
+                         ", Sizes: " . ($selectedSizes[0] ?? 'none') .
+                         ", Materials: " . ($selectedMaterials[0] ?? 'none'));
 
                 // Validate that at least one attribute is selected
                 if (empty($selectedColors) && empty($selectedSizes) && empty($selectedMaterials)) {
@@ -311,21 +372,39 @@ class ProductVariantsController extends BaseController
                     $skuParts = [$baseSku];
                     $attributeValueIds = [];
 
+                    // Lấy thông tin đầy đủ của attribute value để đảm bảo không có trùng lặp theo type
+                    $attributeValuesByType = [];
+
                     foreach ($combination as $type => $valueId) {
-                        $attributeValue = $this->attributeValueModel->find($valueId);
-                        if ($attributeValue) {
-                            $variantNameParts[] = $attributeValue['value'];
-                            $skuParts[] = strtoupper(substr($attributeValue['slug'], 0, 3));
-                            $attributeValueIds[] = $valueId;
+                        $attributeInfo = $this->attributeValueModel->getAttributeType($valueId);
+                        if ($attributeInfo) {
+                            $attrType = $attributeInfo['type'];
+                            if (!isset($attributeValuesByType[$attrType])) {
+                                $attributeValue = $this->attributeValueModel->find($valueId);
+                                if ($attributeValue) {
+                                    $attributeValuesByType[$attrType] = [
+                                        'value' => $attributeValue['value'],
+                                        'slug' => $attributeValue['slug'],
+                                        'id' => $valueId
+                                    ];
+                                }
+                            }
                         }
+                    }
+
+                    // Tạo tên biến thể từ các giá trị thuộc tính đã được lọc
+                    foreach ($attributeValuesByType as $attrData) {
+                        $variantNameParts[] = $attrData['value'];
+                        $skuParts[] = strtoupper(substr($attrData['slug'], 0, 3));
+                        $attributeValueIds[] = $attrData['id'];
                     }
 
                     $variantName = $product['name'] . ' - ' . implode(' - ', $variantNameParts);
                     $variantSku = implode('-', $skuParts);
 
-                    // Check if variant already exists
+                    // Kiểm tra xem biến thể đã tồn tại chưa
                     if ($this->variantModel->getBySku($variantSku)) {
-                        continue; // Skip existing variants
+                        continue; // Bỏ qua nếu biến thể đã tồn tại
                     }
 
                     // Create variant
@@ -373,8 +452,22 @@ class ProductVariantsController extends BaseController
                 error_log("Error generating variants: " . $e->getMessage());
                 $_SESSION['error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
             }
+
+            // Kiểm tra nếu request là AJAX (XMLHttpRequest)
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                // Trả về response cho AJAX request
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => !isset($_SESSION['error']),
+                    'message' => $_SESSION['success'] ?? $_SESSION['error'] ?? '',
+                    'count' => $variantCount ?? 0
+                ]);
+                exit;
+            }
         }
 
+        // Nếu không phải AJAX request, chuyển hướng như thông thường
         $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
     }
 
@@ -392,7 +485,10 @@ class ProductVariantsController extends BaseController
                     foreach ($values as $value) {
                         $newCombination = $combination;
                         $newCombination[$type] = $value;
-                        $newCombinations[] = $newCombination;
+                        // Kiểm tra xem giá trị đã có trong tổ hợp chưa
+                        if (!in_array($value, $combination)) {
+                            $newCombinations[] = $newCombination;
+                        }
                     }
                 }
                 $combinations = $newCombinations;
@@ -403,6 +499,100 @@ class ProductVariantsController extends BaseController
         return array_filter($combinations, function($combination) {
             return !empty($combination);
         });
+    }
+
+    /**
+     * Fix variants with duplicate attribute types
+     */
+    public function fixDuplicateAttributes($productId)
+    {
+        $db = Database::getInstance();
+
+        try {
+            // Get all variants for this product
+            $variants = $this->productModel->getVariants($productId);
+
+            // Count for feedback
+            $fixedVariantsCount = 0;
+
+            // Start transaction
+            $db->beginTransaction();
+
+            foreach ($variants as $variant) {
+                // Skip if variant has no attributes
+                if (empty($variant['attributes'])) continue;
+
+                // Group attributes by type
+                $attributesByType = [];
+                $needsFix = false;
+
+                foreach ($variant['attributes'] as $attr) {
+                    $type = $attr['attribute_type'] ?? 'other';
+
+                    // If we already have an attribute of this type, we need to fix
+                    if (isset($attributesByType[$type])) {
+                        $needsFix = true;
+                    } else {
+                        $attributesByType[$type] = $attr;
+                    }
+                }
+
+                // If variant has duplicate attribute types, fix it
+                if ($needsFix) {
+                    // First, remove all attributes
+                    $db->execute(
+                        "DELETE FROM product_variant_attributes WHERE variant_id = :variant_id",
+                        ['variant_id' => $variant['id']]
+                    );
+
+                    // Then add back only one attribute per type
+                    foreach ($attributesByType as $attr) {
+                        $db->execute(
+                            "INSERT INTO product_variant_attributes (variant_id, attribute_value_id) VALUES (:variant_id, :attribute_value_id)",
+                            [
+                                'variant_id' => $variant['id'],
+                                'attribute_value_id' => $attr['attribute_value_id']
+                            ]
+                        );
+                    }
+
+                    // Update variant name
+                    $variantNameParts = [$variant['product_name']];
+                    foreach ($attributesByType as $attr) {
+                        $variantNameParts[] = $attr['value'];
+                    }
+
+                    $variantName = implode(' - ', $variantNameParts);
+                    $db->execute(
+                        "UPDATE product_variants SET variant_name = :variant_name WHERE id = :id",
+                        [
+                            'variant_name' => $variantName,
+                            'id' => $variant['id']
+                        ]
+                    );
+
+                    $fixedVariantsCount++;
+                }
+            }
+
+            $db->commit();
+
+            if ($fixedVariantsCount > 0) {
+                $_SESSION['success'] = "Đã sửa {$fixedVariantsCount} biến thể có thuộc tính trùng lặp";
+            } else {
+                $_SESSION['info'] = "Không tìm thấy biến thể nào cần sửa";
+            }
+
+        } catch (Exception $e) {
+            if ($db->getConnection()->inTransaction()) {
+                $db->rollback();
+            }
+
+            error_log("Error fixing duplicate attributes: " . $e->getMessage());
+            $_SESSION['error'] = "Có lỗi xảy ra: " . $e->getMessage();
+        }
+
+        $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
     }
 
     /**
