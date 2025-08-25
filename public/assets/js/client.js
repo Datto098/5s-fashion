@@ -206,7 +206,12 @@ function addToCart(productId, quantity = 1, variant = null) {
     body: JSON.stringify({
       product_id: productId,
       quantity: quantity,
-      variant: variant,
+      // include explicit variant_id so server-side code receives it even if it expects a top-level id
+      variant_id: variant && (variant.id || variant.variant_id) ? (variant.id || variant.variant_id) : null,
+      // include the full variant object for backwards-compatibility
+      variant: variant || null,
+      // include client-side price when available (helps server validation)
+      price: variant && (variant.price || variant.sale_price) ? (variant.price || variant.sale_price) : null
     }),
   })
     .then((response) => response.json())
@@ -1078,6 +1083,16 @@ const customCSS = `
 body:not(.modal-open) .modal-backdrop {
     display: none !important;
 }
+
+.color-option {
+  border-radius: 999px !important;
+  padding: 4px 6px !important;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 `;
 
 // Add custom CSS to head
@@ -1392,6 +1407,43 @@ function renderQuickViewContent(product) {
   // Set content to modal
   document.getElementById("quickViewContent").innerHTML = content;
 
+  // Expose current product data for other handlers and initialize selected variant UI
+  try {
+    window.currentQuickViewProduct = product;
+  } catch (e) {}
+  // Ensure the displayed price reflects a concrete auto-selected variant (choose first in-stock variant)
+  try {
+    // prefer a variant that has stock
+    let initialCandidate = null;
+    if (product.variants && product.variants.length) {
+      initialCandidate = product.variants.find(v => (v.stock_quantity || v.stock) > 0) || product.variants[0];
+    }
+    if (initialCandidate) {
+      // mark related buttons active in DOM (color + size)
+      setTimeout(() => {
+        try {
+          // activate color button
+          const colorBtn = document.querySelector(`#quickViewContent .color-option[data-color="${initialCandidate.color}"]`);
+          if (colorBtn) {
+            document.querySelectorAll('#quickViewContent .color-option').forEach(b=>b.classList.remove('active'));
+            colorBtn.classList.add('active');
+          }
+          // render sizes for that color (if renderSizeOptions flow exists) - here size buttons are already rendered
+          const sizeBtn = document.querySelector(`#quickViewContent .size-option[data-variant-id="${initialCandidate.id}"]`);
+          if (sizeBtn) {
+            document.querySelectorAll('#quickViewContent .size-option').forEach(b=>b.classList.remove('active'));
+            sizeBtn.classList.add('active');
+          }
+          selectSize(initialCandidate.id, initialCandidate.size, initialCandidate.price, initialCandidate.color);
+        } catch(e) {
+          console.warn('quickview initial select failed', e);
+        }
+      }, 30);
+    }
+  } catch(e) {
+    console.warn('initial quickview selection error', e);
+  }
+
   // Debug: Log to console để kiểm tra
   console.log("Quick view content rendered successfully");
   console.log(
@@ -1651,7 +1703,9 @@ function selectSize(variantId, size, price, color) {
   };
 
   // Update price display
-  const priceElement = document.querySelector(".current-price");
+  // Prefer the quick-view modal price element if present, otherwise fallback to global
+  let priceElement = document.querySelector("#quickViewContent .current-price");
+  if (!priceElement) priceElement = document.querySelector(".current-price");
   if (priceElement) {
     priceElement.textContent = formatCurrency(price);
   }
@@ -1707,14 +1761,30 @@ function addToCartFromQuickView(productId) {
     currentProductData.variants &&
     currentProductData.variants.length > 0
   ) {
+    // If user hasn't selected a variant (modal auto-init might have failed),
+    // pick the first in-stock variant or fallback to the first variant.
     if (!selectedVariant) {
-      // Use unified notifications
-      if (window.showWarning) {
-        window.showWarning("Vui lòng chọn màu sắc và kích thước!");
+      const candidate =
+        currentProductData.variants.find((v) => (v.stock_quantity || v.stock) > 0) ||
+        currentProductData.variants[0];
+      if (candidate) {
+        selectedVariant = {
+          id: candidate.id,
+          size: candidate.size,
+          price: parseFloat(candidate.price) || 0,
+          color: candidate.color,
+        };
+        // Update UI safely
+        try { selectSize(candidate.id, candidate.size, candidate.price, candidate.color); } catch(e) {}
       } else {
-        showToast("Vui lòng chọn màu sắc và kích thước!", "warning");
+        // Use unified notifications
+        if (window.showWarning) {
+          window.showWarning("Vui lòng chọn màu sắc và kích thước!");
+        } else {
+          showToast("Vui lòng chọn màu sắc và kích thước!", "warning");
+        }
+        return;
       }
-      return;
     }
   }
 
@@ -1729,7 +1799,7 @@ function addToCartFromQuickView(productId) {
       id: selectedVariant.id,
       size: selectedVariant.size,
       color: selectedVariant.color,
-      price: selectedVariant.price,
+  price: selectedVariant.price,
     };
   }
 
@@ -1771,7 +1841,8 @@ function addToCartFromQuickView(productId) {
     body: JSON.stringify({
       product_id: productId,
       quantity: quantity,
-      variant_id: variantId,
+  variant_id: variantId,
+  variant: variant,
     }),
   })
     .then((response) => {

@@ -148,14 +148,14 @@ class HomeController extends BaseController
             return;
         }
 
-        // Get product variants with attributes if product has variants
+        // Get product variants (giống bên modal/AjaxController)
         $variants = [];
         $attributes = [];
-
         if (isset($product['has_variants']) && $product['has_variants']) {
-            $variants = ProductVariant::getProductVariantsWithDetails($product['id']);
+            // Lấy variants chuẩn giống bên modal
+            $variants = $this->productModel->getVariants($product['id']);
 
-            // Get available attributes for this product
+            // Get available attributes for this product (giữ nguyên)
             $db = Database::getInstance();
             $sql = "
                 SELECT DISTINCT pa.id, pa.name, pa.type, pa.slug,
@@ -176,8 +176,6 @@ class HomeController extends BaseController
                 ORDER BY pa.sort_order
             ";
             $attributes = $db->fetchAll($sql, ['product_id' => $product['id']]);
-
-            // Decode JSON values
             foreach ($attributes as &$attribute) {
                 $attribute['values'] = json_decode($attribute['values'], true) ?? [];
             }
@@ -227,6 +225,48 @@ class HomeController extends BaseController
             $canReview = $hasCompletedOrders && !$hasReviewed;
         }
 
+        // Lọc lại attributes.values chỉ lấy các giá trị thực tế có trong variants và loại bỏ trùng lặp
+        if (!empty($attributes) && !empty($variants)) {
+            // Chuẩn bị danh sách các giá trị thực tế có trong variants
+            $variantColors = [];
+            $variantSizes = [];
+            foreach ($variants as $v) {
+                if (isset($v['color_code']) && isset($v['color'])) {
+                    $variantColors[$v['color_code']] = $v['color'];
+                }
+                if (isset($v['size'])) {
+                    $variantSizes[$v['size']] = true;
+                }
+            }
+            foreach ($attributes as &$attribute) {
+                // Lọc values theo loại attribute
+                if ($attribute['type'] === 'color') {
+                    $unique = [];
+                    $attribute['values'] = array_values(array_filter($attribute['values'], function($val) use ($variantColors, &$unique) {
+                        // Lọc theo color_code và value
+                        $key = $val['color_code'] . '|' . $val['value'];
+                        if (isset($variantColors[$val['color_code']]) && $variantColors[$val['color_code']] === $val['value'] && !isset($unique[$key])) {
+                            $unique[$key] = true;
+                            return true;
+                        }
+                        return false;
+                    }));
+                } elseif ($attribute['type'] === 'size') {
+                    $unique = [];
+                    $attribute['values'] = array_values(array_filter($attribute['values'], function($val) use ($variantSizes, &$unique) {
+                        // Lọc theo value (size), loại trùng
+                        $key = $val['value'];
+                        if (isset($variantSizes[$val['value']]) && !isset($unique[$key])) {
+                            $unique[$key] = true;
+                            return true;
+                        }
+                        return false;
+                    }));
+                }
+            }
+            unset($attribute);
+        }
+
         $data = [
             'title' => $product['name'] . ' - 5S Fashion',
             'product' => $product,
@@ -242,6 +282,8 @@ class HomeController extends BaseController
             'hasReviewed' => $hasReviewed,
             'userId' => $userId
         ];
+        // print_r($data);
+        // echo "</pre>";
 
         $this->render('client/product/detail', $data, 'client/layouts/app');
     }

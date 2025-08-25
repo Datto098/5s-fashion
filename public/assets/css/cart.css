@@ -118,7 +118,7 @@
 
 .quantity-input {
     border: none;
-    width: 70px;
+    width: 80px;
     text-align: center;
     padding: 12px 8px;
     font-weight: var(--font-weight-semibold);
@@ -632,7 +632,7 @@
     }
 
     .quantity-input {
-        width: 50px;
+        width: 60px;
         padding: 8px 4px;
     }
 }
@@ -721,14 +721,6 @@
     cursor: not-allowed;
 }
 
-.quantity-input {
-    width: 60px;
-    height: 35px;
-    text-align: center;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-weight: 500;
-}
 
 .quantity-input:focus {
     border-color: #007bff;

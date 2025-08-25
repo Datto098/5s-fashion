@@ -16,7 +16,7 @@ ob_start();
                          <h5 class="mt-2"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></h5>
                         <p class="text-muted"><?= htmlspecialchars(getUser()['email'] ?? '') ?></p>
                     </div>
-
+            
                     <nav class="account-nav">
                         <ul class="nav nav-pills flex-column">
                             <li class="nav-item">

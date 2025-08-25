@@ -60,6 +60,7 @@ class Cart extends BaseModel {
                 c.*,
                 p.name as product_name,
                 p.slug as product_slug,
+                p.sku as product_sku,
                 p.featured_image as product_image,
                 pv.variant_name,
                 pv.sku as variant_sku,

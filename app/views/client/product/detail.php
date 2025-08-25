@@ -1,4 +1,260 @@
+<script>
+// Đảm bảo disable nút tăng khi đạt max, disable input khi hết hàng
+document.addEventListener('DOMContentLoaded', function() {
+    function syncQuantityInputState() {
+        const qtyInput = document.getElementById('quantity');
+        const btnInc = qtyInput?.parentElement.querySelector('.btn-plus');
+        const btnDec = qtyInput?.parentElement.querySelector('.btn-minus');
+        const maxQty = window.selectedVariantDetail?.maxQty || 99;
+        const inStock = maxQty > 0;
+        if (qtyInput) {
+            qtyInput.readOnly = true;
+            qtyInput.disabled = !inStock;
+            if (+qtyInput.value > maxQty) qtyInput.value = maxQty;
+            if (+qtyInput.value < 1) qtyInput.value = 1;
+            qtyInput.min = 1;
+            qtyInput.max = maxQty;
+        }
+        if (btnInc) btnInc.disabled = !inStock || (+qtyInput.value >= maxQty);
+        if (btnDec) btnDec.disabled = !inStock || (+qtyInput.value <= 1);
+    }
+    // Gọi lại khi chọn màu/size
+    window._oldUpdateSelectedVariantDetail = window.updateSelectedVariantDetail;
+    window.updateSelectedVariantDetail = function() {
+        window._oldUpdateSelectedVariantDetail();
+        syncQuantityInputState();
+    };
+    // Gọi khi thay đổi số lượng
+    const qtyInput = document.getElementById('quantity');
+    if (qtyInput) {
+        qtyInput.addEventListener('input', syncQuantityInputState);
+    }
+    // Gọi lần đầu
+    setTimeout(syncQuantityInputState, 100);
+});
+</script>
+<script>
+// Lấy variants từ API và render lại chọn màu/size bằng JS giống modal
+document.addEventListener('DOMContentLoaded', function() {
+    const productId = <?= (int)$product['id'] ?>;
+    // store the initial product price text so we can revert when no variant selected
+    try { window._initialProductPrice = document.querySelector('.current-price')?.textContent?.trim() || null; } catch(e) {}
+    fetch(`/5s-fashion/ajax/product/quickview?id=${productId}`)
+        .then(res => res.json())
+        .then(data => {
+            try {
+                // support multiple response shapes
+                const variants = (data && data.product && data.product.variants) || data.variants || (data.data && data.data.variants) || [];
+                if (!Array.isArray(variants) || variants.length === 0) {
+                    window.sizesByColor = window.sizesByColor || {};
+                    return;
+                }
+            // Group variants by color
+            const colorMap = {};
+            const sizesByColor = {};
+            variants.forEach(variant => {
+                const color = (variant.color || '').trim();
+                const color_code = variant.color_code || '#ccc';
+                if (!colorMap[color]) colorMap[color] = color_code;
+                if (!sizesByColor[color]) sizesByColor[color] = [];
+                sizesByColor[color].push(variant);
+            });
+            // Render color buttons
+            const colorOptionsDiv = document.querySelector('.color-options');
+            if (colorOptionsDiv) {
+                let idx = 0;
+                colorOptionsDiv.innerHTML = Object.entries(colorMap).map(([color, color_code]) => `
+                    <button type="button" class="btn btn-outline-secondary color-option${idx++ === 0 ? ' active' : ''}"
+                        data-color="${color}"
+                        style="border-radius:999px;padding:4px 6px;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-width:2px;${idx === 1 ? 'border:2.5px solid #007bff;box-shadow:0 0 0 2px #b3d7ff;' : ''}">
+                        <span class="color-swatch" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${color_code};border:1px solid #ccc;vertical-align:middle;"></span>
+                    </button>
+                `).join('');
+            }
+            // Render size buttons for first color
+            const sizeOptionsDiv = document.getElementById('sizeOptionsDetail');
+            function renderSizeOptions(selectedColor) {
+                const variants = sizesByColor[selectedColor] || [];
+                let html = '';
+                let firstAvailableIdx = -1;
+                let sizeSet = [];
+                variants.forEach((variant, idx) => {
+                    const size = variant.size || 'One Size';
+                    if (sizeSet.includes(size)) return;
+                    sizeSet.push(size);
+                    const outOfStock = !variant.stock_quantity || variant.stock_quantity <= 0;
+                    if (!outOfStock && firstAvailableIdx === -1) firstAvailableIdx = idx;
+                    html += `<button type="button" class="btn btn-outline-secondary size-option${(!outOfStock && firstAvailableIdx === idx) ? ' active' : ''}"
+                        data-variant-id="${variant.id}"
+                        data-size="${size}"
+                        data-price="${variant.price}"
+                        data-color="${variant.color}"
+                        data-stock="${variant.stock_quantity || 0}"
+                        ${outOfStock ? 'disabled style=\'opacity:0.5;cursor:not-allowed;\'' : ''}>
+                        ${size}
+                    </button> `;
+                });
+                if (sizeOptionsDiv) sizeOptionsDiv.innerHTML = html;
+                setTimeout(updateSelectedVariantDetail, 10);
+            }
+            // Lần đầu render size cho màu đầu tiên
+            const firstColor = Object.keys(colorMap)[0];
+            renderSizeOptions(firstColor);
+            // Sự kiện chọn màu
+            if (colorOptionsDiv) {
+                colorOptionsDiv.addEventListener('click', function(e) {
+                    const colorButton = e.target.closest('.color-option');
+                    if (!colorButton) return;
+                    const selectedColor = colorButton.getAttribute('data-color');
+                    colorOptionsDiv.querySelectorAll('.color-option').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.style.border = '';
+                        btn.style.boxShadow = '';
+                    });
+                    colorButton.classList.add('active');
+                    colorButton.style.border = '2.5px solid #007bff';
+                    colorButton.style.boxShadow = '0 0 0 2px #b3d7ff';
+                    renderSizeOptions(selectedColor);
+                    setTimeout(updateSelectedVariantDetail, 10);
+                });
+            }
+            // Sự kiện chọn size
+            if (sizeOptionsDiv) {
+                sizeOptionsDiv.addEventListener('click', function(e) {
+                    const sizeButton = e.target.closest('.size-option');
+                    if (sizeButton && !sizeButton.disabled) {
+                        sizeOptionsDiv.querySelectorAll('.size-option').forEach(btn => btn.classList.remove('active'));
+                        sizeButton.classList.add('active');
+                        setTimeout(updateSelectedVariantDetail, 10);
+                    }
+                });
+            }
+            // Lưu lại để các hàm khác dùng
+            window.sizesByColor = sizesByColor;
+            setTimeout(updateSelectedVariantDetail, 50);
+            } catch(e) {
+                console.error('Error processing quickview response', e, data);
+                window.sizesByColor = window.sizesByColor || {};
+                setTimeout(updateSelectedVariantDetail, 50);
+            }
+        });
+});
+// Hàm đồng bộ variant đang chọn giống modal
+function updateSelectedVariantDetail() {
+    const colorBtn = document.querySelector('.color-option.active');
+    const color = colorBtn ? colorBtn.getAttribute('data-color') : null;
+    const sizeBtn = document.querySelector('.size-option.active');
+    const size = sizeBtn ? sizeBtn.getAttribute('data-size') : null;
+    const variantId = sizeBtn ? sizeBtn.getAttribute('data-variant-id') : null;
+    const price = sizeBtn ? sizeBtn.getAttribute('data-price') : null;
+    let maxQty = 99;
+    if (sizeBtn) {
+        const vColor = sizeBtn.getAttribute('data-color') || color;
+        const variants = (window.sizesByColor && window.sizesByColor[vColor]) || [];
+        const found = variants.find(v => v.id == variantId);
+        if (found && found.stock_quantity) maxQty = found.stock_quantity;
+    }
+    window.selectedVariantDetail = variantId ? {id: variantId, color, size, price, maxQty: maxQty} : null;
+    // Cập nhật max cho input số lượng
+    const qtyInput = document.getElementById('quantity');
+    if (qtyInput && window.selectedVariantDetail) {
+        qtyInput.max = window.selectedVariantDetail.maxQty;
+        if (+qtyInput.value > window.selectedVariantDetail.maxQty) qtyInput.value = window.selectedVariantDetail.maxQty;
+    }
+    // Update displayed price when variant selected
+    try {
+        const priceElement = document.querySelector('.current-price');
+        if (priceElement) {
+            if (window.selectedVariantDetail && window.selectedVariantDetail.price) {
+                const num = parseFloat(window.selectedVariantDetail.price) || 0;
+                priceElement.textContent = new Intl.NumberFormat('vi-VN').format(num) + 'đ';
+            } else if (window._initialProductPrice) {
+                priceElement.textContent = window._initialProductPrice;
+            }
+        }
+    } catch(e) {}
+}
+// Ghi đè hàm handleAddToCart để truyền đúng variant id và số lượng
+function handleAddToCart(productId) {
+    const qtyInput = document.getElementById('quantity');
+    const quantity = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+    const selected = window.selectedVariantDetail;
+    if (!selected || !selected.id) {
+        alert('Vui lòng chọn màu sắc và kích thước!');
+        return;
+    }
+    if (quantity > selected.maxQty) {
+        alert('Số lượng vượt quá tồn kho!');
+        return;
+    }
+    // Lấy object variant đầy đủ từ sizesByColor
+    let fullVariant = null;
+    if (window.sizesByColor && selected.color && window.sizesByColor[selected.color]) {
+        fullVariant = window.sizesByColor[selected.color].find(v => v.id == selected.id);
+    }
+    if (!fullVariant) {
+        alert('Không tìm thấy biến thể sản phẩm!');
+        return;
+    }
+    // Sử dụng hàm addToCart của client.js nếu có
+    if (window.addToCart) {
+        window.addToCart(productId, quantity, fullVariant);
+    } else {
+        // Fallback ajax, truyền đủ thông tin variant
+        fetch('/5s-fashion/ajax/cart/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: quantity,
+                variant_id: fullVariant.id,
+                variant: fullVariant
+            })
+        })
+        .then(r=>r.json()).then(data=>{
+            if(data.success) alert('Đã thêm sản phẩm vào giỏ hàng!');
+            else alert(data.message||'Có lỗi xảy ra');
+        }).catch(()=>alert('Có lỗi xảy ra khi thêm vào giỏ hàng'));
+    }
+}
+// Hàm đồng bộ variant đang chọn giống modal
+function updateSelectedVariantDetail() {
+    const colorBtn = document.querySelector('.color-option.active');
+    const color = colorBtn ? colorBtn.getAttribute('data-color') : null;
+    const sizeBtn = document.querySelector('.size-option.active');
+    const size = sizeBtn ? sizeBtn.getAttribute('data-size') : null;
+    const variantId = sizeBtn ? sizeBtn.getAttribute('data-variant-id') : null;
+    const price = sizeBtn ? sizeBtn.getAttribute('data-price') : null;
+    let maxQty = 99;
+    if (sizeBtn) {
+        const vColor = sizeBtn.getAttribute('data-color') || color;
+        const variants = (window.sizesByColor && window.sizesByColor[vColor]) || [];
+        const found = variants.find(v => v.id == variantId);
+        if (found && found.stock_quantity) maxQty = found.stock_quantity;
+    }
+    window.selectedVariantDetail = variantId ? {id: variantId, color, size, price, maxQty: maxQty} : null;
+    // Cập nhật max cho input số lượng
+    const qtyInput = document.getElementById('quantity');
+    if (qtyInput && window.selectedVariantDetail) {
+        qtyInput.max = window.selectedVariantDetail.maxQty;
+        if (+qtyInput.value > window.selectedVariantDetail.maxQty) qtyInput.value = window.selectedVariantDetail.maxQty;
+    }
+    // Update displayed price when variant selected (duplicate function guard)
+    try {
+        const priceElement = document.querySelector('.current-price');
+        if (priceElement) {
+            if (window.selectedVariantDetail && window.selectedVariantDetail.price) {
+                const num = parseFloat(window.selectedVariantDetail.price) || 0;
+                priceElement.textContent = new Intl.NumberFormat('vi-VN').format(num) + 'đ';
+            } else if (window._initialProductPrice) {
+                priceElement.textContent = window._initialProductPrice;
+            }
+        }
+    } catch(e) {}
+}
+</script>
 <?php
+
 // Product Detail Page - Clean Version
 // Validate product data
 if (!isset($product) || empty($product)) {
@@ -187,29 +443,80 @@ ob_start();
 
                     <!-- Product Variants (if available) -->
                     <?php if (!empty($variants)): ?>
+                        <?php
+                        // Group variants by color using attribute_details for reliability
+                        $colors = [];
+                        $sizesByColor = [];
+                        foreach ($variants as $variant) {
+                            $color = null;
+                            $color_code = null;
+                            // Parse attribute_details if available
+                            if (!empty($variant['attribute_details'])) {
+                                $attrs = explode('|', $variant['attribute_details']);
+                                foreach ($attrs as $attr) {
+                                    $parts = explode(':', $attr);
+                                    if (count($parts) >= 4 && $parts[0] === 'color') {
+                                        $color = $parts[2];
+                                        $color_code = $parts[3] !== '' ? $parts[3] : '#ccc';
+                                    }
+                                }
+                            }
+                            // Fallback if not found
+                            if ($color === null) {
+                                $color = isset($variant['color']) && $variant['color'] !== null && $variant['color'] !== '' ? $variant['color'] : 'Không xác định';
+                                $color_code = isset($variant['color_code']) && $variant['color_code'] !== null && $variant['color_code'] !== '' ? $variant['color_code'] : '#ccc';
+                            }
+                            if (!isset($colors[$color])) {
+                                $colors[$color] = $color_code;
+                            }
+                            $sizesByColor[$color][] = $variant;
+                        }
+                        $firstColor = array_key_first($colors);
+
+                        // Helper: extract size from attribute_details
+                        function get_variant_size($variant) {
+                            if (!empty($variant['attribute_details'])) {
+                                $attrs = explode('|', $variant['attribute_details']);
+                                foreach ($attrs as $attr) {
+                                    $parts = explode(':', $attr);
+                                    if (count($parts) >= 4 && $parts[0] === 'size') {
+                                        return $parts[2];
+                                    }
+                                }
+                            }
+                            return isset($variant['size']) && $variant['size'] ? $variant['size'] : 'One Size';
+                        }
+                        ?>
                         <div class="variants-section">
-                            <h4><i class="fas fa-palette"></i> Các lựa chọn khác</h4>
-                            <div class="variant-grid">
-                                <?php foreach ($variants as $variant): ?>
-                                    <div class="variant-option"
-                                        data-variant-id="<?= $variant['id'] ?>"
-                                        data-price="<?= $variant['price'] ?>"
-                                        onclick="selectVariant(this)">
-                                        <div class="variant-content">
-                                            <div class="variant-name"><?= htmlspecialchars($variant['variant_name']) ?></div>
-                                            <div class="price-display">
-                                                <?php
-                                                $variantPrice = !empty($variant['price']) ? $variant['price'] : $product['price'];
-                                                echo number_format($variantPrice, 0, ',', '.') . 'đ';
-                                                ?>
-                                            </div>
-                                            <div class="stock-status <?= $variant['stock_quantity'] > 0 ? 'in-stock' : 'out-of-stock' ?>">
-                                                <?= $variant['stock_quantity'] > 0 ? 'Còn hàng' : 'Hết hàng' ?>
-                                            </div>
-                                        </div>
-                                        <div class="variant-selector"></div>
-                                    </div>
-                                <?php endforeach; ?>
+                            <div class="mb-2"><strong>Chọn Màu Sắc:</strong></div>
+                            <div class="color-options mb-3">
+                                <?php $colorIdx = 0; foreach ($colors as $color => $color_code): ?>
+                                    <button type="button"
+                                        class="btn btn-outline-secondary color-option<?= $colorIdx === 0 ? ' active' : '' ?>"
+                                        data-color="<?= htmlspecialchars($color) ?>"
+                                        style="border-radius:999px;padding:4px 6px;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;border-width:2px;<?= $colorIdx === 0 ? 'border:2.5px solid #007bff;box-shadow:0 0 0 2px #b3d7ff;' : '' ?>">
+                                        <span class="color-swatch" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:<?= htmlspecialchars($color_code) ?>;border:1px solid #ccc;vertical-align:middle;"></span>
+                                    </button>
+                                <?php $colorIdx++; endforeach; ?>
+                            </div>
+                            <div class="mb-2"><strong>Chọn Kích Thước:</strong></div>
+                            <div class="size-options mb-3" id="sizeOptionsDetail">
+                                <?php
+                                // Render size buttons cho màu đầu tiên để user thấy ngay khi load trang
+                                $sizeSet = [];
+                                $firstAvailableIdx = -1;
+                                if (!empty($sizesByColor[$firstColor])) {
+                                    foreach ($sizesByColor[$firstColor] as $idx => $variant) {
+                                        $size = get_variant_size($variant);
+                                        if (in_array($size, $sizeSet)) continue;
+                                        $sizeSet[] = $size;
+                                        $outOfStock = empty($variant['stock_quantity']) || $variant['stock_quantity'] <= 0;
+                                        if (!$outOfStock && $firstAvailableIdx === -1) $firstAvailableIdx = $idx;
+                                        $colorSafe = isset($variant['color']) && $variant['color'] !== null ? $variant['color'] : '';
+                                        echo '<button type="button" class="btn btn-outline-secondary size-option'.((!$outOfStock && $firstAvailableIdx === $idx)?' active':'').'" data-variant-id="'.$variant['id'].'" data-size="'.htmlspecialchars($size).'" data-price="'.$variant['price'].'" data-color="'.htmlspecialchars($colorSafe).'" '.($outOfStock?'disabled style=\'opacity:0.5;cursor:not-allowed;\'':'').'>'.$size.'</button> ';
+                                    }
+                                }
+                                ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -740,27 +1047,61 @@ ob_start();
     }
 
     function getSelectedVariant() {
-        const selectedVariantElement = document.querySelector('.variant-option.selected');
-        if (selectedVariantElement) {
+        // Prefer the unified state set by updateSelectedVariantDetail()
+        if (window.selectedVariantDetail) {
+            return window.selectedVariantDetail;
+        }
+
+        // Fallback: try to read from DOM (.size-option.active)
+        const sizeBtn = document.querySelector('.size-option.active') || document.querySelector('.size-option');
+        if (sizeBtn) {
+            const vid = sizeBtn.getAttribute('data-variant-id');
+            const price = sizeBtn.getAttribute('data-price');
+            const size = sizeBtn.getAttribute('data-size');
+            const color = sizeBtn.getAttribute('data-color');
+
+            // Try to find full variant object from window.sizesByColor
+            let full = null;
+            try {
+                if (window.sizesByColor && color && window.sizesByColor[color]) {
+                    full = window.sizesByColor[color].find(v => String(v.id) === String(vid));
+                }
+            } catch(e) {}
+
             return {
-                id: selectedVariantElement.getAttribute('data-variant-id'),
-                price: selectedVariantElement.getAttribute('data-price'),
-                name: selectedVariantElement.querySelector('.variant-name')?.textContent
+                id: vid,
+                price: price,
+                size: size,
+                color: color,
+                full: full || null
             };
         }
+
         return null;
     }
 
     function addToCartFallback(productId, quantity = 1) {
+        // include variant info when possible
+        const selected = getSelectedVariant();
+        const payload = {
+            product_id: productId,
+            quantity: quantity
+        };
+        if (selected) {
+            payload.variant_id = selected.id || null;
+            // include the full variant object if available
+            payload.variant = selected.full ? selected.full : { id: selected.id, price: selected.price, size: selected.size, color: selected.color };
+        }
+
         fetch('/5s-fashion/ajax/cart/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: quantity
-                })
+                body: JSON.stringify(Object.assign({}, payload, {
+                    variant_id: payload.variant_id || (payload.variant && (payload.variant.id || payload.variant.variant_id)) || null,
+                    price: payload.variant && (payload.variant.price || payload.variant.sale_price) ? (payload.variant.price || payload.variant.sale_price) : null
+                }))
             })
             .then(response => response.json())
             .then(data => {

@@ -635,8 +635,26 @@ class AjaxController extends Controller
                 throw new Exception('Product not found');
             }
 
+
             // Get product variants
-            $variants = $this->product->getVariants($productId);
+            $variantsRaw = $this->product->getVariants($productId);
+            // Lọc trùng: chỉ giữ 1 variant cho mỗi cặp color-size (ưu tiên còn hàng)
+            $variantMap = [];
+            foreach ($variantsRaw as $variant) {
+                $color = isset($variant['color']) ? $variant['color'] : '';
+                $size = isset($variant['size']) ? $variant['size'] : '';
+                $key = $color . '|' . $size;
+                if (!isset($variantMap[$key])) {
+                    $variantMap[$key] = $variant;
+                } else {
+                    // Nếu variant này còn hàng mà variant trước hết hàng thì thay thế
+                    $old = $variantMap[$key];
+                    if ((!empty($variant['stock_quantity']) && $variant['stock_quantity'] > 0) && (empty($old['stock_quantity']) || $old['stock_quantity'] <= 0)) {
+                        $variantMap[$key] = $variant;
+                    }
+                }
+            }
+            $variants = array_values($variantMap);
 
             // Get product images (if available)
             $images = $this->product->getImages($productId) ?? [];
@@ -649,7 +667,7 @@ class AjaxController extends Controller
                 'price' => $product['price'],
                 'sale_price' => $product['sale_price'] ?? null,
                 'featured_image' => $product['featured_image'],
-                'image' => $product['featured_image'], // Backward compatibility
+                'image' => $product['featured_image'],
                 'images' => $images,
                 'variants' => $variants,
                 'in_stock' => $product['status'] !== 'out_of_stock',
@@ -680,7 +698,7 @@ class AjaxController extends Controller
     public function reviewLike($id = null)
     {
         // Debug
-        error_log("AjaxController::reviewLike called with ID: $id");
+        // error_log("AjaxController::reviewLike called with ID: $id");
 
         if (!isLoggedIn()) {
             http_response_code(401);
@@ -710,7 +728,7 @@ class AjaxController extends Controller
 
         // Kiểm tra xem người dùng đã like đánh giá này chưa
         $hasLiked = $reviewModel->hasUserLikedReview($id, $userId);
-
+        error_log("User has liked review $id: " . ($hasLiked ? 'true' : 'false'));
         if ($hasLiked) {
             // Nếu đã like, thì unlike (xóa like)
             $result = $reviewModel->removeLike($id, $userId);
