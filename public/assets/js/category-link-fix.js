@@ -1,5 +1,5 @@
 /**
- * Category Link Fix - Direct method using hard-coded links
+ * Category Link Fix - Enhanced version that keeps anchor tags
  */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -8,35 +8,31 @@ document.addEventListener('DOMContentLoaded', function () {
 		'.category-megamenu .dropdown-header a, .category-megamenu .dropdown-item'
 	);
 
-	console.log('🔍 Found ' + categoryItems.length + ' category items to fix');
+	console.log(
+		'🔍 Found ' + categoryItems.length + ' category items to enhance'
+	);
 
-	// Replace each link with a direct navigation span
+	// Enhance each link to make sure it's clickable
 	categoryItems.forEach(function (item) {
 		const href = item.getAttribute('href');
-		const text = item.innerText;
-		const html = item.innerHTML;
 
 		if (href) {
-			// Create a new span that will handle the click
-			const directLink = document.createElement('span');
-			directLink.innerHTML = html;
-			directLink.className = 'direct-link ' + item.className;
-			directLink.style.cursor = 'pointer';
-			directLink.style.display = 'block';
-			directLink.style.width = '100%';
-			directLink.style.height = '100%';
+			// Instead of replacing with span, enhance the original link
+			item.classList.add('enhanced-link');
+			item.style.cursor = 'pointer';
+			item.style.display = 'block';
+			item.style.width = '100%';
+			item.style.height = '100%';
+			item.style.position = 'relative';
+			item.style.zIndex = '1050'; // Ensure it's above other elements
+			item.style.pointerEvents = 'auto'; // Make sure clicks register
 
-			// Add click handler that directly navigates
-			directLink.addEventListener('click', function (e) {
+			// Add click handler to ensure navigation works
+			item.addEventListener('click', function (e) {
 				e.stopPropagation();
-				console.log('🚀 Direct navigation to: ' + href);
-				window.location.href = href;
+				console.log('🚀 Enhanced navigation to: ' + href);
+				// Let the default browser behavior handle it
 			});
-
-			// Replace the original link with our span
-			if (item.parentNode) {
-				item.parentNode.replaceChild(directLink, item);
-			}
 		}
 	});
 

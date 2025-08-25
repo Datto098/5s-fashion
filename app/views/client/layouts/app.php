@@ -1118,35 +1118,25 @@
                     }
                 });
 
-                // Simple "last resort" fix to ensure megamenu links work
+                // Ensure all megamenu links work properly without replacing them
                 setTimeout(function() {
                     // Get all links within the mega menu
                     var allLinks = document.querySelectorAll('.category-megamenu a, .dropdown-header a');
                     console.log('Found ' + allLinks.length + ' category menu links');
 
                     allLinks.forEach(function(link) {
-                        // Store the original href
-                        var originalHref = link.getAttribute('href');
+                        // Keep the anchor elements but make sure they're clickable
+                        link.style.cursor = 'pointer';
+                        link.style.pointerEvents = 'auto';
+                        link.style.position = 'relative';
+                        link.style.zIndex = '1050';
+                        link.style.display = 'block';
 
-                        if (originalHref) {
-                            // Replace with completely new element to eliminate all handlers
-                            var wrapper = document.createElement('span');
-                            wrapper.innerHTML = link.innerHTML;
-                            wrapper.style.cursor = 'pointer';
-                            wrapper.style.color = link.style.color || 'inherit';
-                            wrapper.style.display = 'block';
-                            wrapper.style.padding = link.style.padding || 'inherit';
-                            wrapper.title = 'Click to navigate to: ' + originalHref;
-
-                            wrapper.addEventListener('click', function() {
-                                console.log('Direct wrapper navigation to:', originalHref);
-                                window.location.href = originalHref;
-                            });
-
-                            if (link.parentNode) {
-                                link.parentNode.replaceChild(wrapper, link);
-                            }
-                        }
+                        // Make sure the click event works
+                        link.addEventListener('click', function(e) {
+                            // This is just for debugging, the link will work normally
+                            console.log('Navigating to:', this.href);
+                        });
                     });
                 }, 1000);
             }, 500);
