@@ -27,12 +27,16 @@
                             <ul class="dropdown-menu user-dropdown-menu">
                                 <?php if (isset($user['role']) && $user['role'] === 'admin'): ?>
                                     <li><a class="dropdown-item" href="<?= url('admin/dashboard') ?>"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
                                 <?php endif; ?>
                                 <li><a class="dropdown-item" href="<?= url('account') ?>"><i class="fas fa-user me-2"></i>Tài Khoản</a></li>
                                 <li><a class="dropdown-item" href="<?= url('orders') ?>"><i class="fas fa-shopping-bag me-2"></i>Đơn Hàng</a></li>
                                 <li><a class="dropdown-item" href="<?= url('wishlist') ?>"><i class="fas fa-heart me-2"></i>Yêu Thích</a></li>
-                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
                                 <li><a class="dropdown-item" href="<?= url('logout') ?>"><i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất</a></li>
                             </ul>
                         </div>
@@ -129,119 +133,121 @@ if ($useSimpleMenu) {
 } else {
     // Original mega menu
 ?>
-<nav class="main-nav bg-primary d-none d-lg-block">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <ul class="nav-menu d-flex align-items-center justify-content-center mb-0 list-unstyled">
-                    <li class="nav-item">
-                        <a class="nav-link text-white px-3 py-3" href="<?= url() ?>">
-                            <i class="fas fa-home me-2"></i>Trang Chủ
-                        </a>
-                    </li>
+    <nav class="main-nav bg-primary d-none d-lg-block">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <ul class="nav-menu d-flex align-items-center justify-content-center mb-0 list-unstyled">
+                        <li class="nav-item">
+                            <a class="nav-link text-white px-3 py-3" href="<?= url() ?>">
+                                <i class="fas fa-home me-2"></i>Trang Chủ
+                            </a>
+                        </li>
 
-                    <!-- Main Categories dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white px-3 py-3" href="<?= url('shop') ?>" data-bs-toggle="dropdown">
-                            <i class="fas fa-th-large me-2"></i>Danh Mục
-                        </a>
+                        <!-- Main Categories dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-white px-3 py-3" href="<?= url('shop') ?>" data-bs-toggle="dropdown">
+                                <i class="fas fa-th-large me-2"></i>Danh Mục
+                            </a>
 
-            <!-- Mega Menu for Categories -->
-                        <div class="dropdown-menu category-megamenu p-4">
-                            <div class="row">
-                                <?php if (isset($navCategories) && !empty($navCategories)): ?>
-                                    <?php
-                                    $categoryChunks = array_chunk($navCategories, ceil(count($navCategories) / 3));
-                                    foreach ($categoryChunks as $columnCategories):
-                                    ?>
-                                    <div class="col-md-4 mb-3">
-                                        <?php foreach ($columnCategories as $category): ?>
-                                            <h6 class="dropdown-header fw-bold mb-2">
-                                                <a href="<?= url('shop?category=' . $category['slug']) ?>" class="text-dark category-link">
-                                                    <i class="fas <?= $category['slug'] === 'nam' ? 'fa-tshirt' : ($category['slug'] === 'nu' ? 'fa-female' : 'fa-tag') ?> me-2"></i>
-                                                    <?= htmlspecialchars($category['name']) ?>
-                                                </a>
-                                            </h6>                                            <?php if (!empty($category['children'])): ?>
-                                                <div class="ps-3 mb-3">
-                                                    <?php foreach ($category['children'] as $child): ?>
-                                                        <div class="mb-2">
-                                                            <a class="dropdown-item py-1 category-child-link" href="<?= url('shop?category=' . $child['slug']) ?>">
-                                                                <?= htmlspecialchars($child['name']) ?>
-                                                            </a>
+                            <!-- Mega Menu for Categories -->
+                            <div class="dropdown-menu category-megamenu p-4">
+                                <div class="row">
+                                    <?php if (isset($navCategories) && !empty($navCategories)): ?>
+                                        <?php
+                                        $categoryChunks = array_chunk($navCategories, ceil(count($navCategories) / 3));
+                                        foreach ($categoryChunks as $columnCategories):
+                                        ?>
+                                            <div class="col-md-4 mb-3">
+                                                <?php foreach ($columnCategories as $category): ?>
+                                                    <h6 class="dropdown-header fw-bold mb-2">
+                                                        <a href="<?= url('shop?category=' . $category['slug']) ?>" class="text-dark category-link">
+                                                            <i class="fas <?= $category['slug'] === 'nam' ? 'fa-tshirt' : ($category['slug'] === 'nu' ? 'fa-female' : 'fa-tag') ?> me-2"></i>
+                                                            <?= htmlspecialchars($category['name']) ?>
+                                                        </a>
+                                                    </h6> <?php if (!empty($category['children'])): ?>
+                                                        <div class="ps-3 mb-3">
+                                                            <?php foreach ($category['children'] as $child): ?>
+                                                                <div class="mb-2">
+                                                                    <a class="dropdown-item py-1 category-child-link" href="<?= url('shop?category=' . $child['slug']) ?>">
+                                                                        <?= htmlspecialchars($child['name']) ?>
+                                                                    </a>
+                                                                </div>
+                                                            <?php endforeach; ?>
                                                         </div>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                            <?php endif; ?>
+                                                    <?php endif; ?>
+                                                <?php endforeach; ?>
+                                            </div>
                                         <?php endforeach; ?>
-                                    </div>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                        </div>
-                    </li>
+                        </li>
 
-                    <!-- Thời Trang Nam -->
-                    <?php
-                    $menCategory = array_filter($navCategories ?? [], function($cat) {
-                        return strtolower($cat['slug']) === 'nam' || strpos(strtolower($cat['name']), 'nam') !== false;
-                    });
-                    $menCategory = reset($menCategory);
+                        <!-- Thời Trang Nam -->
+                        <?php
+                        $menCategory = array_filter($navCategories ?? [], function ($cat) {
+                            return strtolower($cat['slug']) === 'nam' || strpos(strtolower($cat['name']), 'nam') !== false;
+                        });
+                        $menCategory = reset($menCategory);
 
-                    if ($menCategory):
-                    ?>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white px-3 py-3" href="<?= url('shop?category=' . $menCategory['slug']) ?>" data-bs-toggle="dropdown">
-                            <i class="fas fa-tshirt me-2"></i>Thời Trang Nam
-                        </a>
-                        <?php if (!empty($menCategory['children'])): ?>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($menCategory['children'] as $child): ?>
-                                <li><a class="dropdown-item" href="<?= url('shop?category=' . $child['slug']) ?>"><?= htmlspecialchars($child['name']) ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
+                        if ($menCategory):
+                        ?>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-white px-3 py-3" href="<?= url('shop?category=' . $menCategory['slug']) ?>" data-bs-toggle="dropdown">
+                                    <i class="fas fa-tshirt me-2"></i>Thời Trang Nam
+                                </a>
+                                <?php if (!empty($menCategory['children'])): ?>
+                                    <ul class="dropdown-menu">
+                                        <?php foreach ($menCategory['children'] as $child): ?>
+                                            <li><a class="dropdown-item" href="<?= url('shop?category=' . $child['slug']) ?>"><?= htmlspecialchars($child['name']) ?></a></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </li>
                         <?php endif; ?>
-                    </li>
-                    <?php endif; ?>
 
-                    <!-- Thời Trang Nữ -->
-                    <?php
-                    $womenCategory = array_filter($navCategories ?? [], function($cat) {
-                        return strtolower($cat['slug']) === 'nu' || strpos(strtolower($cat['name']), 'nữ') !== false;
-                    });
-                    $womenCategory = reset($womenCategory);
+                        <!-- Thời Trang Nữ -->
+                        <?php
+                        $womenCategory = array_filter($navCategories ?? [], function ($cat) {
+                            return strtolower($cat['slug']) === 'nu' || strpos(strtolower($cat['name']), 'nữ') !== false;
+                        });
+                        $womenCategory = reset($womenCategory);
 
-                    if ($womenCategory):
-                    ?>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white px-3 py-3" href="<?= url('shop?category=' . $womenCategory['slug']) ?>" data-bs-toggle="dropdown">
-                            <i class="fas fa-female me-2"></i>Thời Trang Nữ
-                        </a>
-                        <?php if (!empty($womenCategory['children'])): ?>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($womenCategory['children'] as $child): ?>
-                                <li><a class="dropdown-item" href="<?= url('shop?category=' . $child['slug']) ?>"><?= htmlspecialchars($child['name']) ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
+                        if ($womenCategory):
+                        ?>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-white px-3 py-3" href="<?= url('shop?category=' . $womenCategory['slug']) ?>" data-bs-toggle="dropdown">
+                                    <i class="fas fa-female me-2"></i>Thời Trang Nữ
+                                </a>
+                                <?php if (!empty($womenCategory['children'])): ?>
+                                    <ul class="dropdown-menu">
+                                        <?php foreach ($womenCategory['children'] as $child): ?>
+                                            <li><a class="dropdown-item" href="<?= url('shop?category=' . $child['slug']) ?>"><?= htmlspecialchars($child['name']) ?></a></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </li>
                         <?php endif; ?>
-                    </li>
-                    <?php endif; ?>
 
-                    <li class="nav-item">
-                        <a class="nav-link text-white px-3 py-3" href="<?= url('vouchers') ?>">
-                            <i class="fas fa-ticket-alt me-2"></i>Voucher
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white px-3 py-3" href="<?= url('blog') ?>">
-                            <i class="fas fa-newspaper me-2"></i>Blog
-                        </a>
-                    </li>
-                </ul>
+                        <li class="nav-item">
+                            <a class="nav-link text-white px-3 py-3" href="<?= url('vouchers') ?>">
+                                <i class="fas fa-ticket-alt me-2"></i>Voucher
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white px-3 py-3" href="<?= url('blog') ?>">
+                                <i class="fas fa-newspaper me-2"></i>Blog
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
-</nav>
-<?php } // End of else (original mega menu) ?>
+    </nav>
+<?php }
+// End of else (original mega menu)
+?>
 
 <!-- Mobile Menu Offcanvas -->
 <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileMenu">
@@ -260,7 +266,7 @@ if ($useSimpleMenu) {
                         <i class="fas fa-user-circle fa-2x text-primary"></i>
                     </div>
                     <div>
-        <div class="fw-bold"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></div>
+                        <div class="fw-bold"><?= htmlspecialchars(getUser()['name'] ?? getUser()['full_name'] ?? 'User') ?></div>
                         <small class="text-muted"><?= htmlspecialchars(getUser()['email']) ?></small>
                     </div>
                 </div>
