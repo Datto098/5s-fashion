@@ -372,7 +372,8 @@ class ProductVariantManager {
 		const addToCartBtn = document.getElementById('add-to-cart-btn');
 		if (addToCartBtn) {
 			addToCartBtn.disabled = false;
-			addToCartBtn.textContent = 'Thêm vào giỏ hàng';
+			addToCartBtn.removeAttribute('aria-disabled');
+			addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ';
 		}
 	}
 
@@ -380,7 +381,9 @@ class ProductVariantManager {
 		const addToCartBtn = document.getElementById('add-to-cart-btn');
 		if (addToCartBtn) {
 			addToCartBtn.disabled = true;
-			addToCartBtn.textContent = 'Vui lòng chọn thuộc tính';
+			addToCartBtn.setAttribute('aria-disabled', 'true');
+			// If no variant selected because of availability, show 'Hết Hàng'
+			addToCartBtn.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
 		}
 	}
 

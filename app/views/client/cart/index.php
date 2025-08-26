@@ -59,7 +59,7 @@ ob_start();
                                                     <?= htmlspecialchars($item['variant_attributes']) ?>
                                                 <?php endif; ?>
                                             </div>
-                                            <small class="text-muted">Mã SP: <span class="product-sku"><?= $item['product_sku'] ?? 'N/A' ?></span></small>
+                                            <small class="text-muted">Mã SP: <span class="product-sku"><?= !empty($item['variant_sku']) ? $item['variant_sku'] : ($item['product_sku'] ?? 'N/A') ?></span></small>
                                         </div>
 
                                         <div class="col-md-2">

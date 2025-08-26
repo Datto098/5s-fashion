@@ -456,56 +456,71 @@ input[type="number"] {
     color: white;
 }
 
-/* Color Options */
+/* Color Options — pill style with inner dot */
 .color-options {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    align-items: center;
 }
 
 .color-option {
     cursor: pointer;
     position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 6px 10px;
+    min-width: 40px;
+    min-height: 36px;
+    background: #fff;
+    border: 2px solid rgba(0,0,0,0.06);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.color-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(16,24,40,0.06);
+}
+
+.color-swatch {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.08);
+    transition: transform 0.12s ease, border-color 0.12s ease;
+    position: relative;
+}
+
+.color-option.active {
+    background: #52575b; /* dark pill background */
+    color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 6px rgba(0,123,255,0.08);
+}
+
+.color-option.active .color-swatch {
+    border-color: rgba(255,255,255,0.9);
+    transform: scale(1.02);
+}
+
+.color-option .color-swatch[style*="FFFFFF"],
+.color-option .color-swatch[style*="#FFFFFF"] {
+    border-color: #ddd;
 }
 
 .color-option input {
     display: none;
 }
 
-.color-swatch {
-    display: inline-block;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 3px solid transparent;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.color-swatch[style*="FFFFFF"] {
-    border-color: #ddd;
-}
-
-.color-option:hover .color-swatch {
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.color-option input:checked~.color-swatch {
-    border-color: var(--primary-color);
-    transform: scale(1.1);
-}
-
-.color-option input:checked~.color-swatch::after {
-    content: "✓";
+.color-option .color-swatch::after {
+    /* keep empty — the color is represented by background color */
+    content: "";
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-weight: bold;
-    font-size: 12px;
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    inset: 0;
+    border-radius: 50%;
 }
 
 /* Rating Filter */

@@ -8,7 +8,8 @@ class ProductDetailManager {
 		this.selectedSize = null;
 		this.selectedColor = null;
 		this.quantity = 1;
-		this.maxQuantity = window.productData?.stock || 10;
+		// Use product stock when available, otherwise allow up to 99 by default.
+		this.maxQuantity = (typeof window.productData?.stock !== 'undefined') ? window.productData.stock : 99;
 
 		this.init();
 	}
@@ -45,10 +46,14 @@ class ProductDetailManager {
 
 	bindEvents() {
 		// Quantity controls
-		document
-			.getElementById('productQuantity')
-			?.addEventListener('change', (e) => {
-				this.setQuantity(parseInt(e.target.value));
+			// Bind to common quantity inputs (some pages use #productQuantity, product detail uses #quantity)
+			const qtyEl1 = document.getElementById('productQuantity');
+			if (qtyEl1) qtyEl1.addEventListener('change', (e) => this.setQuantity(parseInt(e.target.value)));
+			const qtyEl2 = document.getElementById('quantity');
+			if (qtyEl2) qtyEl2.addEventListener('change', (e) => this.setQuantity(parseInt(e.target.value)));
+			// Also bind to any .quantity-input fields (cart pages, etc.)
+			document.querySelectorAll('.quantity-input').forEach(inp => {
+				inp.addEventListener('change', (e) => this.setQuantity(parseInt(e.target.value)));
 			});
 
 		// Size selection
@@ -65,6 +70,21 @@ class ProductDetailManager {
 				this.selectedColor = e.target.value;
 				this.updateAddToCartButton();
 			});
+		});
+
+		// Also listen for clicks on the custom size/color buttons rendered on the page
+		document.addEventListener('click', (e) => {
+			const sizeBtn = e.target.closest('.size-option');
+			const colorBtn = e.target.closest('.color-option');
+			if (sizeBtn || colorBtn) {
+				// after DOM change, update selected values and max quantity
+				const activeSize = document.querySelector('.size-option.active');
+				const activeColor = document.querySelector('.color-option.active');
+				this.selectedSize = activeSize ? activeSize.getAttribute('data-size') || activeSize.textContent.trim() : this.selectedSize;
+				this.selectedColor = activeColor ? activeColor.getAttribute('data-color') || '' : this.selectedColor;
+				this.updateMaxQuantityFromDOM();
+				this.updateAddToCartButton();
+			}
 		});
 
 		// Star rating for reviews
@@ -108,6 +128,46 @@ class ProductDetailManager {
 		if (quantityInput) {
 			this.quantity = parseInt(quantityInput.value);
 		}
+
+		// Ensure input max reflects initial product/variant stock
+		this.updateMaxQuantityFromDOM();
+	}
+
+	// Read selected variant's stock (from DOM data-stock) and update maxQuantity
+	updateMaxQuantityFromDOM() {
+		try {
+			const activeSize = document.querySelector('.size-option.active');
+			const activeColor = document.querySelector('.color-option.active');
+			let stock = null;
+			if (activeSize && activeSize.hasAttribute('data-stock')) {
+				stock = parseInt(activeSize.getAttribute('data-stock')) || null;
+			}
+			// fallback: try to find a variant within sizesByColor if present
+			if ((stock === null || stock === 0) && window.sizesByColor && this.selectedColor) {
+				const variants = window.sizesByColor[this.selectedColor] || [];
+				if (variants.length) {
+					const vid = activeSize ? activeSize.getAttribute('data-variant-id') : null;
+					const found = vid ? variants.find(v => String(v.id) === String(vid)) : variants[0];
+					if (found) stock = parseInt(found.stock_quantity || found.stock || 0) || null;
+				}
+			}
+
+			// Use product-level stock if still unknown
+			if (stock === null || typeof stock === 'undefined') {
+				stock = (typeof window.productData?.stock !== 'undefined') ? window.productData.stock : null;
+			}
+
+			// Final fallback to 99 if nothing available
+			this.maxQuantity = (stock !== null && !isNaN(stock)) ? Math.max(0, parseInt(stock)) : 99;
+
+			// Update input max attributes
+			const inputs = document.querySelectorAll('#productQuantity, #quantity, .quantity-input');
+			inputs.forEach(inp => {
+				if (inp) inp.setAttribute('max', String(this.maxQuantity));
+			});
+		} catch (err) {
+			console.error('updateMaxQuantityFromDOM error', err);
+		}
 	}
 
 	changeMainImage(thumbnail) {
@@ -134,19 +194,30 @@ class ProductDetailManager {
 	changeQuantity(change) {
 		const newQuantity = this.quantity + change;
 
-		if (newQuantity >= 1 && newQuantity <= this.maxQuantity) {
-			this.setQuantity(newQuantity);
+		// clamp to allowed range
+		const clamped = Math.max(1, Math.min(newQuantity, this.maxQuantity || 99));
+
+		if (clamped !== this.quantity) {
+			this.setQuantity(clamped);
 		}
 	}
 
 	setQuantity(quantity) {
-		if (quantity >= 1 && quantity <= this.maxQuantity) {
-			this.quantity = quantity;
+		// Clamp requested quantity
+		const clamped = Math.max(1, Math.min(quantity, this.maxQuantity || 99));
+
+		if (clamped >= 1) {
+			this.quantity = clamped;
 
 			const quantityInput = document.getElementById('productQuantity');
 			if (quantityInput) {
-				quantityInput.value = quantity;
+				quantityInput.value = clamped;
 			}
+
+			// Also update alternative inputs on page
+			document.querySelectorAll('.quantity-input').forEach(inp => {
+				if (inp && inp !== quantityInput) inp.value = clamped;
+			});
 
 			this.updateAddToCartButton();
 		}
@@ -163,19 +234,31 @@ class ProductDetailManager {
 
 			if (!inStock) {
 				addToCartBtn.disabled = true;
+				addToCartBtn.setAttribute('aria-disabled', 'true');
 				addToCartBtn.innerHTML =
-					'<i class="fas fa-times me-2"></i>Hết hàng';
-				if (buyNowBtn) buyNowBtn.disabled = true;
+					'<i class="fas fa-times me-2"></i>Hết Hàng';
+				if (buyNowBtn) {
+					buyNowBtn.disabled = true;
+					buyNowBtn.setAttribute('aria-disabled', 'true');
+				}
 			} else if (!hasRequiredSelections) {
 				addToCartBtn.disabled = true;
+				addToCartBtn.setAttribute('aria-disabled', 'true');
 				addToCartBtn.innerHTML =
 					'<i class="fas fa-exclamation-triangle me-2"></i>Chọn size & màu';
-				if (buyNowBtn) buyNowBtn.disabled = true;
+				if (buyNowBtn) {
+					buyNowBtn.disabled = true;
+					buyNowBtn.setAttribute('aria-disabled', 'true');
+				}
 			} else {
 				addToCartBtn.disabled = false;
+				addToCartBtn.removeAttribute('aria-disabled');
 				addToCartBtn.innerHTML =
 					'<i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ';
-				if (buyNowBtn) buyNowBtn.disabled = false;
+				if (buyNowBtn) {
+					buyNowBtn.disabled = false;
+					buyNowBtn.removeAttribute('aria-disabled');
+				}
 			}
 		}
 	}

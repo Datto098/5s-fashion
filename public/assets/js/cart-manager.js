@@ -170,9 +170,15 @@ class CartManager {
 
 			// Add variant data if provided
 			if (variant) {
-				requestData.variant_id = variant.id;
-				requestData.variant_color = variant.color;
-				requestData.variant_size = variant.size;
+				// prefer full variant object if provided
+				requestData.variant_id = variant.id || variant.variant_id || null;
+				requestData.variant_color = variant.color || variant.variant_color || null;
+				requestData.variant_size = variant.size || variant.variant_size || null;
+				// include variant sku and full object for server-side use
+				requestData.variant_sku = variant.sku || variant.variant_sku || null;
+				requestData.variant = variant.full || variant;
+				// include client-side price derived from variant to help server validation
+				requestData.price = variant.price || variant.sale_price || null;
 			}
 
 			const response = await fetch(`${this.baseUrl}/cart/add`, {
