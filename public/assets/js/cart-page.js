@@ -156,8 +156,26 @@ class CartPageManager {
 			quantity = Math.max(1, parseInt(element.value) || 1);
 		}
 
+		// Respect max stock from DOM (data-max-stock) if present
+		const maxStockAttr = quantityInput.getAttribute('data-max-stock');
+		const maxStock = maxStockAttr ? parseInt(maxStockAttr) : null;
+
+		if (maxStock !== null && !isNaN(maxStock) && maxStock > 0) {
+			if (quantity > maxStock) quantity = maxStock;
+		}
+
+		// Ensure minimum
+		if (!quantity || isNaN(quantity) || quantity < 1) quantity = 1;
+
 		// Update input value
 		quantityInput.value = quantity;
+
+		// Toggle plus/minus disabled states
+		const plusBtn = cartItem.querySelector('.quantity-increase');
+		const minusBtn = cartItem.querySelector('.quantity-decrease');
+		if (minusBtn) minusBtn.disabled = quantity <= 1;
+		if (plusBtn) plusBtn.disabled = maxStock !== null && maxStock > 0 ? quantity >= maxStock : false;
+
 
 		// Send update to server
 		this.updateQuantityOnServer(cartId, quantity);
@@ -182,7 +200,18 @@ class CartPageManager {
 			.then((response) => response.json())
 			.then((data) => {
 				if (data.success) {
-					// Reload the page to reflect changes
+					// If server reports clamping (quantity adjusted to stock), show a warning and reload
+					if (data.clamped) {
+						this.showNotification(
+							data.message || 'Số lượng đã được điều chỉnh theo tồn kho',
+							'warning'
+						);
+						// Reload so UI matches server state
+						window.location.reload();
+						return;
+					}
+
+					// Normal successful update
 					window.location.reload();
 				} else {
 					this.showNotification(
@@ -546,4 +575,21 @@ document.addEventListener('DOMContentLoaded', function () {
 		promoInput.disabled = false;
 		promoInput.value = '';
 	}
+
+	// Clamp quantity inputs and set plus/minus button states on load
+	document.querySelectorAll('.cart-quantity-input').forEach((input) => {
+		const maxStock = parseInt(input.getAttribute('data-max-stock')) || null;
+		let val = parseInt(input.value) || 1;
+		if (maxStock && val > maxStock) {
+			input.value = maxStock;
+			val = maxStock;
+		}
+		const cartItem = input.closest('.cart-item');
+		if (cartItem) {
+			const plus = cartItem.querySelector('.quantity-increase');
+			const minus = cartItem.querySelector('.quantity-decrease');
+			if (minus) minus.disabled = val <= 1;
+			if (plus) plus.disabled = maxStock ? val >= maxStock : false;
+		}
+	});
 });

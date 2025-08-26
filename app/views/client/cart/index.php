@@ -70,14 +70,22 @@ ob_start();
                                         </div>
 
                                         <div class="col-md-2">
+                                            <?php
+                                                // determine stock available for this cart item
+                                                $variantStock = isset($item['variant_stock']) ? (int)$item['variant_stock'] : null;
+                                                $productStock = isset($item['product_stock']) ? (int)$item['product_stock'] : null;
+                                                $maxStock = $variantStock !== null && $variantStock > 0 ? $variantStock : ($productStock !== null ? $productStock : 99);
+                                                if (!$maxStock || $maxStock <= 0) $maxStock = 0;
+                                                $isAtMax = $item['quantity'] >= $maxStock && $maxStock > 0;
+                                            ?>
                                             <div class="quantity-controls">
-                                                <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'decrease')">
+                                                <button type="button" class="quantity-btn quantity-decrease" onclick="updateCartQuantity(this, 'decrease')">
                                                     <i class="fas fa-minus"></i>
                                                 </button>
                                                 <input type="number" class="quantity-input cart-quantity-input"
-                                                    min="1" max="99" value="<?= $item['quantity'] ?>"
-                                                    data-cart-id="<?= $item['id'] ?>">
-                                                <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'increase')">
+                                                    min="1" max="<?= $maxStock ?: 99 ?>" value="<?= $item['quantity'] ?>"
+                                                    data-cart-id="<?= $item['id'] ?>" data-max-stock="<?= $maxStock ?>">
+                                                <button type="button" class="quantity-btn quantity-increase <?= $isAtMax ? 'disabled' : '' ?>" onclick="updateCartQuantity(this, 'increase')">
                                                     <i class="fas fa-plus"></i>
                                                 </button>
                                             </div>
@@ -266,11 +274,11 @@ ob_start();
 
                 <div class="col-md-2">
                     <div class="quantity-controls">
-                        <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'decrease')">
+                        <button type="button" class="quantity-btn quantity-decrease" onclick="updateCartQuantity(this, 'decrease')">
                             <i class="fas fa-minus"></i>
                         </button>
-                        <input type="number" class="quantity-input cart-quantity-input" min="1" max="99" value="1">
-                        <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'increase')">
+                        <input type="number" class="quantity-input cart-quantity-input" min="1" max="99" value="1" data-cart-id="">
+                        <button type="button" class="quantity-btn quantity-increase" onclick="updateCartQuantity(this, 'increase')">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>

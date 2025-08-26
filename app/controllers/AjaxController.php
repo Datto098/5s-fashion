@@ -203,8 +203,20 @@ class AjaxController extends Controller
             // Add to cart using Cart model
             $result = $cartModel->addToCart($productId, $quantity, $variantId);
 
-            if (!$result) {
-                throw new Exception('Could not add product to cart');
+            // Cart::addToCart now returns structured array ['success'=>bool, 'quantity'=>int, 'clamped'=>bool] or ['success'=>false,'message'=>...]
+            if (is_array($result)) {
+                if (empty($result['success'])) {
+                    throw new Exception($result['message'] ?? 'Could not add product to cart');
+                }
+                $addedQuantity = $result['quantity'] ?? $quantity;
+                $wasClamped = !empty($result['clamped']);
+            } else {
+                // Backwards compatibility: boolean true/false
+                if (!$result) {
+                    throw new Exception('Could not add product to cart');
+                }
+                $addedQuantity = $quantity;
+                $wasClamped = false;
             }
 
             // Get updated cart data
@@ -227,7 +239,9 @@ class AjaxController extends Controller
                 'message' => 'Sản phẩm đã được thêm vào giỏ hàng!',
                 'cart_count' => $cartCount,
                 'cart_total' => $cartTotal,
-                'item' => $addedItem
+                'item' => $addedItem,
+                'added_quantity' => $addedQuantity,
+                'clamped' => !empty($wasClamped)
             ];
 
             echo json_encode($response);
@@ -290,6 +304,37 @@ class AjaxController extends Controller
             }
             $cartModel = new Cart();
 
+
+            // Server-side stock validation: ensure requested quantity does not exceed available stock
+            $clamped = false;
+            // Try to get cart item to determine product/variant
+            $cartItem = $cartModel->getCartItemById($cartKey);
+            if ($cartItem) {
+                // Use available stock that subtracts reserved and quantities in other carts
+                $availableStock = $cartModel->getAvailableStock($cartItem['product_id'], $cartItem['variant_id'] ?? null, $cartItem['id']);
+
+                // If availableStock is numeric, clamp quantity to it
+                if (is_numeric($availableStock)) {
+                    $availableStock = (int)$availableStock;
+                    if ($availableStock <= 0) {
+                        // No stock available: remove item from cart
+                        $cartModel->removeItem($cartKey);
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Sản phẩm hiện đã hết hàng và đã được xóa khỏi giỏ hàng',
+                            'cart_count' => $cartModel->getCartCount(),
+                            'cart_total' => $cartModel->getCartTotal()
+                        ]);
+                        return;
+                    }
+
+                    if ($quantity > $availableStock) {
+                        $quantity = $availableStock;
+                        $clamped = true;
+                    }
+                }
+            }
+
             // Update quantity using cart ID
             $result = $cartModel->updateQuantity($cartKey, $quantity);
 
@@ -301,12 +346,19 @@ class AjaxController extends Controller
             $cartTotal = $cartModel->getCartTotal();
             $cartCount = $cartModel->getCartCount();
 
-            echo json_encode([
+            $response = [
                 'success' => true,
                 'message' => 'Giỏ hàng đã được cập nhật!',
                 'cart_count' => $cartCount,
                 'cart_total' => $cartTotal
-            ]);
+            ];
+
+            if (isset($clamped) && $clamped) {
+                $response['clamped'] = true;
+                $response['message'] = 'Số lượng đã được điều chỉnh về mức tồn kho hiện có';
+            }
+
+            echo json_encode($response);
 
         } catch (Exception $e) {
             http_response_code(400);
@@ -688,6 +740,27 @@ class AjaxController extends Controller
                 }
             }
             $variants = array_values($variantMap);
+
+            // Normalize variants to include available stock (stock - reserved - qty in other carts)
+            // Use Cart model helper to compute available stock
+            if (!class_exists('Cart')) {
+                require_once APP_PATH . '/models/Cart.php';
+            }
+            $cartModel = new Cart();
+            foreach ($variants as &$v) {
+                $vid = $v['id'] ?? null;
+                $available = null;
+                if ($vid) {
+                    $available = $cartModel->getAvailableStock($productId, $vid, null);
+                }
+                // If we couldn't resolve available, fall back to provided stock_quantity
+                if (!is_numeric($available)) {
+                    $available = isset($v['stock_quantity']) ? (int)$v['stock_quantity'] : (isset($v['stock']) ? (int)$v['stock'] : 0);
+                }
+                // Expose both fields for compatibility
+                $v['available_stock'] = (int)$available;
+                $v['stock_quantity'] = (int)$available; // overwrite so client uses available value
+            }
 
             // Get product images (if available)
             // $images = $this->product->getImages($productId) ?? [];

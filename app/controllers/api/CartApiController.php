@@ -264,18 +264,62 @@ class CartApiController extends ApiController
      */
     private function getAvailableStock($productId, $variantId = null)
     {
+        // Ensure session is available
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $currentUserId = $_SESSION['user_id'] ?? null;
+        $currentSessionId = $_SESSION['cart_session_id'] ?? null;
+
         if ($variantId) {
-            $query = "SELECT stock_quantity FROM product_variants WHERE id = ? AND product_id = ?";
+            // Get variant stock and reserved
+            $query = "SELECT stock_quantity, reserved_quantity FROM product_variants WHERE id = ? AND product_id = ?";
             $stmt = $this->db->prepare($query);
             $stmt->execute([$variantId, $productId]);
             $variant = $stmt->fetch();
-            return $variant ? (int)$variant['stock_quantity'] : 0;
+            $stock = $variant ? (int)($variant['stock_quantity'] ?? 0) : 0;
+            $reserved = $variant ? (int)($variant['reserved_quantity'] ?? 0) : 0;
+
+            // Sum quantities in all carts for this variant
+            $sqlAll = "SELECT COALESCE(SUM(quantity),0) as total FROM carts WHERE product_id = ? AND variant_id = ?";
+            $all = $this->db->prepare($sqlAll);
+            $all->execute([$productId, $variantId]);
+            $totalAll = (int)($all->fetchColumn() ?? 0);
+
+            // Sum quantities in current user's/session cart for this variant
+            $sqlCurrent = "SELECT COALESCE(SUM(quantity),0) as total FROM carts WHERE product_id = ? AND variant_id = ? AND (user_id = ? OR session_id = ?)";
+            $cur = $this->db->prepare($sqlCurrent);
+            $cur->execute([$productId, $variantId, $currentUserId, $currentSessionId]);
+            $totalCurrent = (int)($cur->fetchColumn() ?? 0);
+
+            $otherCartsQty = max(0, $totalAll - $totalCurrent);
+
+            $available = $stock - $reserved - $otherCartsQty;
+            return $available > 0 ? (int)$available : 0;
         } else {
-            $query = "SELECT stock_quantity FROM products WHERE id = ?";
+            // Product-level stock
+            $query = "SELECT stock_quantity, reserved_quantity FROM products WHERE id = ?";
             $stmt = $this->db->prepare($query);
             $stmt->execute([$productId]);
             $product = $stmt->fetch();
-            return $product ? (int)$product['stock_quantity'] : 0;
+            $stock = $product ? (int)($product['stock_quantity'] ?? 0) : 0;
+            $reserved = $product ? (int)($product['reserved_quantity'] ?? 0) : 0;
+
+            $sqlAll = "SELECT COALESCE(SUM(quantity),0) as total FROM carts WHERE product_id = ? AND variant_id IS NULL";
+            $all = $this->db->prepare($sqlAll);
+            $all->execute([$productId]);
+            $totalAll = (int)($all->fetchColumn() ?? 0);
+
+            $sqlCurrent = "SELECT COALESCE(SUM(quantity),0) as total FROM carts WHERE product_id = ? AND variant_id IS NULL AND (user_id = ? OR session_id = ?)";
+            $cur = $this->db->prepare($sqlCurrent);
+            $cur->execute([$productId, $currentUserId, $currentSessionId]);
+            $totalCurrent = (int)($cur->fetchColumn() ?? 0);
+
+            $otherCartsQty = max(0, $totalAll - $totalCurrent);
+
+            $available = $stock - $reserved - $otherCartsQty;
+            return $available > 0 ? (int)$available : 0;
         }
     }
 
