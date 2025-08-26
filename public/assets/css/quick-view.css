@@ -142,6 +142,16 @@
     color: white !important;
 }
 
+/* Ensure unavailable variant buttons are visible but muted */
+.variant-group .btn.unavailable,
+.variant-group .btn[disabled] {
+    opacity: 0.5 !important;
+    color: #6c757d !important;
+    background: #ffffff !important;
+    border-color: #e9ecef !important;
+    pointer-events: none !important;
+}
+
 /* Action Buttons - Clean Design */
 .product-actions .btn-primary-action,
 .product-actions .btn-outline-primary-action,

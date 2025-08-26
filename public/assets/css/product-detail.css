@@ -267,14 +267,14 @@
     font-weight: 600;
     border-radius: 50px;
     /* UI Standard */
-    font-size: 1rem;
+    font-size: 15px;
     transition: all 0.3s ease;
     /* UI Standard */
     position: relative;
     overflow: hidden;
     border: none;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: -0.5px;
 }
 
 .action-buttons .btn:hover {
@@ -290,6 +290,22 @@
 
 .btn-add-cart:hover {
     background: linear-gradient(135deg, #c82333, #bd2130);
+}
+
+/* When product is out of stock, keep the original btn-add-cart sizing and shape
+   but apply a muted gray appearance. Use an extra class so JS can toggle it
+   without removing .btn-add-cart and losing layout styles */
+.btn-add-cart.out-of-stock {
+    background: linear-gradient(135deg, #6c757d, #6c757d);
+    color: #ffffff;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.95;
+}
+.btn-add-cart.out-of-stock:hover {
+    transform: none;
+    box-shadow: none;
+    background: linear-gradient(135deg, #6c757d, #6c757d);
 }
 
 .btn-buy-now {

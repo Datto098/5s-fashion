@@ -82,20 +82,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     const size = variant.size || 'One Size';
                     if (sizeSet.includes(size)) return;
                     sizeSet.push(size);
-                    const outOfStock = !variant.stock_quantity || variant.stock_quantity <= 0;
+                    const outOfStock = !((variant.stock_quantity || variant.stock) > 0);
                     if (!outOfStock && firstAvailableIdx === -1) firstAvailableIdx = idx;
                     html += `<button type="button" class="btn btn-outline-secondary size-option${(!outOfStock && firstAvailableIdx === idx) ? ' active' : ''}"
                         data-variant-id="${variant.id}"
                         data-size="${size}"
                         data-price="${variant.price}"
                         data-color="${variant.color}"
-                        data-stock="${variant.stock_quantity || 0}"
+                        data-stock="${variant.stock_quantity || variant.stock || 0}"
                         ${outOfStock ? 'disabled style=\'opacity:0.5;cursor:not-allowed;\'' : ''}>
                         ${size}
                     </button> `;
                 });
                 if (sizeOptionsDiv) sizeOptionsDiv.innerHTML = html;
-                setTimeout(updateSelectedVariantDetail, 10);
+                // Ensure a visible, in-stock size is selected programmatically so state is consistent
+                // Use a slightly longer delay to let the browser parse the inserted HTML and avoid race conditions
+                setTimeout(function(){
+                    try {
+                        const firstAvailableBtn = sizeOptionsDiv.querySelector('.size-option:not([disabled])');
+                        if (firstAvailableBtn) {
+                            sizeOptionsDiv.querySelectorAll('.size-option').forEach(b=>b.classList.remove('active'));
+                            firstAvailableBtn.classList.add('active');
+                        }
+                    } catch(e) {}
+                    try{ updateSelectedVariantDetail(); } catch(e) {}
+                    try{ updateDetailAddToCartState(); } catch(e) {}
+                }, 60);
             }
             // Lần đầu render size cho màu đầu tiên
             const firstColor = Object.keys(colorMap)[0];
@@ -115,7 +127,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     colorButton.style.border = '2.5px solid #007bff';
                     colorButton.style.boxShadow = '0 0 0 2px #b3d7ff';
                     renderSizeOptions(selectedColor);
-                    setTimeout(updateSelectedVariantDetail, 10);
+                    // renderSizeOptions will call updateSelectedVariantDetail/updateDetailAddToCartState after it finishes,
+                    // so no extra immediate timeouts are necessary here.
                 });
             }
             // Sự kiện chọn size
@@ -125,7 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (sizeButton && !sizeButton.disabled) {
                         sizeOptionsDiv.querySelectorAll('.size-option').forEach(btn => btn.classList.remove('active'));
                         sizeButton.classList.add('active');
-                        setTimeout(updateSelectedVariantDetail, 10);
+                            setTimeout(updateSelectedVariantDetail, 10);
+                            // Update add-to-cart button after size selection
+                            setTimeout(function(){ try{ updateDetailAddToCartState(); }catch(e){} }, 12);
                     }
                 });
             }
@@ -152,7 +167,7 @@ function updateSelectedVariantDetail() {
         const vColor = sizeBtn.getAttribute('data-color') || color;
         const variants = (window.sizesByColor && window.sizesByColor[vColor]) || [];
         const found = variants.find(v => v.id == variantId);
-        if (found && found.stock_quantity) maxQty = found.stock_quantity;
+    if (found && (found.stock_quantity || found.stock)) maxQty = found.stock_quantity || found.stock;
     }
     window.selectedVariantDetail = variantId ? {id: variantId, color, size, price, maxQty: maxQty} : null;
     // Cập nhật max cho input số lượng
@@ -173,6 +188,8 @@ function updateSelectedVariantDetail() {
             }
         }
     } catch(e) {}
+    // Update add-to-cart state on detail page
+    try { updateDetailAddToCartState(); } catch(e) {}
 }
 // Ghi đè hàm handleAddToCart để truyền đúng variant id và số lượng
 function handleAddToCart(productId) {
@@ -230,7 +247,7 @@ function updateSelectedVariantDetail() {
         const vColor = sizeBtn.getAttribute('data-color') || color;
         const variants = (window.sizesByColor && window.sizesByColor[vColor]) || [];
         const found = variants.find(v => v.id == variantId);
-        if (found && found.stock_quantity) maxQty = found.stock_quantity;
+    if (found && (found.stock_quantity || found.stock)) maxQty = found.stock_quantity || found.stock;
     }
     window.selectedVariantDetail = variantId ? {id: variantId, color, size, price, maxQty: maxQty} : null;
     // Cập nhật max cho input số lượng
@@ -252,6 +269,54 @@ function updateSelectedVariantDetail() {
         }
     } catch(e) {}
 }
+// Update add-to-cart button on detail page based on selected variant availability
+function updateDetailAddToCartState() {
+    const btn = document.querySelector('.action-buttons .btn-add-cart') ||
+                document.querySelector('.action-buttons button[onclick^="handleAddToCart("]') ||
+                document.querySelector('.action-buttons button');
+    if (!btn) return;
+
+    // Prefer DOM data-stock values when available (more authoritative for rendered buttons)
+    let available = false;
+
+    try {
+        // 1) Check active size button first
+        const activeSize = document.querySelector('.size-option.active');
+        if (activeSize) {
+            const stockAttr = activeSize.getAttribute('data-stock');
+            const stock = parseInt(stockAttr || '0', 10);
+            if (stock > 0) available = true;
+        }
+        // 2) If still unknown, check any size-option with data-stock > 0
+        if (!available) {
+            const any = Array.from(document.querySelectorAll('.size-option')).some(el => parseInt(el.getAttribute('data-stock') || '0', 10) > 0);
+            if (any) available = true;
+        }
+    } catch(e) {
+        // swallow and fallback
+    }
+
+    // 3) Fallback to selectedVariantDetail if DOM didn't indicate availability
+    if (!available && window.selectedVariantDetail) {
+        available = (window.selectedVariantDetail.maxQty || 0) > 0;
+    }
+
+    if (!available) {
+        // keep .btn-add-cart but add out-of-stock modifier so layout is preserved
+        btn.classList.add('out-of-stock');
+        btn.disabled = true;
+        btn.setAttribute('aria-disabled', 'true');
+        btn.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
+    } else {
+        btn.classList.remove('out-of-stock');
+        btn.disabled = false;
+        btn.removeAttribute('aria-disabled');
+        btn.innerHTML = '<i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ';
+    }
+}
+
+// Ensure detail add-to-cart state syncs after variant updates
+setTimeout(updateDetailAddToCartState, 100);
 </script>
 <?php
 
@@ -510,10 +575,11 @@ ob_start();
                                         $size = get_variant_size($variant);
                                         if (in_array($size, $sizeSet)) continue;
                                         $sizeSet[] = $size;
-                                        $outOfStock = empty($variant['stock_quantity']) || $variant['stock_quantity'] <= 0;
+                                        $stockVal = isset($variant['stock_quantity']) && $variant['stock_quantity'] !== '' ? (int)$variant['stock_quantity'] : (isset($variant['stock']) ? (int)$variant['stock'] : 0);
+                                        $outOfStock = $stockVal <= 0;
                                         if (!$outOfStock && $firstAvailableIdx === -1) $firstAvailableIdx = $idx;
                                         $colorSafe = isset($variant['color']) && $variant['color'] !== null ? $variant['color'] : '';
-                                        echo '<button type="button" class="btn btn-outline-secondary size-option'.((!$outOfStock && $firstAvailableIdx === $idx)?' active':'').'" data-variant-id="'.$variant['id'].'" data-size="'.htmlspecialchars($size).'" data-price="'.$variant['price'].'" data-color="'.htmlspecialchars($colorSafe).'" '.($outOfStock?'disabled style=\'opacity:0.5;cursor:not-allowed;\'':'').'>'.$size.'</button> ';
+                                        echo '<button type="button" class="btn btn-outline-secondary size-option'.((!$outOfStock && $firstAvailableIdx === $idx)?' active':'').'" data-variant-id="'.$variant['id'].'" data-size="'.htmlspecialchars($size).'" data-price="'.$variant['price'].'" data-color="'.htmlspecialchars($colorSafe).'" data-stock="'.$stockVal.'" '.($outOfStock?'disabled style=\'opacity:0.5;cursor:not-allowed;\'':'').'>' . $size . '</button> ';
                                     }
                                 }
                                 ?>
@@ -919,7 +985,8 @@ ob_start();
                     let newValue = currentValue + 1;
 
                     if (newValue < 1) newValue = 1;
-                    if (newValue > 99) newValue = 99;
+                    const max = parseInt(quantityInput.getAttribute('max')) || 99;
+                    if (newValue > max) newValue = max;
 
                     // Update both property and attribute
                     quantityInput.value = newValue;
@@ -955,7 +1022,8 @@ ob_start();
                     let newValue = currentValue - 1;
 
                     if (newValue < 1) newValue = 1;
-                    if (newValue > 99) newValue = 99;
+                    const max2 = parseInt(quantityInput.getAttribute('max')) || 99;
+                    if (newValue > max2) newValue = max2;
 
                     // Update both property and attribute
                     quantityInput.value = newValue;

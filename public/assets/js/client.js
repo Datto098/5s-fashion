@@ -1093,6 +1093,14 @@ body:not(.modal-open) .modal-backdrop {
   align-items: center;
   justify-content: center;
 }
+
+/* Out-of-stock color styling: visually dim but remain clickable */
+.color-out-of-stock {
+  opacity: 0.5 !important;
+  pointer-events: auto !important; /* ensure still clickable */
+  cursor: pointer !important;
+  filter: grayscale(30%);
+}
 `;
 
 // Add custom CSS to head
@@ -1251,6 +1259,7 @@ function renderQuickViewContent(product) {
       size: firstVariant.size,
       price: parseFloat(firstVariant.price),
       color: firstVariant.color,
+      stock_quantity: parseInt(firstVariant.stock_quantity || firstVariant.stock || 0)
     };
 
     // Render size buttons (Chọn Kích Thước): chỉ hiển thị size của variants thuộc màu đang chọn
@@ -1309,7 +1318,13 @@ function renderQuickViewContent(product) {
   }
 
   // Create the complete modal content
-  const content = `
+    // Determine if any variant has stock (used for initial Add-to-Cart label/state)
+    const hasAnyStock = !!(
+      product.variants &&
+      product.variants.some((v) => (v.stock_quantity || v.stock) > 0)
+    );
+
+    const content = `
         <div class="row g-4">
             <div class="col-lg-6 col-md-12 mb-4 mb-lg-0">
                 <div class="product-image-container position-relative">
@@ -1378,13 +1393,10 @@ function renderQuickViewContent(product) {
                     </div>
 
                     <div class="product-actions d-block mt-auto">
-                        <button class="btn btn-danger btn-lg me-2 mb-2" onclick="addToCartFromQuickView(${
-                          product.id
-                        })"
-                                ${!product.in_stock ? "disabled" : ""}>
-                            <i class="fas fa-shopping-cart me-2"></i>
-                            ${product.in_stock ? "Thêm Vào Giỏ" : "Hết Hàng"}
-                        </button>
+            <button class="btn btn-danger btn-lg me-2 mb-2 quickview-add-to-cart" onclick="addToCartFromQuickView(${product.id})" ${!product.in_stock ? "disabled aria-disabled=\"true\"" : ""}>
+              <i class="fas fa-shopping-cart me-2"></i>
+               ${hasAnyStock ? "Thêm Vào Giỏ" : "Hết Hàng"}
+            </button>
                         <button class="btn btn-outline-secondary btn-lg mb-2" onclick="toggleWishlist(${
                           product.id
                         })">
@@ -1443,6 +1455,26 @@ function renderQuickViewContent(product) {
   } catch(e) {
     console.warn('initial quickview selection error', e);
   }
+
+  // Ensure quantity controls (+ / -) reflect the actual max after render
+  setTimeout(() => {
+    try {
+      const qtyInput = document.getElementById('quantityInput');
+      if (qtyInput) {
+        const maxQty = parseInt(qtyInput.getAttribute('max')) || parseInt(qtyInput.max) || 10;
+        const cur = parseInt(qtyInput.value) || 1;
+        const btnInc = qtyInput.parentElement.querySelector('button[onclick*="changeQuantity(1)"]');
+        const btnDec = qtyInput.parentElement.querySelector('button[onclick*="changeQuantity(-1)"]');
+        // enable/disable based on current value vs max
+        if (btnInc) btnInc.disabled = cur >= maxQty;
+        if (btnDec) btnDec.disabled = cur <= 1;
+        // ensure input not disabled when stock available
+        qtyInput.disabled = maxQty <= 0;
+      }
+    } catch (err) {
+      console.warn('sync quickview qty controls failed', err);
+    }
+  }, 50);
 
   // Debug: Log to console để kiểm tra
   console.log("Quick view content rendered successfully");
@@ -1603,6 +1635,54 @@ function renderQuickViewContent(product) {
 // Global variables for variant selection
 let selectedVariant = null;
 
+// Helper: enable/disable primary add-to-cart buttons and update label
+function updateAddToCartState(available) {
+  // If caller didn't provide explicit available, infer from modal DOM
+  if (typeof available === 'undefined') {
+    try {
+      const modal = document.getElementById('quickViewContent') || document;
+      // Prefer active size
+      const active = modal.querySelector('.size-option.active');
+      if (active) {
+        const s = parseInt(active.getAttribute('data-stock') || '0');
+        available = s > 0;
+      } else {
+        // fallback: any size with stock
+        const any = Array.from(modal.querySelectorAll('.size-option')).some(el => parseInt(el.getAttribute('data-stock') || '0') > 0);
+        available = !!any;
+      }
+    } catch (e) {
+      available = false;
+    }
+  }
+
+  const addBtn = document.querySelector('.quickview-add-to-cart') || document.querySelector('.btn-primary-action') || document.querySelector('.add-to-cart') || document.getElementById('add-to-cart-btn');
+  const globalAddBtns = Array.from(document.querySelectorAll('.add-to-cart, #add-to-cart-btn, .add-to-cart-btn'));
+
+  const apply = (el, avail) => {
+    if (!el) return;
+    if (!avail) {
+      el.disabled = true;
+      el.setAttribute('aria-disabled', 'true');
+      // make button look gray instead of danger
+      el.classList.remove('btn-danger');
+      el.classList.add('btn-secondary');
+      el.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
+    } else {
+      el.disabled = false;
+      el.removeAttribute('aria-disabled');
+      el.removeAttribute('disabled');
+      // restore primary danger look
+      el.classList.remove('btn-secondary');
+      el.classList.add('btn-danger');
+      el.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ';
+    }
+  };
+
+  apply(addBtn, available);
+  globalAddBtns.forEach((b) => apply(b, available));
+}
+
 function selectColor(color) {
   // Update color selection UI
   document
@@ -1611,14 +1691,12 @@ function selectColor(color) {
   document.querySelector(`[data-color="${color}"]`).classList.add("active");
 
   // Get current product data to update size options
-  const currentProductData = window.currentQuickViewProduct;
+  let currentProductData = window.currentQuickViewProduct;
+  // Group variants by color (make it available later in this function)
+  let variantsByColor = {};
   if (currentProductData && currentProductData.variants) {
-    // Group variants by color
-    const variantsByColor = {};
     currentProductData.variants.forEach((variant) => {
-      if (!variantsByColor[variant.color]) {
-        variantsByColor[variant.color] = [];
-      }
+      if (!variantsByColor[variant.color]) variantsByColor[variant.color] = [];
       variantsByColor[variant.color].push(variant);
     });
 
@@ -1663,23 +1741,54 @@ function selectColor(color) {
     }
   }
 
-  // Disable color button nếu tất cả size của màu này hết hàng
-  currentProductData = {};
+  // Update color buttons disabled state based on available variants for each color
   if (currentProductData && currentProductData.variants) {
     const colorBtns = document.querySelectorAll(".color-option");
     colorBtns.forEach((btn) => {
       const c = btn.getAttribute("data-color");
-      const hasStock = currentProductData.variants.some(
-        (v) => v.color === c && v.stock_quantity > 0
-      );
+      const variantsForColor = variantsByColor[c] || currentProductData.variants.filter((v) => v.color === c);
+      const hasStock = variantsForColor.some((v) => (v.stock_quantity || v.stock) > 0);
+      // Don't set .disabled so clicks still work; use class + aria-disabled for semantics
       if (!hasStock) {
-        btn.disabled = true;
+        btn.classList.add('color-out-of-stock');
+        btn.setAttribute('aria-disabled', 'true');
         btn.style.opacity = 0.5;
       } else {
-        btn.disabled = false;
+        btn.classList.remove('color-out-of-stock');
+        btn.removeAttribute('aria-disabled');
         btn.style.opacity = 1;
       }
     });
+
+    // Update add-to-cart button state for the selected color
+    const variantsForSelected = variantsByColor[color] || [];
+    const selectedColorHasStock = variantsForSelected.some((v) => (v.stock_quantity || v.stock) > 0);
+
+    // If no variants for this color, show message
+    const sizeOptionsContainer = document.getElementById("sizeOptions");
+    if (variantsForSelected.length === 0) {
+      if (sizeOptionsContainer) sizeOptionsContainer.innerHTML = '<p class="text-muted">Không có biến thể cho màu này.</p>';
+      selectedVariant = null;
+      updateAddToCartState(false);
+    } else if (!selectedColorHasStock) {
+      // Render sizes disabled
+      if (sizeOptionsContainer) {
+        sizeOptionsContainer.innerHTML = variantsForSelected
+          .map((variant) => `
+            <button type="button" class="btn btn-outline-secondary size-option"
+              data-variant-id="${variant.id}" data-size="${variant.size}"
+              data-price="${variant.price}" data-color="${variant.color}" data-stock="${variant.stock_quantity || variant.stock || 0}"
+              disabled style="opacity:0.5;pointer-events:none;">
+              ${variant.size}
+            </button>
+          `)
+          .join("");
+      }
+      selectedVariant = null;
+      updateAddToCartState(false);
+    } else {
+      updateAddToCartState(true);
+    }
   }
 
   console.log("Selected color:", color);
@@ -1700,6 +1809,19 @@ function selectSize(variantId, size, price, color) {
     size: size,
     price: parseFloat(price),
     color: color,
+    stock_quantity: (function(){
+      const attr = document.querySelector(`[data-variant-id="${variantId}"]`)?.getAttribute('data-stock');
+      const fromAttr = parseInt(attr || '0');
+      if (!isNaN(fromAttr) && fromAttr > 0) return fromAttr;
+      try {
+        const prod = window.currentQuickViewProduct;
+        if (prod && prod.variants) {
+          const found = prod.variants.find(v => String(v.id) === String(variantId));
+          if (found) return parseInt(found.stock_quantity || found.stock || 0);
+        }
+      } catch(e) {}
+      return fromAttr || 0;
+    })(),
   };
 
   // Update price display
@@ -1729,6 +1851,10 @@ function selectSize(variantId, size, price, color) {
     );
     if (btnDec) btnDec.disabled = parseInt(qtyInput.value) <= 1;
   }
+
+  // Update add-to-cart state based on selected variant stock
+  const avail = selectedVariant && (selectedVariant.stock_quantity || selectedVariant.stock) > 0;
+  updateAddToCartState(!!avail);
 
   console.log("Selected variant:", selectedVariant);
 }
