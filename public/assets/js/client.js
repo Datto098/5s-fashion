@@ -1273,12 +1273,12 @@ function renderQuickViewContent(product) {
     let firstAvailableIndex = uniqueSizes.findIndex(
       (v) => v.stock_quantity > 0 || v.stock > 0
     );
-    const sizeButtons = uniqueSizes
+  const sizeButtons = uniqueSizes
       .map((variant, index) => {
         const outOfStock = !(variant.stock_quantity > 0 || variant.stock > 0);
         return `
           <button type="button" class="btn btn-outline-secondary size-option ${
-            (!outOfStock && index === firstAvailableIndex) ? "active" : ""
+  (!outOfStock && index === firstAvailableIndex) ? "active" : ""
           }" data-variant-id="${variant.id}" data-size="${variant.size}"
             data-price="${variant.price}" data-color="${variant.color}"
             onclick="selectSize('${variant.id}', '${variant.size}', ${variant.price}, '${variant.color}')"
@@ -1291,9 +1291,9 @@ function renderQuickViewContent(product) {
 
     // Render color buttons (Chọn Màu Sắc): hiển thị đúng tên màu và mã màu
    const colorButtons = colorList
-  .map((colorObj, index) => {
+  .map((colorObj, idx) => {
     return `
-      <button type="button" class="btn btn-outline-secondary color-option ${index === 0 ? "active" : ""}"
+      <button type="button" class="btn btn-outline-secondary color-option ${idx === 0 ? 'active' : ''}"
         data-color="${colorObj.name}" onclick="selectColor('${colorObj.name}')"
         title="${colorObj.name}">
         <span class="color-swatch" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${colorObj.color_code};border:1px solid #ccc;vertical-align:middle;"></span>
@@ -1385,11 +1385,11 @@ function renderQuickViewContent(product) {
 
                     <div class="quantity-selection mb-3">
                         <label class="form-label">Số Lượng:</label>
-                        <div class="input-group" style="width:300px" >
-                            <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(-1)">-</button>
-							<input type="number" class="form-control text-center" id="quantityInput" value="1" min="1" max="10" style="border-radius: 0px !important;" readonly>
-                            <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(1)">+</button>
-                        </div>
+              <div class="input-group" style="width:300px" >
+              <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(-1)">-</button>
+              <input type="number" class="form-control text-center" id="quantityInput" value="1" min="1" max="10" style="border-radius: 0px !important;">
+              <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(1)">+</button>
+            </div>
                     </div>
 
                     <div class="product-actions d-block mt-auto">
@@ -1431,26 +1431,23 @@ function renderQuickViewContent(product) {
       initialCandidate = product.variants.find(v => (v.stock_quantity || v.stock) > 0) || product.variants[0];
     }
     if (initialCandidate) {
-      // mark related buttons active in DOM (color + size)
-      setTimeout(() => {
-        try {
-          // activate color button
-          const colorBtn = document.querySelector(`#quickViewContent .color-option[data-color="${initialCandidate.color}"]`);
-          if (colorBtn) {
-            document.querySelectorAll('#quickViewContent .color-option').forEach(b=>b.classList.remove('active'));
-            colorBtn.classList.add('active');
-          }
-          // render sizes for that color (if renderSizeOptions flow exists) - here size buttons are already rendered
-          const sizeBtn = document.querySelector(`#quickViewContent .size-option[data-variant-id="${initialCandidate.id}"]`);
-          if (sizeBtn) {
-            document.querySelectorAll('#quickViewContent .size-option').forEach(b=>b.classList.remove('active'));
-            sizeBtn.classList.add('active');
-          }
-          selectSize(initialCandidate.id, initialCandidate.size, initialCandidate.price, initialCandidate.color);
-        } catch(e) {
-          console.warn('quickview initial select failed', e);
+      // Only sync internal selection (don't mutate DOM) so we don't override user clicks.
+      selectedVariant = {
+        id: initialCandidate.id,
+        size: initialCandidate.size,
+        price: parseFloat(initialCandidate.price) || 0,
+        color: initialCandidate.color,
+        stock_quantity: parseInt(initialCandidate.stock_quantity || initialCandidate.stock || 0)
+      };
+      // Update qty input max (no DOM active changes)
+      try {
+        const qtyInput = document.getElementById('quantityInput');
+        if (qtyInput) {
+          const maxQty = selectedVariant.stock_quantity || parseInt(product.stock) || 10;
+          qtyInput.max = maxQty;
+          if (parseInt(qtyInput.value) > maxQty) qtyInput.value = maxQty;
         }
-      }, 30);
+      } catch(e) {}
     }
   } catch(e) {
     console.warn('initial quickview selection error', e);

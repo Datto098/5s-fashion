@@ -471,14 +471,14 @@ class QuickViewModal {
                     <div class="variant-group mb-3">
                         <label class="form-label small fw-semibold">Kích thước:</label>
 							<div class="d-flex flex-wrap gap-2">
-								${variants
+									${variants
 								.slice(0, 10)
-								.map((v, i) => {
+								.map((v) => {
 									const stockVal = parseInt(v.stock_quantity || v.stock || 0) || 0;
 									const disabledAttr = stockVal <= 0 ? 'disabled aria-disabled="true"' : '';
 									const extraClass = stockVal <= 0 ? ' unavailable disabled' : '';
 									return `
-									<button class="btn btn-outline-secondary btn-sm ${i === 0 ? 'active' : ''}${extraClass}" data-variant-id="${v.id || ''}" data-stock="${stockVal}" ${disabledAttr} style="border-radius: 25px; min-width: 45px;">
+									<button class="btn btn-outline-secondary btn-sm ${extraClass}" data-variant-id="${v.id || ''}" data-stock="${stockVal}" ${disabledAttr} style="border-radius: 25px; min-width: 45px;">
 										${v.size || 'One Size'}
 									</button>
 								`
@@ -492,8 +492,8 @@ class QuickViewModal {
 							<div class="d-flex flex-wrap gap-2">
 							${variants
 								.slice(0, 10)
-								.map((v, i) => `
-									<button class="btn btn-outline-secondary btn-sm ${i === 0 ? 'active' : ''}" data-variant-id="${v.id || ''}" data-stock="${v.stock_quantity || v.stock || 0}" data-color="${v.color || ''}" style="border-radius: 25px;">
+								.map((v) => `
+									<button class="btn btn-outline-secondary btn-sm" data-variant-id="${v.id || ''}" data-stock="${v.stock_quantity || v.stock || 0}" data-color="${v.color || ''}" style="border-radius: 25px;">
 										${v.color || 'Default'}
 									</button>
 								`)
@@ -802,26 +802,15 @@ class QuickViewModal {
 		const initial = product.variants.find(v => (parseInt(v.stock_quantity || v.stock) || 0) > 0) || product.variants[0];
 		if (!initial) return;
 
-		// Activate any buttons that match this variant id
-		const variantButtons = this.modalContent.querySelectorAll(`[data-variant-id="${initial.id}"]`);
-		variantButtons.forEach(btn => {
-			// remove active from siblings in the same group
-			if (btn.parentElement) {
-				btn.parentElement.querySelectorAll('.btn-outline-secondary').forEach(b => b.classList.remove('active'));
-			}
-			btn.classList.add('active');
-		});
-
-		// If no specific button found, try to activate first size/color groups
-		if (variantButtons.length === 0) {
-			const sizeGroup = this.modalContent.querySelector('.variant-group');
-			if (sizeGroup) {
-				sizeGroup.querySelectorAll('.btn-outline-secondary').forEach((b, i) => {
-					b.classList.remove('active');
-					if (i === 0) b.classList.add('active');
-				});
-			}
-		}
+		// Do NOT mutate DOM active classes here (avoid overriding user's clicks).
+		// Instead, store the selected variant internally so other handlers can read it.
+		selectedVariant = {
+			id: initial.id,
+			size: initial.size,
+			price: parseFloat(initial.price) || 0,
+			color: initial.color,
+			stock_quantity: parseInt(initial.stock_quantity || initial.stock || 0)
+		};
 
 		// Set quantity input max to variant stock or product stock
 		let stock = parseInt(initial.stock_quantity || initial.stock);

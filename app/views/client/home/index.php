@@ -736,7 +736,7 @@ $inline_css = "
 
 $inline_js = <<<'JS'
 document.querySelectorAll('.btn-save-voucher').forEach(button => {
-    const couponId = button.getAttribute('data-coupon-id');
+    const couponId = parseInt(button.getAttribute('data-coupon-id'), 10);
     const voucherCard = button.closest('.voucher-card');
     if (voucherCard.classList.contains('used')) {
         button.disabled = true;
@@ -747,6 +747,10 @@ document.querySelectorAll('.btn-save-voucher').forEach(button => {
     } else if (!button.disabled) {
         button.addEventListener('click', function() {
             const btn = this;
+            if (!couponId || isNaN(couponId)) {
+                showToast('Mã voucher không hợp lệ', 'error');
+                return;
+            }
             fetch('/5s-fashion/api/auth/check')
                 .then(response => response.json())
                 .then(data => {
@@ -766,14 +770,16 @@ document.querySelectorAll('.btn-save-voucher').forEach(button => {
                     });
                 })
                 .then(response => {
+                    // remove any existing alerts
                     const existingAlerts = document.querySelectorAll('.alert');
-                    existingAlerts.forEach(alert => {
-                        if (alert.parentNode) {
-                            alert.parentNode.removeChild(alert);
-                        }
+                    existingAlerts.forEach(alert => alert.remove());
+
+                    if (!response) return null;
+                    // try to parse JSON; if parse fails, treat as error
+                    return response.json().catch(err => {
+                        console.error('Invalid JSON response for voucher save', err);
+                        return null;
                     });
-                    console.log('Response:', response.json());
-                    return response ? response.json() : null;
 
                 })
                 .then(result => {
@@ -1074,7 +1080,7 @@ $content .= '
         </button>
     </div>
 
-    <div class="chatbot-input" ">
+    <div class="chatbot-input">
         <input type="text" id="chatbot-input" placeholder="Nhập tin nhắn..." style="max-width: 260px">
         <button id="chatbot-send">
             <i class="fas fa-paper-plane"></i>

@@ -58,6 +58,19 @@ class HomeController extends BaseController
         // Get featured vouchers for homepage
         $featuredVouchers = $this->couponModel->getFeaturedVouchers(2);
 
+        // If user is logged in, fetch their saved/used voucher ids so homepage can mark them
+        $savedVoucherIds = [];
+        $usedVoucherIds = [];
+        $userId = $_SESSION['user']['id'] ?? null;
+        if ($userId) {
+            require_once __DIR__ . '/../models/UserCoupon.php';
+            $userCouponModel = new UserCoupon();
+            $saved = $userCouponModel->getUserCoupons($userId, 'saved');
+            $used = $userCouponModel->getUserCoupons($userId, 'used');
+            $savedVoucherIds = array_column($saved, 'coupon_id');
+            $usedVoucherIds = array_column($used, 'coupon_id');
+        }
+
         $data = [
             'title' => '5S Fashion - Thời trang nam nữ cao cấp',
             'featured_categories' => $featuredCategories,
@@ -66,6 +79,8 @@ class HomeController extends BaseController
             'best_sellers' => $bestSellers,
             'sale_products' => $saleProducts,
             'featured_vouchers' => $featuredVouchers
+            , 'saved_voucher_ids' => $savedVoucherIds
+            , 'used_voucher_ids' => $usedVoucherIds
         ];
 
         $this->render('client/home/index', $data, 'client/layouts/app');
