@@ -1,10 +1,13 @@
 <?php
+
+use phpseclib3\Crypt\EC\BaseCurves\Base;
+
 /**
  * Wishlist Controller (Client)
  * 5S Fashion E-commerce Platform
  */
 
-class WishlistController extends Controller
+class WishlistController extends BaseController
 {
     private $wishlistModel;
 
@@ -38,7 +41,7 @@ class WishlistController extends Controller
             'user' => $user
         ];
 
-        $this->view('client/account/wishlist', $data);
+        $this->render('client/account/wishlist', $data, 'client/layouts/app');
     }
 
     public function add()
@@ -126,6 +129,9 @@ class WishlistController extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = getUser();
             $productId = $_POST['product_id'] ?? null;
+
+
+            
 
             if (!$productId) {
                 echo json_encode(['success' => false, 'message' => 'Product ID is required']);

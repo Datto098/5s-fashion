@@ -5,7 +5,7 @@
  * 5S Fashion E-commerce Platform
  */
 
-class AccountController extends Controller
+class AccountController extends BaseController
 {
     private $userModel;
 
@@ -36,7 +36,7 @@ class AccountController extends Controller
             'recent_orders' => $recentOrders
         ];
 
-        $this->view('client/account/index', $data);
+        $this->render('client/account/index', $data,'client/layouts/app');
     }
 
     /**
@@ -51,7 +51,7 @@ class AccountController extends Controller
             'user' => $user
         ];
 
-        $this->view('client/account/profile', $data);
+        $this->render('client/account/profile', $data,'client/layouts/app');
     }
 
     /**
@@ -125,7 +125,7 @@ class AccountController extends Controller
             'title' => 'Đổi Mật Khẩu - 5S Fashion'
         ];
 
-        $this->view('client/account/password', $data);
+        $this->render('client/account/password', $data,'client/layouts/app');
     }
 
     /**
@@ -197,7 +197,7 @@ class AccountController extends Controller
             'orders' => $orders
         ];
 
-        $this->view('client/account/orders', $data);
+        $this->render('client/account/orders', $data,'client/layouts/app');
     }
 
     /**
@@ -223,7 +223,7 @@ class AccountController extends Controller
             'order' => $order
         ];
 
-        $this->view('client/account/order-detail', $data);
+        $this->render('client/account/order-detail', $data, 'client/layouts/app');
     }
 
     /**
@@ -241,7 +241,7 @@ class AccountController extends Controller
             'addresses' => $addresses
         ];
 
-        $this->view('client/account/addresses', $data);
+        $this->render('client/account/addresses', $data, 'client/layouts/app');
     }
 
     /**
@@ -484,6 +484,6 @@ class AccountController extends Controller
             'wishlist' => $wishlist
         ];
 
-        $this->view('client/account/wishlist', $data);
+        $this->render('client/account/wishlist', $data, 'client/layouts/app');
     }
 }

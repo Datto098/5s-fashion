@@ -487,10 +487,43 @@ class AjaxController extends Controller
             }
 
             $user = getUser();
-            $productId = $_POST['product_id'] ?? null;
+
+            // Safely obtain product_id from different body formats.
+            $productId = $_POST['product_id'] ?? $_POST['productId'] ?? null;
+
+            // If not present in $_POST, attempt to parse raw input (JSON or urlencoded)
+            if (empty($productId)) {
+                $contentType = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
+                $raw = file_get_contents('php://input');
+                if ($raw) {
+                    // Try JSON
+                    if (stripos($contentType, 'application/json') !== false) {
+                        $json = json_decode($raw, true);
+                        if (is_array($json)) {
+                            $productId = $json['product_id'] ?? $json['productId'] ?? $productId;
+                        }
+                    } else {
+                        // Parse urlencoded raw body
+                        parse_str($raw, $parsed);
+                        if (is_array($parsed)) {
+                            $productId = $parsed['product_id'] ?? $parsed['productId'] ?? $productId;
+                        }
+                    }
+                }
+            }
+
+            // Normalize to int when present
+            $productId = $productId !== null ? (int)$productId : null;
 
             if (!$productId) {
-                throw new Exception('Product ID is required');
+                // Return JSON error instead of throwing (keeps AJAX flow consistent)
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Product ID is required',
+                    'productId' => $productId
+                ]);
+                return;
             }
 
             // Validate product exists
@@ -585,7 +618,7 @@ class AjaxController extends Controller
             }
 
             // Get additional product data (images, variants, etc.)
-            $productImages = $this->product->getImages($productId);
+            // $productImages = $this->product->getImages($productId);
             $productVariants = $this->product->getVariants($productId);
 
             // Format product data for quick view
@@ -598,7 +631,7 @@ class AjaxController extends Controller
                 'sale_price' => $product['sale_price'],
                 'status' => $product['status'],
                 'featured_image' => $product['featured_image'],
-                'images' => $productImages,
+                // 'images' => $productImages,
                 'variants' => $productVariants,
                 'category_name' => $product['category_name'] ?? '',
                 'in_stock' => $product['status'] !== 'out_of_stock'
@@ -657,7 +690,7 @@ class AjaxController extends Controller
             $variants = array_values($variantMap);
 
             // Get product images (if available)
-            $images = $this->product->getImages($productId) ?? [];
+            // $images = $this->product->getImages($productId) ?? [];
 
             // Format response
             $response = [
@@ -668,7 +701,6 @@ class AjaxController extends Controller
                 'sale_price' => $product['sale_price'] ?? null,
                 'featured_image' => $product['featured_image'],
                 'image' => $product['featured_image'],
-                'images' => $images,
                 'variants' => $variants,
                 'in_stock' => $product['status'] !== 'out_of_stock',
                 'category_name' => $product['category_name'] ?? null,

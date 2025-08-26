@@ -592,33 +592,7 @@
     <!-- Footer -->
     <?php include_once VIEW_PATH . '/client/layouts/footer.php'; ?>
 
-    <!-- Cart Mini Sidebar -->
-    <div class="cart-sidebar" id="cartSidebar">
-        <div class="cart-sidebar-header">
-            <h5><i class="fas fa-shopping-cart"></i> Giỏ Hàng</h5>
-            <button class="btn-close-cart" onclick="toggleCartSidebar()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="cart-sidebar-body">
-            <div id="cart-items">
-                <!-- Cart items will be loaded here by cart.js -->
-                <div class="empty-cart">
-                    <i class="fas fa-shopping-cart"></i>
-                    <p>Giỏ hàng trống</p>
-                    <small>Thêm sản phẩm để bắt đầu mua sắm</small>
-                </div>
-            </div>
-        </div>
-        <div class="cart-sidebar-footer">
-            <div id="cart-total">
-                <!-- Total and actions will be updated by JavaScript -->
-            </div>
-        </div>
-    </div>
 
-    <!-- Cart Sidebar Overlay -->
-    <div class="cart-sidebar-overlay" id="cartSidebarOverlay" onclick="toggleCartSidebar()"></div>
 
     <!-- Back to Top Button -->
     <button class="btn-back-to-top" id="backToTop">

@@ -76,4 +76,44 @@ class PHPMailerHelper {
             return false;
         }
     }
+    /**
+     * Send password reset email with reset link
+     * @param string $to
+     * @param string $toName
+     * @param string $resetUrl
+     * @return bool
+     */
+    public static function sendResetPasswordEmail($to, $toName, $resetUrl) {
+        // error_log('Sending reset password email to ' . $to); // Uncomment for debugging
+        $mail = new PHPMailer(true);
+        try {
+            //Server settings
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = '22211tt2029@mail.tdc.edu.vn';
+            $mail->Password   = 'kpjy vikb dqmx wnmy';
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+            $mail->CharSet    = 'UTF-8';
+
+            //Recipients
+            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', '5S Fashion');
+            $mail->addAddress($to, $toName);
+
+            //Content
+            $mail->isHTML(true);
+            $mail->Subject = 'Yêu cầu đặt lại mật khẩu - 5S Fashion';
+            $mail->Body    = '<p>Chào ' . htmlspecialchars($toName) . ',</p>' .
+                '<p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Vui lòng nhấn vào liên kết dưới đây để đặt lại mật khẩu (link có hiệu lực trong 1 giờ):</p>' .
+                '<p><a href="' . $resetUrl . '">' . $resetUrl . '</a></p>' .
+                '<p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>';
+
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log('PHPMailer error: ' . $mail->ErrorInfo);
+            return false;
+        }
+    }
 }

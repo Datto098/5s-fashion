@@ -4,7 +4,7 @@
  * 5S Fashion E-commerce Platform
  */
 
-class AuthController extends Controller
+class AuthController extends BaseController
 {
     private $userModel;
 
@@ -37,7 +37,7 @@ class AuthController extends Controller
             'title' => 'Đăng Nhập - 5S Fashion'
         ];
 
-        $this->view('client/auth/login', $data);
+        $this->render('client/auth/login', $data, 'client/layouts/app');
     }
 
     /**
@@ -181,7 +181,7 @@ class AuthController extends Controller
             'title' => 'Đăng Ký - 5S Fashion'
         ];
 
-        $this->view('client/auth/register', $data);
+        $this->render('client/auth/register', $data, 'client/layouts/app');
     }
 
     /**
@@ -304,7 +304,7 @@ class AuthController extends Controller
             'title' => 'Quên Mật Khẩu - 5S Fashion'
         ];
 
-        $this->view('client/auth/forgot-password', $data);
+        $this->render('client/auth/forgot-password', $data, 'client/layouts/app');
     }
 
     /**
@@ -346,11 +346,52 @@ class AuthController extends Controller
         $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
         // Save reset token
-        $this->userModel->saveResetToken($user['id'], $token, $expiry);
+        $saved = $this->userModel->saveResetToken($user['id'], $token, $expiry);
 
-        // In a real application, send email here
-        // For demo, just show success message
-        setFlash('success', 'Link đặt lại mật khẩu đã được gửi đến email của bạn');
+        // Debug log: whether token saved and the token value
+        error_log('ForgotPassword: saveResetToken returned: ' . var_export($saved, true) . ' for user_id=' . $user['id'] . ' token=' . $token);
+
+        // Prepare a response object so we can return JSON for AJAX callers
+        $response = ['success' => false, 'message' => 'Có lỗi xảy ra'];
+
+        // Only attempt sending email if token saved
+        if ($saved) {
+            // Send reset email via PHPMailer (Gmail SMTP)
+            require_once APP_PATH . '/helpers/PHPMailerHelper.php';
+            require_once APP_PATH . '/helpers/functions.php';
+            $resetUrl = url('public/reset-password?token=' . $token);
+            $sent = PHPMailerHelper::sendResetPasswordEmail($email, $user['full_name'] ?? $email, $resetUrl);
+
+            // Debug log for mail sending
+            error_log('ForgotPassword: sendResetPasswordEmail returned: ' . var_export($sent, true) . ' for email=' . $email);
+
+            if ($sent) {
+                $message = 'Link đặt lại mật khẩu đã được gửi đến email của bạn';
+                setFlash('success', $message);
+                $response = ['success' => true, 'message' => $message];
+            } else {
+                // Keep the token saved but inform user that email sending failed
+                error_log('ForgotPassword: PHPMailer likely failed. Check PHPMailerHelper logs.');
+                $message = 'Không thể gửi email. Vui lòng thử lại sau hoặc liên hệ quản trị.';
+                setFlash('error', $message);
+                $response = ['success' => false, 'message' => $message];
+            }
+        } else {
+            error_log('ForgotPassword: Failed to save reset token for user_id=' . $user['id']);
+            $message = 'Có lỗi khi tạo token đặt lại mật khẩu. Vui lòng thử lại sau.';
+            setFlash('error', $message);
+            $response = ['success' => false, 'message' => $message];
+        }
+
+        // If this was an AJAX/XHR request, or form included ajax=1, return JSON instead of redirecting.
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || (!empty($_POST['ajax']) && $_POST['ajax'] == '1');
+        if ($isAjax) {
+            error_log('ForgotPassword: returning JSON response for AJAX/form-ajax request - ' . json_encode($response));
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($response);
+            exit;
+        }
+
         redirect('login');
     }
 

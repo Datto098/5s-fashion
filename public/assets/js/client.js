@@ -1395,7 +1395,7 @@ function renderQuickViewContent(product) {
                     <div class="product-actions d-block mt-auto">
             <button class="btn btn-danger btn-lg me-2 mb-2 quickview-add-to-cart" onclick="addToCartFromQuickView(${product.id})" ${!product.in_stock ? "disabled aria-disabled=\"true\"" : ""}>
               <i class="fas fa-shopping-cart me-2"></i>
-               ${hasAnyStock ? "Thêm Vào Giỏ" : "Hết Hàng"}
+               ${hasAnyStock ? "Thêm Vào Giỏ Hàng" : "Hết Hàng"}
             </button>
                         <button class="btn btn-outline-secondary btn-lg mb-2" onclick="toggleWishlist(${
                           product.id
@@ -1675,7 +1675,7 @@ function updateAddToCartState(available) {
       // restore primary danger look
       el.classList.remove('btn-secondary');
       el.classList.add('btn-danger');
-      el.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ';
+      el.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ Hàng';
     }
   };
 
