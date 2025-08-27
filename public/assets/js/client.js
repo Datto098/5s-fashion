@@ -312,16 +312,21 @@ function updateCartQuantity(key, quantity) {
   const variant = item.variant;
 
   // Send AJAX request to server to update quantity
+  // If cart item has an id (server-side cart), send cart_key. Otherwise fall back to product_id (local cart format).
+  const payload = { quantity: parseInt(quantity) };
+  if (item && item.id) {
+    payload.cart_key = item.id;
+  } else if (productId) {
+    payload.product_id = productId;
+  }
+  if (variant) payload.variant = variant;
+
   fetch(`${BASE_URL}/ajax/cart/update`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      product_id: productId,
-      variant: variant,
-      quantity: parseInt(quantity),
-    }),
+    body: JSON.stringify(payload),
   })
     .then((response) => response.json())
     .then((data) => {

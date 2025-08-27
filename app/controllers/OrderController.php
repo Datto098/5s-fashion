@@ -191,7 +191,7 @@ public function checkout()
 
             $result = $this->customerModel->updateCustomerAddress($id, $user['id'], $addressData);
 
-            if ($result) {
+            if ($result !== false) {
                 // Get updated addresses list
                 $addresses = $this->customerModel->getCustomerAddresses($user['id']);
 
@@ -301,7 +301,7 @@ public function checkout()
 
             $result = $this->customerModel->updateCustomerAddress($id, $user['id'], $addressData);
 
-            if ($result) {
+            if ($result !== false) {
                 // Get updated addresses list
                 $addresses = $this->customerModel->getCustomerAddresses($user['id']);
 

@@ -8,7 +8,7 @@ class CartPageManager {
 	constructor() {
 		this.cartItems = [];
 		this.subtotal = 0;
-		this.shippingFee = 0;
+		this.shippingFee = 30000;
 		this.discount = 0;
 		this.total = 0;
 		this.init();
@@ -347,7 +347,7 @@ class CartPageManager {
 				// Update UI with discount
 				document.getElementById('discount').textContent = data.formatted_discount;
 				// Tính lại tổng cộng: final_amount + phí ship 30,000
-				const shippingFee = 30000;
+				const shippingFee = subtotal >= 500000 ? 0 : 30000; // Dynamic shipping fee
 				const totalWithShipping = (parseInt(data.final_amount) + shippingFee);
 				document.getElementById('total').textContent = this.formatPrice(totalWithShipping);
 				// Show success message
@@ -394,8 +394,7 @@ class CartPageManager {
 			(sum, item) => sum + item.total,
 			0
 		);
-		// Shipping fee cố định 30,000
-		this.shippingFee = 30000;
+	this.shippingFee = this.subtotal >= 500000 ? 0 : 30000; // Dynamic shipping fee
 		this.total = this.subtotal + this.shippingFee - this.discount;
 
 		// Update DOM elements

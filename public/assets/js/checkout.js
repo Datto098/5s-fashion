@@ -238,6 +238,9 @@ class CheckoutManager {
 			this.orderSummary.discount = parseFloat(window.appliedCoupon.discount_amount);
 		}
 
+		const FREE_SHIPPING_THRESHOLD = 500000;
+		this.orderSummary.shipping = this.orderSummary.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 30000;
+
 		this.orderSummary.total =
 			this.orderSummary.subtotal +
 			this.orderSummary.shipping -
@@ -267,7 +270,7 @@ class CheckoutManager {
 						</div>
 						<div class="d-flex justify-content-between mb-2">
 							<span>Phí vận chuyển:</span>
-							<span>${this.formatCurrency(this.orderSummary.shipping)}</span>
+							<span>${this.orderSummary.shipping === 0 ? '<span class="text-success fw-bold">Miễn phí</span>' : this.formatCurrency(this.orderSummary.shipping)}</span>
 						</div>
 						${
 							this.orderSummary.discount > 0 && window.appliedCoupon && window.appliedCoupon.code
@@ -840,6 +843,14 @@ class CheckoutManager {
  * Handles address management for checkout
  */
 class CheckoutAddressManager {
+       initAddressFormSubmit() {
+	       const form = document.getElementById('addressForm');
+	       if (!form) return;
+	       form.addEventListener('submit', (e) => {
+		       e.preventDefault();
+		       this.saveAddress();
+	       });
+       }
        constructor() {
 	       this.provinces = window.PROVINCES || [];
 	       this.districts = [];
@@ -849,26 +860,30 @@ class CheckoutAddressManager {
 	       this.selectedLocation = null;
        }
 
-       showAddressModal(addressId = null) {
-	       const modal = new bootstrap.Modal(
-		       document.getElementById('addressModal')
-	       );
-
+	showAddressModal(addressId = null) {
+	       const modal = new bootstrap.Modal(document.getElementById('addressModal'));
+	       const form = document.getElementById('addressForm');
+	       document.getElementById('addressModalTitle').textContent = addressId ? 'Sửa địa chỉ' : 'Thêm địa chỉ mới';
 	       if (addressId) {
 		       // Edit mode
-		       const address = checkoutManager.addresses.find(
-			       (addr) => addr.id === addressId
-		       );
+		       const address = checkoutManager.addresses.find((addr) => addr.id === addressId);
 		       if (address) {
-			       this.populateAddressForm(address);
+			       form.reset();
+			       form.address_id.value = address.id;
+			       form.name.value = address.name || '';
+			       form.phone.value = address.phone || '';
+			       form.address.value = address.address || '';
+			       form.note.value = address.note || '';
+			       form.is_default.checked = address.is_default == 1;
 		       }
 	       } else {
 		       // Add new mode
-		       document.getElementById('addressForm').reset();
+		       form.reset();
+		       form.address_id.value = '';
 	       }
-
-	       this.populateProvinceSelect();
-	       modal.show();
+			   this.populateProvinceSelect();
+			   this.initAddressFormSubmit();
+			   modal.show();
        }
 
 	// loadProvinces removed: now only use provinces from backend
@@ -936,68 +951,73 @@ class CheckoutAddressManager {
 
 	// showAddressError: loại bỏ hoàn toàn, không hiển thị thông báo tỉnh/thành fallback nữa
 
-	async saveAddress() {
-		const form = document.getElementById('addressForm');
-		const formData = new FormData(form);
+       async saveAddress() {
+	       const form = document.getElementById('addressForm');
+	       const formData = new FormData(form);
+	       const addressId = formData.get('address_id');
+	       const addressData = {
+		       id: addressId || undefined,
+		       name: formData.get('name'),
+		       phone: formData.get('phone'),
+		       address: formData.get('address'),
+		       note: formData.get('note') || '',
+		       is_default: formData.get('is_default') ? 1 : 0,
+	       };
+	       try {
+		       const url = addressId ? '/5s-fashion/order/editAddress/' + addressId : '/5s-fashion/order/addAddress';
+		       const method = addressId ? 'PUT' : 'POST';
+		       const response = await fetch(url, {
+			       method: method,
+			       headers: {
+				       'Content-Type': 'application/json',
+			       },
+			       body: JSON.stringify(addressData),
+		       });
+		       if (response.ok) {
+			       const result = await response.json();
+			       if (result.success) {
+				       bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
+				       await checkoutManager.loadAddresses();
+				       checkoutManager.renderCheckoutForm();
+			       } else {
+				       alert(result.message || 'Không thể lưu địa chỉ');
+			       }
+		       } else {
+			       alert('Có lỗi xảy ra khi lưu địa chỉ');
+		       }
+	       } catch (error) {
+		       console.error('Error saving address:', error);
+		       alert('Có lỗi xảy ra khi lưu địa chỉ');
+	       }
+       }
 
-		// Get selected names (not just codes)
-		const provinceSelect = form.querySelector('select[name="province"]');
-		const districtSelect = form.querySelector('select[name="district"]');
-		const wardSelect = form.querySelector('select[name="ward"]');
-
-		const addressData = {
-			// Backend expects 'name' and 'address', not 'full_name' and 'address_line'
-			name: formData.get('full_name'),
-			phone: formData.get('phone'),
-			address: `${formData.get('address_line')}, ${
-				wardSelect.options[wardSelect.selectedIndex]?.dataset.name || ''
-			}, ${
-				districtSelect.options[districtSelect.selectedIndex]?.dataset
-					.name || ''
-			}, ${
-				provinceSelect.options[provinceSelect.selectedIndex]?.dataset
-					.name || ''
-			}`,
-			note: formData.get('note') || '', // Optional note field
-			is_default: formData.get('is_default') ? 1 : 0,
-		};
-
-		console.log('Sending address data:', addressData);
-
-		try {
-			const response = await fetch('/5s-fashion/order/addAddress', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(addressData),
-			});
-
-			if (response.ok) {
-				const result = await response.json();
-				if (result.success) {
-					// Close modal and reload addresses
-					bootstrap.Modal.getInstance(
-						document.getElementById('addressModal')
-					).hide();
-					await checkoutManager.loadAddresses();
-					checkoutManager.renderCheckoutForm();
-				} else {
-					alert(result.message || 'Không thể lưu địa chỉ');
-				}
-			} else {
-				alert('Có lỗi xảy ra khi lưu địa chỉ');
-			}
-		} catch (error) {
-			console.error('Error saving address:', error);
-			alert('Có lỗi xảy ra khi lưu địa chỉ');
-		}
-	}
-
-	async editAddress(addressId) {
-		// Implementation for editing existing address
-		await this.showAddressModal(addressId);
-	}
+       async editAddress(addressId) {
+	       // Ưu tiên lấy dữ liệu từ API nếu có route getAddress
+	       try {
+		       const res = await fetch(`/5s-fashion/order/getAddress/${addressId}`);
+		       if (res.ok) {
+			       const data = await res.json();
+			       if (data.success && data.address) {
+				       // Fill form bằng dữ liệu mới nhất từ server
+				       this.showAddressModal();
+				       const form = document.getElementById('addressForm');
+				       form.reset();
+				       form.address_id.value = data.address.id;
+				       form.name.value = data.address.name || '';
+				       form.phone.value = data.address.phone || '';
+				       form.address.value = data.address.address || '';
+				       form.note.value = data.address.note || '';
+				       form.is_default.checked = data.address.is_default == 1;
+				       document.getElementById('addressModalTitle').textContent = 'Sửa địa chỉ';
+				       return;
+			       }
+		       }
+	       } catch (e) {
+		       // Nếu lỗi, fallback như cũ
+	       }
+	       // Nếu không lấy được từ API, fallback lấy từ local list
+	       await this.showAddressModal(addressId);
+       }
 
 	async deleteAddress(addressId) {
 		if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
