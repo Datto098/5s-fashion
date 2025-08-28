@@ -143,9 +143,23 @@ class OrdersController extends BaseController
         }
     }
 
-    public function view($id)
+    // Signature kept compatible with BaseController::view($view, $data = [], $layout = 'client/layouts/app')
+    // We support calling this method with a numeric first argument (order id) for existing routes.
+    public function view($view, $data = [], $layout = 'admin/layouts/main-inline')
     {
+        // If $view is numeric, treat it as the order ID (backwards-compatible route calling)
+        if (is_numeric($view)) {
+            $id = (int)$view;
+        } else {
+            // If first arg isn't numeric, try to extract order id from provided data
+            $id = is_array($data) && isset($data['id']) ? (int)$data['id'] : null;
+        }
+
         try {
+            if (!$id) {
+                throw new Exception('Thiếu ID đơn hàng');
+            }
+
             // Get order details
             $order = $this->orderModel->getFullDetails($id);
 
@@ -153,7 +167,7 @@ class OrdersController extends BaseController
                 throw new Exception('Không tìm thấy đơn hàng');
             }
 
-            $data = [
+            $viewData = [
                 'title' => 'Chi tiết đơn hàng #' . $order['order_code'] . ' - 5S Fashion Admin',
                 'order' => $order,
                 'breadcrumbs' => [
@@ -163,7 +177,12 @@ class OrdersController extends BaseController
                 ]
             ];
 
-            $this->render('admin/orders/view', $data, 'admin/layouts/main-inline');
+            // Merge any additional $data passed through
+            if (is_array($data)) {
+                $viewData = array_merge($viewData, $data);
+            }
+
+            $this->render('admin/orders/view', $viewData, $layout);
 
         } catch (Exception $e) {
             header('Location: /5s-fashion/admin/orders?error=' . urlencode($e->getMessage()));
@@ -208,7 +227,8 @@ class OrdersController extends BaseController
                 $data = [
                     'title' => 'Cập nhật trạng thái đơn hàng',
                     'order' => $order,
-                    'validStatuses' => ['pending', 'processing', 'shipping', 'delivered', 'cancelled']
+                    // Admin allowed statuses (match admin UI)
+                    'validStatuses' => ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'confirmed']
                 ];
 
                 require VIEW_PATH . '/admin/orders/update-status.php';
@@ -238,7 +258,8 @@ class OrdersController extends BaseController
             }
 
             // Validate status
-            $validStatuses = ['pending', 'processing', 'shipping', 'delivered', 'cancelled'];
+            // Accept statuses used in the admin UI
+            $validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'confirmed'];
             if (!in_array($status, $validStatuses)) {
                 throw new Exception('Trạng thái không hợp lệ');
             }
@@ -279,7 +300,7 @@ class OrdersController extends BaseController
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => false,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
                 exit;
             } else {
@@ -359,7 +380,7 @@ class OrdersController extends BaseController
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => false,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             } else {
                 header('Location: /5s-fashion/admin/orders?error=' . urlencode($e->getMessage()));
@@ -580,7 +601,7 @@ class OrdersController extends BaseController
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => false,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }

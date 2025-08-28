@@ -395,7 +395,7 @@ function updateOrderStatus(status) {
                         location.reload();
                     }, 1000);
                 } else {
-                    showNotification(data.error || data.message || 'Có lỗi xảy ra!', 'error');
+                    showNotification(getAjaxMessage(data), 'error');
                 }
             } catch (e) {
                 console.error('Order status JSON parse error:', e);
@@ -439,7 +439,7 @@ function updatePaymentStatus(status) {
                         location.reload();
                     }, 1000);
                 } else {
-                    showNotification(data.error || data.message || 'Có lỗi xảy ra!', 'error');
+                        showNotification(getAjaxMessage(data), 'error');
                 }
             } catch (e) {
                 console.error('Payment status JSON parse error:', e);
@@ -474,6 +474,13 @@ function showNotification(message, type = 'info') {
             notification.remove();
         }
     }, 3000);
+}
+
+// Extract a user-friendly message from various AJAX response shapes
+function getAjaxMessage(data) {
+    if (!data) return 'Có lỗi xảy ra!';
+    if (typeof data === 'string') return data;
+    return data.message || data.error || data.msg || data.message_text || 'Có lỗi xảy ra!';
 }
 </script>
 

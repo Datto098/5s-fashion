@@ -461,6 +461,26 @@ class AjaxController extends Controller
             // Format items for JavaScript
             $formattedItems = [];
             foreach ($cartItems as $item) {
+                // Provide both product and variant SKUs and a unified "sku" (prefer variant sku)
+                $productSku = $item['product_sku'] ?? '';
+                $variantSku = $item['variant_sku'] ?? '';
+                $sku = !empty($variantSku) ? $variantSku : $productSku;
+
+                // Build a readable variant string from variant_name and variant_attributes
+                $variantName = trim($item['variant_name'] ?? '');
+                $variantAttributes = trim($item['variant_attributes'] ?? '');
+                $variantStr = '';
+                if ($variantName !== '') {
+                    $variantStr = $variantName;
+                }
+                if ($variantAttributes !== '') {
+                    if ($variantStr !== '') {
+                        $variantStr .= ' | ' . $variantAttributes;
+                    } else {
+                        $variantStr = $variantAttributes;
+                    }
+                }
+
                 $formattedItems[] = [
                     'cart_key' => $item['id'], // Use cart ID as key
                     'product_id' => $item['product_id'],
@@ -468,7 +488,10 @@ class AjaxController extends Controller
                     'product_image' => $item['product_image'],
                     'price' => $item['price'],
                     'quantity' => $item['quantity'],
-                    'variant' => $item['variant'] ?? null
+                    'variant' => $variantStr ?: null,
+                    'product_sku' => $productSku,
+                    'variant_sku' => $variantSku,
+                    'sku' => $sku
                 ];
             }
 

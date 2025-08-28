@@ -190,13 +190,18 @@ ob_start();
                                                 <i class="fas fa-eye me-1"></i>Xem chi tiết
                                             </a>
                                             <?php
-                                            // Show cancel button only for COD orders that are not yet shipping/delivered/cancelled
+                                            // Show cancel button only for COD orders that are still pending (not yet confirmed/processed)
                                             $canCancel = $order['payment_method'] === 'cod' &&
-                                                        !in_array($order['status'], ['shipping', 'delivered', 'cancelled']);
+                                                        ($order['status'] === 'pending');
                                             if ($canCancel):
                                             ?>
                                                 <button class="btn btn-outline-danger btn-sm" onclick="cancelOrder('<?= $order['id'] ?>')">
                                                     <i class="fas fa-times me-1"></i>Hủy đơn
+                                                </button>
+                                            <?php endif; ?>
+                                            <?php if ($order['status'] === 'shipped'): ?>
+                                                <button class="btn btn-outline-success btn-sm" onclick="confirmReceived('<?= $order['id'] ?>')">
+                                                    <i class="fas fa-check me-1"></i>Xác nhận đã nhận
                                                 </button>
                                             <?php endif; ?>
                                             <?php if ($order['status'] === 'completed'): ?>
@@ -491,6 +496,51 @@ function cancelOrder(orderId) {
             alert('Có lỗi xảy ra khi hủy đơn hàng');
         });
     }
+}
+</script>
+
+<script>
+function confirmReceived(orderId) {
+    if (!confirm('Xác nhận bạn đã nhận hàng?')) return;
+
+    fetch('<?= url('api/orders') ?>/' + orderId + '/confirm', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.text();
+    })
+    .then(text => {
+        if (!text) {
+            // empty but 2xx -> success
+            alert('Xác nhận đã nhận hàng thành công');
+            location.reload();
+            return;
+        }
+        try {
+            const data = JSON.parse(text);
+            if (data && data.success) {
+                alert(data.message || 'Xác nhận đã nhận hàng thành công');
+                location.reload();
+            } else {
+                alert(data.message || 'Không thể cập nhật trạng thái');
+            }
+        } catch (err) {
+            // non-JSON response, but HTTP 2xx -> treat as success
+            console.warn('Non-JSON response for confirmReceived:', err);
+            alert('Xác nhận đã nhận hàng thành công');
+            location.reload();
+        }
+    })
+    .catch(err => {
+        console.error('confirmReceived error:', err);
+        alert('Có lỗi khi liên hệ server');
+    });
 }
 </script>
 

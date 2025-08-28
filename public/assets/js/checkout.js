@@ -136,29 +136,94 @@ class CheckoutManager {
 			});
 
 			const productName = item.product_name || 'Sản phẩm';
-			console.log('Product name processing:', {
-				product_name: item.product_name,
-				final: productName,
-			});
+			// If variant data is present, try to remove trailing " - color - size" from product name
+			let displayName = productName;
 
-			// Build variant info from the variant field
+			// Build variant info from the variant field in a human-readable Vietnamese form
 			let variantInfo = '';
+			let parsedColor = '';
+			let parsedSize = '';
+
 			if (item.variant) {
-				// variant might be a string or object, handle both cases
 				if (typeof item.variant === 'string') {
+					// Try to parse common patterns from a variant string
 					variantInfo = item.variant;
+
+					// Extract color and size if present in the string (handles "Màu: X | Size: Y" and similar)
+					const colorMatch = item.variant.match(/(?:Màu\s*sắc|Màu|Color)[:\s]*([^|,\-\n]+)/i);
+					const sizeMatch = item.variant.match(/(?:Kích\s*thước|Size)[:\s]*([^|,\-\n]+)/i);
+					if (colorMatch) parsedColor = colorMatch[1].trim();
+					if (sizeMatch) parsedSize = sizeMatch[1].trim();
+
+					// If not found, try a simple "Color - Size" pattern
+					if (!parsedColor || !parsedSize) {
+						const parts = item.variant.split(/\s*\|\s*|\s*-\s*/).map(s => s.trim()).filter(Boolean);
+						if (parts.length === 2 && (!parsedColor || !parsedSize)) {
+							// heuristics: shorter token likely color, token with letters+digits maybe size
+							if (!parsedColor) parsedColor = parts[0];
+							if (!parsedSize) parsedSize = parts[1];
+						}
+					}
+
+						// If we parsed color/size, format variantInfo cleanly to avoid repeated prefixes
+						if (parsedColor || parsedSize) {
+							const vparts = [];
+							if (parsedColor) vparts.push(`Màu sắc: ${parsedColor}`);
+							if (parsedSize) vparts.push(`Kích thước: ${parsedSize}`);
+							variantInfo = vparts.join(', ');
+						}
 				} else if (typeof item.variant === 'object') {
+					if (item.variant.color) parsedColor = String(item.variant.color).trim();
+					if (item.variant.size) parsedSize = String(item.variant.size).trim();
 					const parts = [];
-					if (item.variant.color)
-						parts.push(`Màu: ${item.variant.color}`);
-					if (item.variant.size)
-						parts.push(`Size: ${item.variant.size}`);
-					variantInfo = parts.join(' | ');
+					if (parsedColor) parts.push(`Màu sắc: ${parsedColor}`);
+					if (parsedSize) parts.push(`Kích thước: ${parsedSize}`);
+					variantInfo = parts.join(', ');
+				}
+
+				// Try to strip duplicate suffix in product name like " - Xanh lá - XL" or " - XL - Xanh lá"
+				const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				const suffixParts = [];
+				if (parsedColor) suffixParts.push(escapeRegExp(parsedColor));
+				if (parsedSize) suffixParts.push(escapeRegExp(parsedSize));
+				if (suffixParts.length) {
+					// build a flexible regex: match sequences of " - part" at the end, in order
+					const pattern = '\\s*-\\s*' + suffixParts.join('(?:\\s*-\\s*)?') + '\\s*$';
+					try {
+						const re = new RegExp(pattern, 'i');
+						displayName = displayName.replace(re, '').trim();
+					} catch (e) {
+						console.warn('Failed to build regex for stripping variant from name', e);
+					}
 				}
 			}
 
+			console.log('Product name processing:', {
+				product_name: item.product_name,
+				final: displayName,
+				parsedColor,
+				parsedSize,
+				variantInfo,
+			});
+
 			console.log('Product name:', productName);
-			console.log('About to replace {name} with:', productName);
+			console.log('About to replace {name} with:', displayName);
+
+			// Ensure variantInfo does not contain the product name repeated at the start
+			try {
+				const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				if (variantInfo && variantInfo.length) {
+					// remove occurrences of full productName or displayName at the beginning
+					const patterns = [productName, displayName].filter(Boolean).map(p => escapeRegExp(p));
+					const prefixRe = new RegExp('^\\s*(?:' + patterns.join('|') + ')\\s*(?:[-|\\|\\/]\\s*)?', 'i');
+					variantInfo = variantInfo.replace(prefixRe, '').trim();
+
+					// remove leading separators like '|' or '-' if still present
+					variantInfo = variantInfo.replace(/^[\s\-|\|\/]+/, '').trim();
+				}
+			} catch (e) {
+				console.warn('Error normalizing variantInfo', e);
+			}
 
 			// Perform replacements with validation
 			const replacements = [
@@ -166,9 +231,11 @@ class CheckoutManager {
 					'{image}',
 					imageUrl || '/5s-fashion/public/assets/images/no-image.jpg',
 				],
-				['{name}', productName],
+				['{name}', displayName],
 				['{variant_info}', variantInfo],
 				['{quantity}', item.quantity || 1],
+				// SKU replacement: prefer variant_sku then product_sku then generic sku
+				['{sku}', item.sku || item.variant_sku || item.product_sku || ''],
 				[
 					'{price}',
 					this.formatCurrency(
@@ -204,6 +271,27 @@ class CheckoutManager {
 		});
 
 		orderItemsContainer.innerHTML = html;
+
+		// Hide variant/SKU parts when data is missing (new template uses .variant-text, .sku-text, .meta-sep)
+		orderItemsContainer.querySelectorAll('.order-item').forEach((el) => {
+			const variantText = el.querySelector('.variant-text');
+			const skuEl = el.querySelector('.sku-text');
+			const sep = el.querySelector('.meta-sep');
+
+			const variantEmpty = !variantText || variantText.textContent.trim() === '';
+			const skuEmpty = !skuEl || skuEl.textContent.replace(/^SKU:\s*/i, '').trim() === '';
+
+			if (variantEmpty && skuEmpty) {
+				const meta = el.querySelector('.item-meta');
+				if (meta) meta.style.display = 'none';
+				return;
+			}
+
+			if (variantEmpty && sep) sep.style.display = 'none';
+			if (skuEmpty && sep) sep.style.display = 'none';
+			if (variantEmpty && variantText) variantText.style.display = 'none';
+			if (skuEmpty && skuEl) skuEl.style.display = 'none';
+		});
 
 		// Add error handling for images with better fallback
 		orderItemsContainer

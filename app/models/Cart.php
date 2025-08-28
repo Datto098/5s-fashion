@@ -183,10 +183,11 @@ class Cart extends BaseModel {
             $stock = $r['stock_quantity'] ?? null;
             $reserved = $r['reserved_quantity'] ?? 0;
         } else {
-            $sql = "SELECT stock_quantity, reserved_quantity FROM products WHERE id = ? LIMIT 1";
+            $sql = "SELECT stock_quantity FROM products WHERE id = ? LIMIT 1";
             $r = $this->db->query($sql, [$productId])->fetch();
             $stock = $r['stock_quantity'] ?? null;
-            $reserved = $r['reserved_quantity'] ?? 0;
+            // products table does not have reserved_quantity; treat reserved as 0
+            $reserved = 0;
         }
 
         if (!is_numeric($stock)) {

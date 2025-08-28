@@ -459,13 +459,38 @@ public function checkout()
                     exit;
                 }
 
-                // Validate stock (optional, would require product model)
+                // Calculate totals
                 $itemTotal = $item['price'] * $item['quantity'];
                 $subtotal += $itemTotal;
 
+                // Resolve variant_id when it's missing but variant info exists (session cart often stores 'variant' string)
+                $resolvedVariantId = $item['variant_id'] ?? null;
+                if (empty($resolvedVariantId) && !empty($item['variant'])) {
+                    // If variant value is numeric, assume it's an ID
+                    if (is_numeric($item['variant'])) {
+                        $resolvedVariantId = (int)$item['variant'];
+                    } else {
+                        // Try to resolve by SKU first, then by variant_name for the product
+                        require_once dirname(__DIR__) . '/models/ProductVariant.php';
+                        $found = ProductVariant::getBySku($item['variant']);
+                        if ($found && isset($found['id'])) {
+                            $resolvedVariantId = $found['id'];
+                        } else {
+                            // Fallback: search variants for this product and match variant_name
+                            $variants = ProductVariant::getByProduct($item['product_id'], false);
+                            foreach ($variants as $v) {
+                                if (isset($v['variant_name']) && mb_strtolower(trim($v['variant_name'])) === mb_strtolower(trim($item['variant']))) {
+                                    $resolvedVariantId = $v['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $orderItems[] = [
                     'product_id' => $item['product_id'],
-                    'variant_id' => $item['variant_id'] ?? null,
+                    'variant_id' => $resolvedVariantId,
                     'product_name' => $item['product_name'] ?? $item['name'] ?? '',
                     'product_sku' => $item['sku'] ?? '',
                     'variant_info' => isset($item['variant']) ? $item['variant'] : null,

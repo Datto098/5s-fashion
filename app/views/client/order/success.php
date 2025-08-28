@@ -104,10 +104,22 @@ ob_start();
                                         <div class="order-item d-flex align-items-center mb-3 p-3 border rounded">
                                             <div class="item-image me-3">
                                                 <?php if (!empty($item['featured_image'])): ?>
-                                                    <img src="/5s-fashion/serve-file.php?file=<?php echo rawurlencode($item['featured_image']); ?>"
-                                                         alt="<?php echo htmlspecialchars($item['product_name']); ?>"
-                                                         class="rounded" style="width: 80px; height: 80px; object-fit: cover;">
-                                                <?php else: ?>
+                                                        <?php
+                                                        // Normalize image path for serve-file.php (same logic as product-card)
+                                                        $imagePath = $item['featured_image'];
+                                                        if (strpos($imagePath, '/uploads/') === 0) {
+                                                            $cleanPath = substr($imagePath, 9);
+                                                        } elseif (strpos($imagePath, 'uploads/') === 0) {
+                                                            $cleanPath = substr($imagePath, 8);
+                                                        } else {
+                                                            $cleanPath = ltrim($imagePath, '/');
+                                                        }
+                                                        $serveUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                                        ?>
+                                                        <img src="<?php echo $serveUrl; ?>"
+                                                             alt="<?php echo htmlspecialchars($item['product_name']); ?>"
+                                                             class="rounded" style="width: 80px; height: 80px; object-fit: cover;">
+                                                    <?php else: ?>
                                                     <div class="placeholder-image d-flex align-items-center justify-content-center rounded bg-light"
                                                          style="width: 80px; height: 80px;">
                                                         <i class="fas fa-image text-muted"></i>
@@ -117,7 +129,134 @@ ob_start();
                                             <div class="item-details flex-grow-1">
                                                 <h6 class="item-name mb-1"><?php echo htmlspecialchars($item['product_name']); ?></h6>
                                                 <?php if (!empty($item['variant_info'])): ?>
-                                                    <?php $variant = is_array($item['variant_info']) ? $item['variant_info'] : json_decode($item['variant_info'], true); ?>
+                                                    <?php
+                                                    // Normalize variant info: accept array, JSON string, or plain string like "Màu sắc: Xanh lá, Kích thước: XL" or "Xanh lá - XL"
+                                                    $variant = null;
+                                                    if (is_array($item['variant_info'])) {
+                                                        // If the array is a wrapped plain string like ['info' => 'Xanh lá - M'], parse it
+                                                        if (isset($item['variant_info']['info']) && is_string($item['variant_info']['info']) && !isset($item['variant_info']['color']) && !isset($item['variant_info']['size'])) {
+                                                            $variant = $item['variant_info'];
+                                                            $variant_str = trim($item['variant_info']['info']);
+                                                            $parsedColor = null;
+                                                            $parsedSize = null;
+
+                                                            if (preg_match('/Màu\s*sắc[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                $parsedColor = trim($m[1]);
+                                                            }
+                                                            if (!$parsedColor && preg_match('/Màu[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                $parsedColor = trim($m[1]);
+                                                            }
+
+                                                            if (preg_match('/Kích\s*thước[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                $parsedSize = trim($m[1]);
+                                                            }
+                                                            if (!$parsedSize && preg_match('/Size[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                $parsedSize = trim($m[1]);
+                                                            }
+
+                                                            if ((empty($parsedColor) || empty($parsedSize)) && preg_match('/^([^|\-,]+)\s*[|\-]\s*([^|\-,]+)/u', $variant_str, $m)) {
+                                                                $a = trim($m[1]);
+                                                                $b = trim($m[2]);
+                                                                if (preg_match('/\b(\d|XS|S|M|L|XL|XXL)\b/i', $b)) {
+                                                                    $parsedColor = $parsedColor ?: $a;
+                                                                    $parsedSize = $parsedSize ?: $b;
+                                                                } else {
+                                                                    $parsedColor = $parsedColor ?: $a;
+                                                                    $parsedSize = $parsedSize ?: $b;
+                                                                }
+                                                            }
+
+                                                            if ($parsedSize) $variant['size'] = $parsedSize;
+                                                            if ($parsedColor) $variant['color'] = $parsedColor;
+                                                        } else {
+                                                            $variant = $item['variant_info'];
+                                                        }
+                                                    } else {
+                                                        $decoded = json_decode($item['variant_info'], true);
+                                                        if (is_array($decoded)) {
+                                                            // Some code paths store a plain string inside JSON under the key 'info'
+                                                            // e.g. {"info":"Xanh lá - M"}
+                                                            if (isset($decoded['info']) && is_string($decoded['info'])) {
+                                                                // keep any existing structured keys, but parse the wrapped string too
+                                                                $variant = $decoded;
+                                                                $variant_str = trim($decoded['info']);
+
+                                                                $parsedColor = null;
+                                                                $parsedSize = null;
+
+                                                                if (preg_match('/Màu\s*sắc[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                    $parsedColor = trim($m[1]);
+                                                                }
+                                                                if (!$parsedColor && preg_match('/Màu[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                    $parsedColor = trim($m[1]);
+                                                                }
+
+                                                                if (preg_match('/Kích\s*thước[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                    $parsedSize = trim($m[1]);
+                                                                }
+                                                                if (!$parsedSize && preg_match('/Size[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                    $parsedSize = trim($m[1]);
+                                                                }
+
+                                                                if ((empty($parsedColor) || empty($parsedSize)) && preg_match('/^([^|\-,]+)\s*[|\-]\s*([^|\-,]+)/u', $variant_str, $m)) {
+                                                                    $a = trim($m[1]);
+                                                                    $b = trim($m[2]);
+                                                                    if (preg_match('/\b(\d|XS|S|M|L|XL|XXL)\b/i', $b)) {
+                                                                        $parsedColor = $parsedColor ?: $a;
+                                                                        $parsedSize = $parsedSize ?: $b;
+                                                                    } else {
+                                                                        $parsedColor = $parsedColor ?: $a;
+                                                                        $parsedSize = $parsedSize ?: $b;
+                                                                    }
+                                                                }
+
+                                                                if ($parsedSize) $variant['size'] = $parsedSize;
+                                                                if ($parsedColor) $variant['color'] = $parsedColor;
+                                                            } else {
+                                                                $variant = $decoded;
+                                                            }
+                                                        } else {
+                                                            $variant_str = trim((string)$item['variant_info']);
+                                                            $parsedColor = null;
+                                                            $parsedSize = null;
+
+                                                            // Try several patterns (Unicode-aware, case-insensitive)
+                                                            if (preg_match('/Màu\s*sắc[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                $parsedColor = trim($m[1]);
+                                                            }
+                                                            if (!$parsedColor && preg_match('/Màu[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                $parsedColor = trim($m[1]);
+                                                            }
+
+                                                            if (preg_match('/Kích\s*thước[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                $parsedSize = trim($m[1]);
+                                                            }
+                                                            if (!$parsedSize && preg_match('/Size[:\s]*([^,|\-]+)/iu', $variant_str, $m)) {
+                                                                $parsedSize = trim($m[1]);
+                                                            }
+
+                                                            // Try "Color - Size" or "Color | Size" fallback
+                                                            if ((empty($parsedColor) || empty($parsedSize)) && preg_match('/^([^|\-,]+)\s*[|\-]\s*([^|\-,]+)/u', $variant_str, $m)) {
+                                                                $a = trim($m[1]);
+                                                                $b = trim($m[2]);
+                                                                if (preg_match('/\b(\d|XS|S|M|L|XL|XXL)\b/i', $b)) {
+                                                                    $parsedColor = $parsedColor ?: $a;
+                                                                    $parsedSize = $parsedSize ?: $b;
+                                                                } else {
+                                                                    $parsedColor = $parsedColor ?: $a;
+                                                                    $parsedSize = $parsedSize ?: $b;
+                                                                }
+                                                            }
+
+                                                            // If we found any, put into $variant array
+                                                            if ($parsedColor || $parsedSize) {
+                                                                $variant = [];
+                                                                if ($parsedSize) $variant['size'] = $parsedSize;
+                                                                if ($parsedColor) $variant['color'] = $parsedColor;
+                                                            }
+                                                        }
+                                                    }
+                                                    ?>
                                                     <?php if ($variant): ?>
                                                         <small class="text-muted">
                                                             <?php if (isset($variant['size'])): ?>Kích thước: <?php echo htmlspecialchars($variant['size']); ?><?php endif; ?>

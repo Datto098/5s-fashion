@@ -304,7 +304,8 @@ class CartApiController extends ApiController
             $stmt->execute([$productId]);
             $product = $stmt->fetch();
             $stock = $product ? (int)($product['stock_quantity'] ?? 0) : 0;
-            $reserved = $product ? (int)($product['reserved_quantity'] ?? 0) : 0;
+            // products table does not have reserved_quantity column
+            $reserved = 0;
 
             $sqlAll = "SELECT COALESCE(SUM(quantity),0) as total FROM carts WHERE product_id = ? AND variant_id IS NULL";
             $all = $this->db->prepare($sqlAll);

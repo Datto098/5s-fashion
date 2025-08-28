@@ -239,9 +239,25 @@ class Order extends BaseModel
 
                 $this->createOrderItem($item);
 
-                // Update product stock if variant_id is provided
-                if (!empty($item['variant_id'])) {
-                    $this->updateProductStock($item['product_id'], $item['variant_id'], $item['quantity']);
+                // Stock handling: either reserve or decrement based on STOCK_MODE
+                try {
+                    if (defined('STOCK_MODE') && STOCK_MODE === 'product') {
+                        // Product-level stock handling
+                        $sql = "UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - ?), updated_at = NOW() WHERE id = ? AND stock_quantity >= ?";
+                        $this->db->execute($sql, [$item['quantity'], $item['product_id'], $item['quantity']]);
+                    } else {
+                        // Variant-level: reserve quantity during order creation (final deduction happens on payment)
+                        if (!empty($item['variant_id'])) {
+                            $sql = "UPDATE product_variants SET reserved_quantity = reserved_quantity + ? WHERE id = ? AND product_id = ?";
+                            $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
+                        } else {
+                            // No variant_id: decrement product-level stock immediately (products table has no reserved_quantity)
+                            $sql = "UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - ?), updated_at = NOW() WHERE id = ? AND stock_quantity >= ?";
+                            $this->db->execute($sql, [$item['quantity'], $item['product_id'], $item['quantity']]);
+                        }
+                    }
+                } catch (Exception $e) {
+                    error_log('[ORDER CREATE] Stock reservation/adjust failed: ' . $e->getMessage());
                 }
             }
 
@@ -251,6 +267,44 @@ class Order extends BaseModel
         } catch (Exception $e) {
             $this->db->rollback();
             throw $e;
+        }
+    }
+
+    /**
+     * Finalize stock for an order (decrease actual stock and reduce reserved)
+     */
+    public function finalizeOrderStock($orderId)
+    {
+        $items = $this->getOrderItems($orderId);
+
+        foreach ($items as $item) {
+            if (!empty($item['variant_id'])) {
+                // Decrease stock and release reserved at variant level
+                $sql = "UPDATE product_variants SET stock_quantity = GREATEST(0, stock_quantity - ?), reserved_quantity = GREATEST(0, reserved_quantity - ?) WHERE id = ? AND product_id = ?";
+                $this->db->execute($sql, [$item['quantity'], $item['quantity'], $item['variant_id'], $item['product_id']]);
+            } else {
+                // Fallback to product-level: products table does not have reserved_quantity, only decrement stock
+                $sql = "UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - ?), updated_at = NOW() WHERE id = ?";
+                $this->db->execute($sql, [$item['quantity'], $item['product_id']]);
+            }
+        }
+    }
+
+    /**
+     * Release reserved stock for an order (used on cancel/failed payment)
+     */
+    public function releaseReservedForOrder($orderId)
+    {
+        $items = $this->getOrderItems($orderId);
+
+        foreach ($items as $item) {
+            if (!empty($item['variant_id'])) {
+                $sql = "UPDATE product_variants SET reserved_quantity = GREATEST(0, reserved_quantity - ?) WHERE id = ? AND product_id = ?";
+                $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
+            } else {
+                // No variant-level reservation exists on products table; nothing to release for product-level items
+                // (product-level stock was already decremented at order creation in product mode)
+            }
         }
     }
 
@@ -385,19 +439,8 @@ class Order extends BaseModel
     {
         try {
             $this->db->beginTransaction();
-
-            // Get order items to restore stock
-            $items = $this->getOrderItems($id);
-
-            // Restore stock for each item
-            foreach ($items as $item) {
-                if ($item['variant_id']) {
-                    $sql = "UPDATE product_variants
-                            SET stock_quantity = stock_quantity + ?
-                            WHERE id = ? AND product_id = ?";
-                    $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
-                }
-            }
+            // Release reserved stock for each item
+            $this->releaseReservedForOrder($id);
 
             // Update order status
             $sql = "UPDATE {$this->table} SET status = 'cancelled', updated_at = NOW()";

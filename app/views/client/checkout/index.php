@@ -33,6 +33,13 @@ window.appliedCoupon = <?= $applied_coupon ? json_encode($applied_coupon) : 'nul
     .payment-icons{
         display: flex;
     }
+    /* Keep variant and SKU tidy: show a separator before SKU only when variant exists */
+   
+    /* If variant is empty, remove the separator (uses :has - supported in modern browsers) */
+    .item-meta:has(.variant-text:empty) .sku-text::before {
+        content: "";
+        margin: 0;
+    }
 </style>
 
 <!-- Breadcrumb -->
@@ -113,10 +120,14 @@ window.appliedCoupon = <?= $applied_coupon ? json_encode($applied_coupon) : 'nul
             <div class="item-quantity">{quantity}</div>
         </div>
         <div class="item-details">
-            <div class="item-name">{name}</div>
-            <div class="text-muted small">{variant_info}</div>
-            <div class="item-price">{price}</div>
-        </div>
+                <div class="item-name">{name}</div>
+                <div class="item-meta text-muted small">
+                    <span class="sku-text">SKU: {sku}</span>
+                    <br>
+                    <span class="variant-text">{variant_info}</span>
+                </div>
+                <div class="item-price">{price}</div>
+            </div>
     </div>
 </template>
 

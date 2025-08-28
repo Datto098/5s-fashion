@@ -72,6 +72,9 @@ $router->post('/orders', 'OrderApiController@store');
 $router->put('/orders/{id}', 'OrderApiController@update');
 $router->delete('/orders/{id}', 'OrderApiController@destroy');
 
+// Customer confirm received
+$router->post('/orders/{id}/confirm', 'OrderConfirmController@confirm');
+
 // Cart API routes
 $router->get('/cart', 'CartApiController@index');
 $router->post('/cart/add', 'CartApiController@add');

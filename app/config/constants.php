@@ -77,6 +77,9 @@ define('IMAGE_SIZES', [
     'extra_large' => [1200, 1200]
 ]);
 
+// Stock handling mode: 'product' = decrement at product level, 'variant' = decrement per product_variants
+define('STOCK_MODE', getenv('STOCK_MODE') ?: 'variant');
+
 // Flash Message Types
 define('FLASH_SUCCESS', 'success');
 define('FLASH_ERROR', 'error');

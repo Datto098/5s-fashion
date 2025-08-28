@@ -58,7 +58,7 @@
             <option value="shipped">Đã gửi</option>
             <option value="delivered">Đã giao</option>
             <option value="cancelled">Đã hủy</option>
-            <option value="refunded">Đã hoàn tiền</option>
+            <!-- <option value="refunded">Đã hoàn tiền</option> -->
         </select>
     </div>
     <div class="filter-group">
@@ -192,14 +192,17 @@
                         </div>
                     </td>
                     <td>
+                        <?php if ($order['status'] === 'delivered'): ?>
+                            <b style="color: green;">Hoàn thành</b>
+                            <?php else: ?>
                         <select class="status-select" data-order-id="<?= $order['id'] ?>" onchange="updateOrderStatus(this)">
                             <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Chờ xử lý</option>
                             <option value="confirmed" <?= $order['status'] === 'confirmed' ? 'selected' : '' ?>>Đã xác nhận</option>
                             <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : '' ?>>Đang xử lý</option>
                             <option value="shipped" <?= $order['status'] === 'shipped' ? 'selected' : '' ?>>Đã gửi</option>
-                            <option value="delivered" <?= $order['status'] === 'delivered' ? 'selected' : '' ?>>Đã giao</option>
                             <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
                         </select>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <select class="payment-status-select" data-order-id="<?= $order['id'] ?>" onchange="updatePaymentStatus(this)">
@@ -229,11 +232,13 @@
                                     <i class="fas fa-check"></i>
                                 </button>
                             <?php endif; ?>
-                            <?php if (in_array($order['status'], ['pending', 'processing'])): ?>
+                            
+                            <?php if ($order['status'] === 'pending'): ?>
                                 <button class="btn btn-sm btn-danger" onclick="cancelOrder(<?= $order['id'] ?>)" title="Hủy đơn">
                                     <i class="fas fa-times"></i>
                                 </button>
                             <?php endif; ?>
+                           
                         </div>
                     </td>
                 </tr>
@@ -809,6 +814,39 @@
         }
     }
 
+    // Shipper confirms delivery (button)
+    function markAsDelivered(orderId) {
+        if (!confirm('Xác nhận: đơn hàng đã được khách nhận?')) return;
+
+        fetch(`/5s-fashion/admin/orders/update-status/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ status: 'delivered' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update select UI and row styling
+                    const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+                    if (row) {
+                        const select = row.querySelector('.status-select');
+                        if (select) select.value = 'delivered';
+                        updateRowStatus(row, 'delivered');
+                    }
+                    showNotification('Đã chuyển trạng thái sang Đã giao', 'success');
+                } else {
+                    showNotification('Lỗi: ' + (data.message || 'Không thể cập nhật'), 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification('Có lỗi xảy ra!', 'error');
+            });
+    }
+
     function updateRowStatus(row, status) {
         // Update action buttons based on status
         const actionButtons = row.querySelector('.action-buttons');
@@ -967,6 +1005,15 @@
     function showNotification(message, type = 'info') {
         // TODO: Implement notification system
         alert(message);
+    }
+
+    // Extract a user-friendly message from various AJAX response shapes
+    function getAjaxMessage(data) {
+        if (!data) return 'Có lỗi xảy ra!';
+        // If server returned string directly
+        if (typeof data === 'string') return data;
+        // Prefer message, then error, then any other known keys
+        return data.message || data.error || data.msg || data.message_text || 'Có lỗi xảy ra!';
     }
 
     // Close modal on outside click
