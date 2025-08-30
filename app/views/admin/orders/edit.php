@@ -19,10 +19,10 @@ function getAddressField($order, $field, $fallback = '') {
                     <p class="text-muted mb-0">Cập nhật thông tin đơn hàng</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/orders/show/<?= $order['id'] ?>" class="btn btn-info">
+                    <a href="/zone-fashion/admin/orders/show/<?= $order['id'] ?>" class="btn btn-info">
                         <i class="fas fa-eye"></i> Xem chi tiết
                     </a>
-                    <a href="/5s-fashion/admin/orders" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/orders" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -47,7 +47,7 @@ function getAddressField($order, $field, $fallback = '') {
         </div>
     <?php endif; ?>
 
-    <form action="/5s-fashion/admin/orders/update/<?= $order['id'] ?>" method="POST" id="orderForm">
+    <form action="/zone-fashion/admin/orders/update/<?= $order['id'] ?>" method="POST" id="orderForm">
         <div class="row">
             <!-- Main Content -->
             <div class="col-lg-8">
@@ -305,10 +305,10 @@ function getAddressField($order, $field, $fallback = '') {
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Cập nhật đơn hàng
                             </button>
-                            <a href="/5s-fashion/admin/orders/show/<?= $order['id'] ?>" class="btn btn-info">
+                            <a href="/zone-fashion/admin/orders/show/<?= $order['id'] ?>" class="btn btn-info">
                                 <i class="fas fa-eye"></i> Xem chi tiết
                             </a>
-                            <a href="/5s-fashion/admin/orders" class="btn btn-secondary">
+                            <a href="/zone-fashion/admin/orders" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Hủy bỏ
                             </a>
                         </div>

@@ -1,7 +1,7 @@
 <?php
 // Checkout Page for Phase 3.3
-$title = 'Thanh toán - 5S Fashion';
-$meta_description = 'Hoàn tất đơn hàng tại 5S Fashion - Thanh toán an toàn và bảo mật';
+$title = 'Thanh toán - zone Fashion';
+$meta_description = 'Hoàn tất đơn hàng tại zone Fashion - Thanh toán an toàn và bảo mật';
 
 // Custom CSS for checkout page
 $custom_css = [
@@ -32,6 +32,13 @@ window.appliedCoupon = <?= $applied_coupon ? json_encode($applied_coupon) : 'nul
 <style>
     .payment-icons{
         display: flex;
+    }
+    /* Keep variant and SKU tidy: show a separator before SKU only when variant exists */
+   
+    /* If variant is empty, remove the separator (uses :has - supported in modern browsers) */
+    .item-meta:has(.variant-text:empty) .sku-text::before {
+        content: "";
+        margin: 0;
     }
 </style>
 
@@ -113,10 +120,14 @@ window.appliedCoupon = <?= $applied_coupon ? json_encode($applied_coupon) : 'nul
             <div class="item-quantity">{quantity}</div>
         </div>
         <div class="item-details">
-            <div class="item-name">{name}</div>
-            <div class="text-muted small">{variant_info}</div>
-            <div class="item-price">{price}</div>
-        </div>
+                <div class="item-name">{name}</div>
+                <div class="item-meta text-muted small">
+                    <span class="sku-text">SKU: {sku}</span>
+                    <br>
+                    <span class="variant-text">{variant_info}</span>
+                </div>
+                <div class="item-price">{price}</div>
+            </div>
     </div>
 </template>
 
@@ -144,10 +155,11 @@ window.appliedCoupon = <?= $applied_coupon ? json_encode($applied_coupon) : 'nul
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Thêm địa chỉ mới</h5>
+                <h5 class="modal-title" id="addressModalTitle">Thêm địa chỉ mới</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="addressForm">
+                <input type="hidden" id="address_id" name="address_id" value="">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -196,7 +208,7 @@ window.appliedCoupon = <?= $applied_coupon ? json_encode($applied_coupon) : 'nul
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu địa chỉ</button>
+                    <button type="submit" class="btn btn-primary" id="saveAddressBtn">Lưu địa chỉ</button>
                 </div>
             </form>
         </div>
@@ -327,28 +339,4 @@ document.getElementById('searchAddressBtn').addEventListener('click', function()
 });
 </script>
 
-<script>
-document.getElementById('addressForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const form = this;
-    const formData = new FormData(form);
-    fetch('/5s-fashion/account/addAddress', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert(data.message || 'Có lỗi xảy ra khi thêm địa chỉ!');
-        }
-    })
-    .catch(() => {
-        alert('Có lỗi xảy ra khi thêm địa chỉ!');
-    });
-});
-</script>
+

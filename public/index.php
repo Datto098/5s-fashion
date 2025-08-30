@@ -1,6 +1,6 @@
 <?php
 /**
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  * Main Entry Point
  */
 

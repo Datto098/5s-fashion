@@ -2,7 +2,7 @@
 /**
  * Order API Controller
  * Handle order tracking and status updates
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once dirname(dirname(__DIR__)) . '/core/ApiController.php';
@@ -382,14 +382,14 @@ class OrderTrackingController extends ApiController
         $events[] = [
             'time' => $order['created_at'],
             'status' => 'Đơn hàng đã được tạo',
-            'location' => '5S Fashion Store'
+            'location' => 'zone Fashion Store'
         ];
 
         if (in_array($order['status'], ['processing', 'shipped', 'delivered'])) {
             $events[] = [
                 'time' => date('Y-m-d H:i:s', strtotime($order['created_at'] . ' +2 hours')),
                 'status' => 'Đang chuẩn bị hàng',
-                'location' => '5S Fashion Warehouse'
+                'location' => 'zone Fashion Warehouse'
             ];
         }
 

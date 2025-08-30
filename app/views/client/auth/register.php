@@ -10,7 +10,7 @@ ob_start();
                 <div class="auth-card">
                     <div class="auth-header text-center mb-4">
                         <h2 class="auth-title">Đăng Ký</h2>
-                        <p class="auth-subtitle">Tạo tài khoản mới tại 5S Fashion</p>
+                        <p class="auth-subtitle">Tạo tài khoản mới tại zone Fashion</p>
                     </div>
 
                     <?php if (hasFlash('error')): ?>

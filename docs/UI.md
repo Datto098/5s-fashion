@@ -1,6 +1,6 @@
-# UI Design Guidelines - 5S Fashion
+# UI Design Guidelines - Zone Fashion
 
-> **Tài liệu chuẩn thiết kế giao diện cho dự án 5S Fashion**
+> **Tài liệu chuẩn thiết kế giao diện cho dự án zone Fashion**
 > Phân tích dựa trên homepage hiện tại để đảm bảo tính nhất quán trong thiết kế
 
 ## 📚 Table of Contents
@@ -98,7 +98,7 @@ ob_start();
 $content = ob_get_clean();
 
 // Set page variables
-$title = 'Page Title - 5S Fashion';
+$title = 'Page Title - zone Fashion';
 $meta_description = 'Page description';
 $custom_css = ['css/page-specific.css'];
 $custom_js = ['js/page-specific.js'];

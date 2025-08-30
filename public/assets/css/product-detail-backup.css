@@ -1,6 +1,6 @@
 /**
  * Product Detail Page Styles
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 /* Breadcrumb */
@@ -1005,5 +1005,5 @@
 }
 
 .product-info>*:nth-child(5) {
-    animation-delay: 0.5s;
+    animation-delay: 0.zone;
 }

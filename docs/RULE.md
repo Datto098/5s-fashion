@@ -1,8 +1,8 @@
-# 5S Fashion - CODING RULES & STANDARDS
+# Zone Fashion - CODING RULES & STANDARDS
 
 ## 📋 Tổng quan
 
-Tài liệu này định nghĩa các quy tắc và chuẩn code cho dự án **5S Fashion E-commerce Platform**. Tuân thủ các quy tắc này để đảm bảo code sạch sẽ, nhất quán và dễ bảo trì.
+Tài liệu này định nghĩa các quy tắc và chuẩn code cho dự án **Zone Fashion E-commerce Platform**. Tuân thủ các quy tắc này để đảm bảo code sạch sẽ, nhất quán và dễ bảo trì.
 
 ---
 
@@ -108,7 +108,7 @@ $customerid
 <?php
 /**
  * Controller Description
- * 5S Fashion E-commerce Platform
+ * Zone Fashion E-commerce Platform
  */
 
 require_once dirname(__DIR__) . '/BaseController.php';
@@ -149,7 +149,7 @@ public function __construct()
 
     // Check admin authentication - BẮT BUỘC
     if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-        header('Location: /5s-fashion/admin/login');
+    header('Location: /zone-fashion/admin/login');
         exit;
     }
 
@@ -194,7 +194,7 @@ class ApiController extends BaseApiController
 <?php
 /**
  * Model Name
- * 5S Fashion E-commerce Platform
+ * Zone Fashion E-commerce Platform
  */
 
 require_once __DIR__ . '/../core/Database.php';
@@ -284,7 +284,7 @@ ob_start();
 $content = ob_get_clean();
 
 // Set page variables for layout
-$title = 'Page Title - 5S Fashion';
+$title = 'Page Title - Zone Fashion';
 $meta_description = 'Page description';
 
 // Custom CSS for this page
@@ -319,10 +319,10 @@ $content = ob_get_clean();
 
 // Admin layout data
 $data = [
-    'title' => 'Admin Page Title - 5S Fashion Admin',
+    'title' => 'Admin Page Title - Zone Fashion Admin',
     'content' => $content,
     'breadcrumbs' => [
-        ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
         ['title' => 'Current Page']
     ]
 ];
@@ -367,7 +367,7 @@ $this->render('admin/layouts/main-inline', $data);
 ```javascript
 /**
  * JavaScript Module Name
- * 5S Fashion E-commerce Platform
+ * Zone Fashion E-commerce Platform
  */
 
 class ManagerName {
@@ -439,7 +439,7 @@ async loadData() {
 ```css
 /**
  * CSS Module Name
- * 5S Fashion E-commerce Platform
+ * Zone Fashion E-commerce Platform
  */
 
 /* Variables */
@@ -587,7 +587,7 @@ public function uploadFile($file) {
  * - Product variant management
  * - Product image handling
  *
- * @author 5S Fashion Team
+ * @author Zone Fashion Team
  * @version 1.0
  */
 class ProductsController extends BaseController
@@ -730,7 +730,7 @@ git commit -m "changes"
 
 **📝 Document Version**: 1.0
 **📅 Last Updated**: August 2025
-**👥 Maintained by**: 5S Fashion Development Team
+**👥 Maintained by**: Zone Fashion Development Team
 
 ---
 

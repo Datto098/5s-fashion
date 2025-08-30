@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="<?= $meta_description ?? '5S Fashion - Thời trang nam nữ cao cấp, xu hướng mới nhất' ?>">
-    <meta name="keywords" content="<?= $meta_keywords ?? 'thời trang, nam, nữ, cao cấp, 5s fashion' ?>">
-    <title><?= $title ?? '5S Fashion - Thời trang cao cấp' ?></title>
+    <meta name="description" content="<?= $meta_description ?? 'zone Fashion - Thời trang nam nữ cao cấp, xu hướng mới nhất' ?>">
+    <meta name="keywords" content="<?= $meta_keywords ?? 'thời trang, nam, nữ, cao cấp, zone fashion' ?>">
+    <title><?= $title ?? 'zone Fashion - Thời trang cao cấp' ?></title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= asset('images/favicon.ico') ?>">
@@ -151,7 +151,7 @@
             text-decoration: none;
             color: #212529;
             font-size: 0.95rem;
-            transition: all 0.15s ease;
+            transition: all 0.1zone ease;
             cursor: pointer;
             position: relative;
             z-index: 1100; /* Ensure it's above other elements */
@@ -550,8 +550,8 @@
         window.userId = <?= getUser() ? getUser()['id'] : 'null' ?>;
 
         // Base URLs
-        window.baseUrl = '/5s-fashion';
-        window.apiUrl = '/5s-fashion/ajax';
+        window.baseUrl = '/zone-fashion';
+        window.apiUrl = '/zone-fashion/ajax';
 
         // Current page info
         window.currentPage = '<?= $_SERVER['REQUEST_URI'] ?? '' ?>';
@@ -592,33 +592,7 @@
     <!-- Footer -->
     <?php include_once VIEW_PATH . '/client/layouts/footer.php'; ?>
 
-    <!-- Cart Mini Sidebar -->
-    <div class="cart-sidebar" id="cartSidebar">
-        <div class="cart-sidebar-header">
-            <h5><i class="fas fa-shopping-cart"></i> Giỏ Hàng</h5>
-            <button class="btn-close-cart" onclick="toggleCartSidebar()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="cart-sidebar-body">
-            <div id="cart-items">
-                <!-- Cart items will be loaded here by cart.js -->
-                <div class="empty-cart">
-                    <i class="fas fa-shopping-cart"></i>
-                    <p>Giỏ hàng trống</p>
-                    <small>Thêm sản phẩm để bắt đầu mua sắm</small>
-                </div>
-            </div>
-        </div>
-        <div class="cart-sidebar-footer">
-            <div id="cart-total">
-                <!-- Total and actions will be updated by JavaScript -->
-            </div>
-        </div>
-    </div>
 
-    <!-- Cart Sidebar Overlay -->
-    <div class="cart-sidebar-overlay" id="cartSidebarOverlay" onclick="toggleCartSidebar()"></div>
 
     <!-- Back to Top Button -->
     <button class="btn-back-to-top" id="backToTop">
@@ -791,7 +765,7 @@
     <script src="<?= asset('js/user-menu-fix.js') ?>"></script>
 
     <!-- Category filter activator script for shop page -->
-    <script src="/5s-fashion/public/assets/js/category-filter-activator.js"></script>
+    <script src="/zone-fashion/public/assets/js/category-filter-activator.js"></script>
 
 
     <script>
@@ -940,7 +914,7 @@
                 const alerts = document.querySelectorAll('.alert:not(.alert-important)');
                 alerts.forEach(alert => {
                     // Fade out and remove
-                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.transition = 'opacity 0.zone';
                     alert.style.opacity = '0';
                     setTimeout(() => {
                         if (alert.parentNode) {
@@ -973,7 +947,7 @@
 
     <!-- Review scripts for product detail page -->
     <?php if (isset($product)): ?>
-    <script src="/5s-fashion/public/assets/js/review.js"></script>
+    <script src="/zone-fashion/public/assets/js/review.js"></script>
     <?php endif; ?>
 
     <!-- Force initialize all dropdowns to ensure they work -->

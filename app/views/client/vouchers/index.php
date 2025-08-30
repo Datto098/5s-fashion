@@ -4,7 +4,7 @@
         <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/5s-fashion">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="/zone-fashion">Trang chủ</a></li>
                     <li class="breadcrumb-item active">Voucher khuyến mãi</li>
                 </ol>
             </nav>
@@ -16,7 +16,7 @@
                 </div>
                 <?php if ($userId): ?>
                     <div>
-                        <a href="/5s-fashion/vouchers/my-vouchers" class="btn btn-outline-primary">
+                        <a href="/zone-fashion/vouchers/my-vouchers" class="btn btn-outline-primary">
                             <i class="fas fa-wallet"></i> Voucher của tôi
                         </a>
                     </div>
@@ -30,7 +30,7 @@
         <div class="alert alert-info">
             <i class="fas fa-info-circle"></i>
             <strong>Đăng nhập để lưu voucher!</strong>
-            <a href="/5s-fashion/login" class="alert-link">Đăng nhập ngay</a> để có thể lưu và sử dụng voucher.
+            <a href="/zone-fashion/login" class="alert-link">Đăng nhập ngay</a> để có thể lưu và sử dụng voucher.
         </div>
     <?php endif; ?>
 
@@ -136,7 +136,7 @@
                                             <button class="btn <?= $btnClass ?> btn-sm" disabled><?= $btnText ?></button>
                                         <?php endif; ?>
                                     <?php else: ?>
-                                        <a href="/5s-fashion/login" class="btn btn-outline-primary btn-sm">
+                                        <a href="/zone-fashion/login" class="btn btn-outline-primary btn-sm">
                                             Đăng nhập để lưu
                                         </a>
                                     <?php endif; ?>
@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
 
-            fetch('/5s-fashion/api/voucher/save', {
+            fetch('/zone-fashion/api/voucher/save', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-            fetch('/5s-fashion/vouchers/remove', {
+            fetch('/zone-fashion/vouchers/remove', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -441,12 +441,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const couponCode = this.dataset.couponCode;
             const couponName = this.dataset.couponName;
 
-            const shareText = `Nhận ngay voucher ${couponName} - Mã: ${couponCode} tại 5S Fashion!`;
-            const shareUrl = window.location.origin + '/5s-fashion/vouchers';
+            const shareText = `Nhận ngay voucher ${couponName} - Mã: ${couponCode} tại zone Fashion!`;
+            const shareUrl = window.location.origin + '/zone-fashion/vouchers';
 
             if (navigator.share) {
                 navigator.share({
-                    title: '5S Fashion - Voucher Khuyến Mãi',
+                    title: 'zone Fashion - Voucher Khuyến Mãi',
                     text: shareText,
                     url: shareUrl,
                 });

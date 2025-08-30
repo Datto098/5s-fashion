@@ -455,7 +455,7 @@ class OrderTrackingManager {
 
 		setTimeout(() => {
 			alert(
-				'Chức năng chat hỗ trợ sẽ được cập nhật sớm!\n\nVui lòng liên hệ:\n📞 1900-5555\n📧 support@5sfashion.com'
+				'Chức năng chat hỗ trợ sẽ được cập nhật sớm!\n\nVui lòng liên hệ:\n📞 1900-5555\n📧 support@zonefashion.com'
 			);
 		}, 1000);
 	}
@@ -552,7 +552,7 @@ class OrderTrackingManager {
 						title: 'Đơn hàng đã được xác nhận',
 						description:
 							'Đơn hàng của bạn đã được xác nhận và đang chuẩn bị.',
-						location: '5S Fashion Store - TP.HCM',
+						location: 'zone Fashion Store - TP.HCM',
 						icon: 'fa-check',
 					},
 					{
@@ -561,7 +561,7 @@ class OrderTrackingManager {
 						title: 'Đang đóng gói sản phẩm',
 						description:
 							'Các sản phẩm đang được đóng gói cẩn thận.',
-						location: 'Kho 5S Fashion - Quận 1',
+						location: 'Kho zone Fashion - Quận 1',
 						icon: 'fa-box',
 					},
 					{
@@ -640,7 +640,7 @@ class OrderTrackingManager {
 						time: '10/12/2024 - 10:15',
 						title: 'Đơn hàng đã được xác nhận',
 						description: 'Đơn hàng của bạn đã được xác nhận.',
-						location: '5S Fashion Store - TP.HCM',
+						location: 'zone Fashion Store - TP.HCM',
 						icon: 'fa-check',
 					},
 					{
@@ -697,7 +697,7 @@ class OrderTrackingManager {
 						title: 'Đơn hàng đã được tiếp nhận',
 						description:
 							'Đơn hàng của bạn đã được tiếp nhận và đang chờ xác nhận.',
-						location: '5S Fashion Store - TP.HCM',
+						location: 'zone Fashion Store - TP.HCM',
 						icon: 'fa-receipt',
 					},
 					{
@@ -706,7 +706,7 @@ class OrderTrackingManager {
 						title: 'Đang xác nhận đơn hàng',
 						description:
 							'Chúng tôi đang xác nhận thông tin và kiểm tra hàng tồn kho.',
-						location: '5S Fashion Store - TP.HCM',
+						location: 'zone Fashion Store - TP.HCM',
 						icon: 'fa-hourglass-half',
 					},
 					{
@@ -714,7 +714,7 @@ class OrderTrackingManager {
 						time: 'Dự kiến 19/12/2024',
 						title: 'Chuẩn bị hàng hóa',
 						description: 'Sản phẩm sẽ được chuẩn bị và đóng gói.',
-						location: 'Kho 5S Fashion',
+						location: 'Kho zone Fashion',
 						icon: 'fa-box',
 					},
 					{

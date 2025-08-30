@@ -1,4 +1,4 @@
-# Hướng dẫn cấu hình Google OAuth cho 5S Fashion
+# Hướng dẫn cấu hình Google OAuth cho Zone Fashion
 
 ## Bước 1: Tạo project trên Google Cloud Console
 
@@ -16,10 +16,10 @@
 ## Bước 2: Tạo OAuth Client ID
 
 1. Chọn loại ứng dụng: "Web application"
-2. Đặt tên cho client, ví dụ: "5S Fashion Web Auth"
+2. Đặt tên cho client, ví dụ: "Zone Fashion Web Auth"
 3. Thêm URI chuyển hướng:
-   - `http://localhost/5s-fashion/auth/google-callback`
-   - `http://your-domain.com/5s-fashion/auth/google-callback` (nếu có domain thật)
+   - `http://localhost/zone-fashion/auth/google-callback`
+   - `http://your-domain.com/zone-fashion/auth/google-callback` (nếu có domain thật)
 4. Nhấn "Create"
 5. Sao chép Client ID và Client Secret
 
@@ -36,14 +36,14 @@
 ## Bước 4: Chạy script SQL để cập nhật database
 
 1. Mở phpMyAdmin hoặc công cụ quản lý MySQL của bạn
-2. Chọn database 5s_fashion
+2. Chọn database zone_fashion
 3. Chạy nội dung của file `database/migrations/2024_08_14_000001_add_google_auth_to_users.sql`
 
 ## Bước 5: Test chức năng đăng nhập Google
 
-1. Truy cập trang đăng nhập: `http://localhost/5s-fashion/login`
+1. Truy cập trang đăng nhập: `http://localhost/zone-fashion/login`
 2. Click vào nút "Đăng nhập bằng Google"
-3. Chọn tài khoản Google và cho phép 5S Fashion truy cập thông tin
+3. Chọn tài khoản Google và cho phép Zone Fashion truy cập thông tin
 4. Bạn sẽ được chuyển hướng về trang tài khoản sau khi đăng nhập thành công
 
 ## Xử lý sự cố

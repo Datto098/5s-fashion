@@ -94,7 +94,7 @@
                                 </button>
                             </div>
                             <div class="card-body">
-                                <form method="POST" action="/5s-fashion/admin/settings/update" enctype="multipart/form-data">
+                                <form method="POST" action="/zone-fashion/admin/settings/update" enctype="multipart/form-data">
                                     <input type="hidden" name="group" value="<?= $group ?>">
 
                                     <?php foreach ($groupSettings as $setting): ?>
@@ -160,7 +160,7 @@ function resetGroup(group) {
     if (confirm(`Bạn có chắc muốn khôi phục tất cả cài đặt trong nhóm "${group}" về giá trị mặc định?`)) {
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '/5s-fashion/admin/settings/reset';
+        form.action = '/zone-fashion/admin/settings/reset';
 
         const groupInput = document.createElement('input');
         groupInput.type = 'hidden';
@@ -175,7 +175,7 @@ function resetGroup(group) {
 
 function initializeDefaults() {
     if (confirm('Bạn có chắc muốn khởi tạo tất cả cài đặt mặc định?')) {
-        fetch('/5s-fashion/admin/settings/initialize', {
+        fetch('/zone-fashion/admin/settings/initialize', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         })

@@ -1,12 +1,12 @@
 /**
- * 5S Fashion Wishlist Manager - Unified System
+ * zone Fashion Wishlist Manager - Unified System
  * Handles all wishlist operations consistently across pages
  * Following UI Guidelines and RULE.md standards
  */
 
 class WishlistManager {
 	constructor() {
-		this.baseUrl = '/5s-fashion/ajax';
+		this.baseUrl = '/zone-fashion/ajax';
 		this.syncInProgress = false;
 		this.init();
 	}

@@ -324,7 +324,7 @@ class OrderSuccessManager {
 		return `
             <div style="padding: 40px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
                 <div style="text-align: center; margin-bottom: 40px;">
-                    <h1 style="color: #333; margin-bottom: 10px;">5S FASHION</h1>
+                    <h1 style="color: #333; margin-bottom: 10px;">zone FASHION</h1>
                     <p style="color: #666; margin: 0;">Hóa đơn mua hàng</p>
                 </div>
 
@@ -410,8 +410,8 @@ class OrderSuccessManager {
                 </div>
 
                 <div style="text-align: center; margin-top: 40px; color: #666;">
-                    <p>Cảm ơn bạn đã mua sắm tại 5S Fashion!</p>
-                    <p>Hotline: 1900-5555 | Email: support@5sfashion.com</p>
+                    <p>Cảm ơn bạn đã mua sắm tại zone Fashion!</p>
+                    <p>Hotline: 1900-5555 | Email: support@zonefashion.com</p>
                 </div>
             </div>
         `;
@@ -425,7 +425,7 @@ class OrderSuccessManager {
 	}
 
 	shareOnTwitter() {
-		const text = 'Vừa mua sắm thành công tại 5S Fashion! 🛍️✨';
+		const text = 'Vừa mua sắm thành công tại zone Fashion! 🛍️✨';
 		const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
 			text
 		)}&url=${encodeURIComponent(window.location.href)}`;
@@ -518,7 +518,7 @@ class OrderSuccessManager {
 			element.setAttribute(
 				'href',
 				'data:text/plain;charset=utf-8,' +
-					encodeURIComponent('Hóa đơn 5S Fashion - Demo')
+					encodeURIComponent('Hóa đơn zone Fashion - Demo')
 			);
 			element.setAttribute(
 				'download',

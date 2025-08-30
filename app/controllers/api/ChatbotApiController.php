@@ -1,7 +1,7 @@
 <?php
 /**
  * Chatbot API Controller
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 // Define a fallback ApiController if it doesn't exist
@@ -269,35 +269,35 @@ class ChatbotApiController extends ApiController
             '/(?:sản phẩm|sp|đồ|quần áo|mẫu|món|hàng).*(?:bán chạy|hot|nổi bật|phổ biến|được ưa chuộng|được yêu thích|bán tốt)/i' => [
                 'type' => 'best_selling',
                 'intent' => 'best_selling_products',
-                'response' => 'Đây là những sản phẩm bán chạy nhất tại 5S Fashion:'
+                'response' => 'Đây là những sản phẩm bán chạy nhất tại zone Fashion:'
             ],
 
             // Sản phẩm giảm giá - extended patterns
             '/(?:giảm giá|khuyến mãi|sale|discount|ưu đãi|đang giảm|đang sale|đang khuyến mãi|rẻ|hời)/i' => [
                 'type' => 'discounted',
                 'intent' => 'discounted_products',
-                'response' => 'Các sản phẩm đang được giảm giá tại 5S Fashion:'
+                'response' => 'Các sản phẩm đang được giảm giá tại zone Fashion:'
             ],
 
             // Sản phẩm mới - extended patterns
             '/(?:sản phẩm mới|sp mới|hàng mới|new|mới về|mới ra mắt|vừa về|vừa ra|hàng mới về)/i' => [
                 'type' => 'new_products',
                 'intent' => 'new_products',
-                'response' => 'Những sản phẩm mới nhất tại 5S Fashion:'
+                'response' => 'Những sản phẩm mới nhất tại zone Fashion:'
             ],
 
             // Đơn hàng - extended patterns
             '/(?:đơn hàng|order|kiểm tra.*đơn|theo dõi.*đơn|tình trạng.*đơn|trạng thái.*đơn|đơn.*mua|mua hàng|đặt hàng)/i' => [
                 'type' => 'order_info',
                 'intent' => 'order_information',
-                'response' => 'Để kiểm tra đơn hàng, bạn có thể:\n• Đăng nhập vào tài khoản và xem phần "Đơn hàng của tôi"\n• Liên hệ hotline: 1900-xxxx với mã đơn hàng\n• Email: support@5sfashion.com'
+                'response' => 'Để kiểm tra đơn hàng, bạn có thể:\n• Đăng nhập vào tài khoản và xem phần "Đơn hàng của tôi"\n• Liên hệ hotline: 1900-xxxx với mã đơn hàng\n• Email: support@zonefashion.com'
             ],
 
             // Thanh toán - extended patterns
             '/(?:thanh toán|payment|phương thức.*thanh toán|tt|trả tiền|trả bằng|tiền|cách.*thanh toán|trả góp|trả qua|qua thẻ)/i' => [
                 'type' => 'payment_info',
                 'intent' => 'payment_information',
-                'response' => '5S Fashion hỗ trợ các phương thức thanh toán:\n• Thanh toán khi nhận hàng (COD)\n• Chuyển khoản ngân hàng\n• Ví điện tử (Momo, ZaloPay)\n• Thẻ tín dụng/ghi nợ'
+                'response' => 'zone Fashion hỗ trợ các phương thức thanh toán:\n• Thanh toán khi nhận hàng (COD)\n• Chuyển khoản ngân hàng\n• Ví điện tử (Momo, ZaloPay)\n• Thẻ tín dụng/ghi nợ'
             ],
 
             // Vận chuyển - extended patterns
@@ -345,7 +345,7 @@ class ChatbotApiController extends ApiController
                 'response' => "<div class='store-info-card'>
                     <div class='store-info-header'>
                         <i class='fas fa-store'></i>
-                        <h4>5S Fashion - Hệ Thống Cửa Hàng</h4>
+                        <h4>zone Fashion - Hệ Thống Cửa Hàng</h4>
                     </div>
                     <div class='store-branches'>
                         <div class='branch-item'>
@@ -379,7 +379,7 @@ class ChatbotApiController extends ApiController
             '/(?:xin chào|chào|hello|hi|hey|xin chào|good morning|good afternoon|chào buổi|xinchào)/i' => [
                 'type' => 'greeting',
                 'intent' => 'greeting',
-                'response' => 'Xin chào! Rất vui được hỗ trợ bạn. Tôi là trợ lý ảo của 5S Fashion. Bạn cần tôi giúp gì hôm nay?'
+                'response' => 'Xin chào! Rất vui được hỗ trợ bạn. Tôi là trợ lý ảo của zone Fashion. Bạn cần tôi giúp gì hôm nay?'
             ],
 
             // Cảm ơn - new pattern

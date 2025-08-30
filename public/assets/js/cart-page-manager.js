@@ -105,7 +105,7 @@ class CartPageManager {
 				this.updateDisplay(items);
 			} else {
 				// Fallback to direct API call
-				const response = await fetch('/5s-fashion/ajax/cart/items');
+				const response = await fetch('/zone-fashion/ajax/cart/items');
 				const data = await response.json();
 
 				if (data.success) {
@@ -161,7 +161,7 @@ class CartPageManager {
                     <div class="col-2">
                         <img src="${
 							item.image ||
-							'/5s-fashion/public/assets/images/placeholder.jpg'
+							'/zone-fashion/public/assets/images/placeholder.jpg'
 						}"
                              alt="${item.name}" class="img-fluid rounded">
                     </div>
@@ -293,7 +293,7 @@ class CartPageManager {
 		}
 
 		try {
-			const response = await fetch('/5s-fashion/ajax/promo/apply', {
+			const response = await fetch('/zone-fashion/ajax/promo/apply', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -339,14 +339,14 @@ class CartPageManager {
 			this.showAlert('Vui lòng đăng nhập để tiếp tục', 'warning');
 			setTimeout(() => {
 				window.location.href =
-					'/5s-fashion/login?redirect=' +
-					encodeURIComponent('/5s-fashion/checkout');
+					'/zone-fashion/login?redirect=' +
+					encodeURIComponent('/zone-fashion/checkout');
 			}, 1500);
 			return;
 		}
 
 		// Proceed to checkout
-		window.location.href = '/5s-fashion/checkout';
+		window.location.href = '/zone-fashion/checkout';
 	}
 
 	showLoading(show) {

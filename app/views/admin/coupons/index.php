@@ -15,7 +15,7 @@
                     <p class="text-muted mb-0">Quản lý toàn bộ voucher trong hệ thống</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/coupons/create" class="btn btn-primary">
+                    <a href="/zone-fashion/admin/coupons/create" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>
                         Thêm Voucher
                     </a>
@@ -154,7 +154,7 @@
                     <?php endif; ?>
 
                     <!-- Bulk Actions -->
-                    <form id="bulkForm" method="POST" action="/5s-fashion/admin/coupons/bulk-action">
+                    <form id="bulkForm" method="POST" action="/zone-fashion/admin/coupons/bulk-action">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="d-flex gap-2">
                                 <select name="bulk_action" class="form-select form-select-sm" style="width: auto;">
@@ -263,11 +263,11 @@
                                                 </td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm">
-                                                        <a href="/5s-fashion/admin/coupons/<?= $coupon['id'] ?>"
+                                                        <a href="/zone-fashion/admin/coupons/<?= $coupon['id'] ?>"
                                                            class="btn btn-info btn-sm" title="Xem chi tiết">
                                                             <i class="fas fa-eye"></i>
                                                         </a>
-                                                        <a href="/5s-fashion/admin/coupons/<?= $coupon['id'] ?>/edit"
+                                                        <a href="/zone-fashion/admin/coupons/<?= $coupon['id'] ?>/edit"
                                                            class="btn btn-warning btn-sm" title="Chỉnh sửa">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
@@ -342,7 +342,7 @@ function confirmBulkAction() {
 // Delete single coupon
 function deleteCoupon(id) {
     if (confirm('Bạn có chắc muốn xóa voucher này?')) {
-        window.location.href = `/5s-fashion/admin/coupons/${id}/delete`;
+        window.location.href = `/zone-fashion/admin/coupons/${id}/delete`;
     }
 }
 
@@ -350,13 +350,13 @@ function deleteCoupon(id) {
 function exportCoupons() {
     const params = new URLSearchParams(window.location.search);
     params.set('format', 'csv');
-    window.location.href = `/5s-fashion/admin/coupons/export?${params.toString()}`;
+    window.location.href = `/zone-fashion/admin/coupons/export?${params.toString()}`;
 }
 
 // Mark expired coupons
 function markExpiredCoupons() {
     if (confirm('Bạn có chắc muốn đánh dấu tất cả voucher hết hạn?')) {
-        window.location.href = '/5s-fashion/admin/coupons/mark-expired';
+        window.location.href = '/zone-fashion/admin/coupons/mark-expired';
     }
 }
 </script>

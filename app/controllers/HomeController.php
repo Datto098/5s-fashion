@@ -2,7 +2,7 @@
 <?php
 /**
  * Home Controller (Client)
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once __DIR__ . '/BaseController.php';
@@ -58,14 +58,29 @@ class HomeController extends BaseController
         // Get featured vouchers for homepage
         $featuredVouchers = $this->couponModel->getFeaturedVouchers(2);
 
+        // If user is logged in, fetch their saved/used voucher ids so homepage can mark them
+        $savedVoucherIds = [];
+        $usedVoucherIds = [];
+        $userId = $_SESSION['user']['id'] ?? null;
+        if ($userId) {
+            require_once __DIR__ . '/../models/UserCoupon.php';
+            $userCouponModel = new UserCoupon();
+            $saved = $userCouponModel->getUserCoupons($userId, 'saved');
+            $used = $userCouponModel->getUserCoupons($userId, 'used');
+            $savedVoucherIds = array_column($saved, 'coupon_id');
+            $usedVoucherIds = array_column($used, 'coupon_id');
+        }
+
         $data = [
-            'title' => '5S Fashion - Thời trang nam nữ cao cấp',
+            'title' => 'Zone Fashion - Thời trang nam nữ cao cấp',
             'featured_categories' => $featuredCategories,
             'featured_products' => $featuredProducts,
             'new_arrivals' => $newArrivals,
             'best_sellers' => $bestSellers,
             'sale_products' => $saleProducts,
             'featured_vouchers' => $featuredVouchers
+            , 'saved_voucher_ids' => $savedVoucherIds
+            , 'used_voucher_ids' => $usedVoucherIds
         ];
 
         $this->render('client/home/index', $data, 'client/layouts/app');
@@ -120,7 +135,7 @@ class HomeController extends BaseController
         $queryString = $queryParams ? '&' . http_build_query($queryParams) : '';
 
         $data = [
-            'title' => 'Shop - 5S Fashion',
+            'title' => 'Shop - zone Fashion',
             'products' => $result['products'],
             'totalProducts' => $totalProducts,
             'currentPage' => $currentPage,
@@ -268,7 +283,7 @@ class HomeController extends BaseController
         }
 
         $data = [
-            'title' => $product['name'] . ' - 5S Fashion',
+            'title' => $product['name'] . ' - zone Fashion',
             'product' => $product,
             'variants' => $variants,
             'attributes' => $attributes,
@@ -293,11 +308,11 @@ class HomeController extends BaseController
         // Check if user is authenticated (using helper function)
         if (!isLoggedIn()) {
             // Store intended URL for redirect after login
-            $_SESSION['redirect_after_login'] = '/5s-fashion/cart';
+            $_SESSION['redirect_after_login'] = '/zone-fashion/cart';
 
             // Redirect to login with message
             $_SESSION['info_message'] = 'Bạn cần đăng nhập để xem giỏ hàng';
-            header('Location: /5s-fashion/login');
+            header('Location: /zone-fashion/login');
             exit;
         }
 
@@ -306,7 +321,7 @@ class HomeController extends BaseController
         if ($user && $user['role'] === 'admin') {
             // Show a proper message instead of redirecting to dashboard
             $data = [
-                'title' => 'Giỏ hàng - 5S Fashion',
+                'title' => 'Giỏ hàng - zone Fashion',
                 'error_message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng. Để mua hàng, vui lòng đăng xuất và đăng nhập bằng tài khoản khách hàng.',
                 'cartItems' => [],
                 'cartTotal' => 0,
@@ -325,7 +340,7 @@ class HomeController extends BaseController
         $cartCount = $cartModel->getCartCount();
 
         $data = [
-            'title' => 'Giỏ hàng - 5S Fashion',
+            'title' => 'Giỏ hàng - zone Fashion',
             'cartItems' => $cartItems,
             'cartTotal' => $cartTotal,
             'cartCount' => $cartCount
@@ -368,7 +383,7 @@ class HomeController extends BaseController
         }
 
         $data = [
-            'title' => 'Thanh Toán - 5S Fashion',
+            'title' => 'Thanh Toán - zone Fashion',
             'cartItems' => $formattedCartItems, // Use formatted items
             'cartTotal' => $cartTotal,
             'cartCount' => $cartCount,
@@ -381,7 +396,7 @@ class HomeController extends BaseController
     public function contact()
     {
         $data = [
-            'title' => 'Liên Hệ - 5S Fashion'
+            'title' => 'Liên Hệ - zone Fashion'
         ];
 
         $this->render('client/contact/index', $data, 'client/layouts/app');
@@ -390,7 +405,7 @@ class HomeController extends BaseController
     public function about()
     {
         $data = [
-            'title' => 'Về Chúng Tôi - 5S Fashion'
+            'title' => 'Về Chúng Tôi - zone Fashion'
         ];
 
         $this->render('client/about/index', $data, 'client/layouts/app');

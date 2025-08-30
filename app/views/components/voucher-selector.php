@@ -68,7 +68,7 @@
                     <p class="text-muted mb-2">
                         <i class="fas fa-user-plus"></i> Đăng nhập để sử dụng voucher đã lưu
                     </p>
-                    <a href="/5s-fashion/login?redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>"
+                    <a href="/zone-fashion/login?redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>"
                        class="btn btn-outline-primary btn-sm">
                         Đăng nhập
                     </a>
@@ -102,7 +102,7 @@ function applyVoucher() {
     applyBtn.disabled = true;
     applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang áp dụng...';
 
-    fetch('/5s-fashion/vouchers/apply', {
+    fetch('/zone-fashion/vouchers/apply', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -131,7 +131,7 @@ function applyVoucher() {
 
 // Remove applied voucher
 function removeAppliedVoucher() {
-    fetch('/5s-fashion/vouchers/remove-applied', {
+    fetch('/zone-fashion/vouchers/remove-applied', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -164,7 +164,7 @@ function loadUserVouchers() {
 
     container.innerHTML = '<div class="col-12 text-center"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
 
-    fetch(`/5s-fashion/vouchers/get-valid?amount=${currentOrderAmount}`)
+    fetch(`/zone-fashion/vouchers/get-valid?amount=${currentOrderAmount}`)
     .then(response => response.json())
     .then(data => {
         if (data.success && data.coupons.length > 0) {

@@ -3,7 +3,7 @@
 /**
  * Order Controller
  * Handle order and address management for checkout
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class OrderController extends Controller
@@ -191,7 +191,7 @@ public function checkout()
 
             $result = $this->customerModel->updateCustomerAddress($id, $user['id'], $addressData);
 
-            if ($result) {
+            if ($result !== false) {
                 // Get updated addresses list
                 $addresses = $this->customerModel->getCustomerAddresses($user['id']);
 
@@ -301,7 +301,7 @@ public function checkout()
 
             $result = $this->customerModel->updateCustomerAddress($id, $user['id'], $addressData);
 
-            if ($result) {
+            if ($result !== false) {
                 // Get updated addresses list
                 $addresses = $this->customerModel->getCustomerAddresses($user['id']);
 
@@ -459,13 +459,38 @@ public function checkout()
                     exit;
                 }
 
-                // Validate stock (optional, would require product model)
+                // Calculate totals
                 $itemTotal = $item['price'] * $item['quantity'];
                 $subtotal += $itemTotal;
 
+                // Resolve variant_id when it's missing but variant info exists (session cart often stores 'variant' string)
+                $resolvedVariantId = $item['variant_id'] ?? null;
+                if (empty($resolvedVariantId) && !empty($item['variant'])) {
+                    // If variant value is numeric, assume it's an ID
+                    if (is_numeric($item['variant'])) {
+                        $resolvedVariantId = (int)$item['variant'];
+                    } else {
+                        // Try to resolve by SKU first, then by variant_name for the product
+                        require_once dirname(__DIR__) . '/models/ProductVariant.php';
+                        $found = ProductVariant::getBySku($item['variant']);
+                        if ($found && isset($found['id'])) {
+                            $resolvedVariantId = $found['id'];
+                        } else {
+                            // Fallback: search variants for this product and match variant_name
+                            $variants = ProductVariant::getByProduct($item['product_id'], false);
+                            foreach ($variants as $v) {
+                                if (isset($v['variant_name']) && mb_strtolower(trim($v['variant_name'])) === mb_strtolower(trim($item['variant']))) {
+                                    $resolvedVariantId = $v['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $orderItems[] = [
                     'product_id' => $item['product_id'],
-                    'variant_id' => $item['variant_id'] ?? null,
+                    'variant_id' => $resolvedVariantId,
                     'product_name' => $item['product_name'] ?? $item['name'] ?? '',
                     'product_sku' => $item['sku'] ?? '',
                     'variant_info' => isset($item['variant']) ? $item['variant'] : null,
@@ -536,7 +561,7 @@ public function checkout()
                         'order_code' => $order['order_code'] ?? 'ORD-' . $orderId,
                         'total_amount' => $totalAmount,
                         'payment_method' => 'cod',
-                        'redirect_url' => "/5s-fashion/order/success/{$orderId}"
+                        'redirect_url' => "/zone-fashion/order/success/{$orderId}"
                     ]);
                 } elseif (in_array($paymentMethod, ['vnpay', 'momo'])) {
                     // Online payment - need redirect to payment gateway
@@ -548,7 +573,7 @@ public function checkout()
                         'total_amount' => $totalAmount,
                         'payment_method' => $paymentMethod,
                         'requires_payment' => true,
-                        'payment_url' => "/5s-fashion/public/payment/{$paymentMethod}"
+                        'payment_url' => "/zone-fashion/public/payment/{$paymentMethod}"
                     ]);
                 } elseif ($paymentMethod === 'bank_transfer') {
                     // Bank transfer - show bank info
@@ -564,11 +589,11 @@ public function checkout()
                         'bank_info' => [
                             'bank_name' => 'Vietcombank',
                             'account_number' => '1234567890',
-                            'account_name' => '5S Fashion Co., Ltd',
+                            'account_name' => 'zone Fashion Co., Ltd',
                             'amount' => $totalAmount,
                             'content' => 'Thanh toan don hang ' . ($order['order_code'] ?? 'ORD-' . $orderId)
                         ],
-                        'redirect_url' => "/5s-fashion/public/order/success?id={$orderId}"
+                        'redirect_url' => "/zone-fashion/public/order/success?id={$orderId}"
                     ]);
                 } else {
                     echo json_encode([
@@ -651,12 +676,12 @@ public function checkout()
         }
 
         if (!$order) {
-            header('Location: /5s-fashion/');
+            header('Location: /zone-fashion/');
             exit;
         }
 
         $data = [
-            'title' => 'Đặt hàng thành công - 5S Fashion',
+            'title' => 'Đặt hàng thành công - zone Fashion',
             'order' => $order,
             'orderCode' => $orderCodeOrId
         ];
@@ -670,7 +695,7 @@ public function checkout()
     public function tracking()
     {
         $data = [
-            'title' => 'Theo dõi đơn hàng - 5S Fashion'
+            'title' => 'Theo dõi đơn hàng - zone Fashion'
         ];
 
         // If user is logged in, get their orders

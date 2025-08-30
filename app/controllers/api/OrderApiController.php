@@ -408,6 +408,18 @@ class OrderApiController extends ApiController
                 return;
             }
 
+            // Ensure session started for ownership check
+            if (session_status() !== PHP_SESSION_ACTIVE) {
+                session_start();
+            }
+
+            // If a regular authenticated user is calling this API, ensure they own the order
+            $currentUserId = $_SESSION['user_id'] ?? null;
+            if ($currentUserId !== null && $order['user_id'] && $order['user_id'] != $currentUserId) {
+                ApiResponse::error('Not authorized to update this order', 403);
+                return;
+            }
+
             $oldStatus = $order['status'];
 
             // Validate status transition

@@ -59,7 +59,7 @@ class CheckoutManager {
 
 	async loadOrder() {
 		try {
-			const response = await fetch('/5s-fashion/ajax/cart/items');
+			const response = await fetch('/zone-fashion/ajax/cart/items');
 			if (response.ok) {
 				const data = await response.json();
 				console.log('Cart API Response:', data);
@@ -124,7 +124,7 @@ class CheckoutManager {
 					imageUrl = imagePath;
 				} else {
 					// Always use serve-file.php for relative paths
-					imageUrl = `/5s-fashion/serve-file.php?file=${encodeURIComponent(
+					imageUrl = `/zone-fashion/serve-file.php?file=${encodeURIComponent(
 						'products/' + cleanPath
 					)}`;
 				}
@@ -136,39 +136,106 @@ class CheckoutManager {
 			});
 
 			const productName = item.product_name || 'Sản phẩm';
-			console.log('Product name processing:', {
-				product_name: item.product_name,
-				final: productName,
-			});
+			// If variant data is present, try to remove trailing " - color - size" from product name
+			let displayName = productName;
 
-			// Build variant info from the variant field
+			// Build variant info from the variant field in a human-readable Vietnamese form
 			let variantInfo = '';
+			let parsedColor = '';
+			let parsedSize = '';
+
 			if (item.variant) {
-				// variant might be a string or object, handle both cases
 				if (typeof item.variant === 'string') {
+					// Try to parse common patterns from a variant string
 					variantInfo = item.variant;
+
+					// Extract color and size if present in the string (handles "Màu: X | Size: Y" and similar)
+					const colorMatch = item.variant.match(/(?:Màu\s*sắc|Màu|Color)[:\s]*([^|,\-\n]+)/i);
+					const sizeMatch = item.variant.match(/(?:Kích\s*thước|Size)[:\s]*([^|,\-\n]+)/i);
+					if (colorMatch) parsedColor = colorMatch[1].trim();
+					if (sizeMatch) parsedSize = sizeMatch[1].trim();
+
+					// If not found, try a simple "Color - Size" pattern
+					if (!parsedColor || !parsedSize) {
+						const parts = item.variant.split(/\s*\|\s*|\s*-\s*/).map(s => s.trim()).filter(Boolean);
+						if (parts.length === 2 && (!parsedColor || !parsedSize)) {
+							// heuristics: shorter token likely color, token with letters+digits maybe size
+							if (!parsedColor) parsedColor = parts[0];
+							if (!parsedSize) parsedSize = parts[1];
+						}
+					}
+
+						// If we parsed color/size, format variantInfo cleanly to avoid repeated prefixes
+						if (parsedColor || parsedSize) {
+							const vparts = [];
+							if (parsedColor) vparts.push(`Màu sắc: ${parsedColor}`);
+							if (parsedSize) vparts.push(`Kích thước: ${parsedSize}`);
+							variantInfo = vparts.join(', ');
+						}
 				} else if (typeof item.variant === 'object') {
+					if (item.variant.color) parsedColor = String(item.variant.color).trim();
+					if (item.variant.size) parsedSize = String(item.variant.size).trim();
 					const parts = [];
-					if (item.variant.color)
-						parts.push(`Màu: ${item.variant.color}`);
-					if (item.variant.size)
-						parts.push(`Size: ${item.variant.size}`);
-					variantInfo = parts.join(' | ');
+					if (parsedColor) parts.push(`Màu sắc: ${parsedColor}`);
+					if (parsedSize) parts.push(`Kích thước: ${parsedSize}`);
+					variantInfo = parts.join(', ');
+				}
+
+				// Try to strip duplicate suffix in product name like " - Xanh lá - XL" or " - XL - Xanh lá"
+				const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				const suffixParts = [];
+				if (parsedColor) suffixParts.push(escapeRegExp(parsedColor));
+				if (parsedSize) suffixParts.push(escapeRegExp(parsedSize));
+				if (suffixParts.length) {
+					// build a flexible regex: match sequences of " - part" at the end, in order
+					const pattern = '\\s*-\\s*' + suffixParts.join('(?:\\s*-\\s*)?') + '\\s*$';
+					try {
+						const re = new RegExp(pattern, 'i');
+						displayName = displayName.replace(re, '').trim();
+					} catch (e) {
+						console.warn('Failed to build regex for stripping variant from name', e);
+					}
 				}
 			}
 
+			console.log('Product name processing:', {
+				product_name: item.product_name,
+				final: displayName,
+				parsedColor,
+				parsedSize,
+				variantInfo,
+			});
+
 			console.log('Product name:', productName);
-			console.log('About to replace {name} with:', productName);
+			console.log('About to replace {name} with:', displayName);
+
+			// Ensure variantInfo does not contain the product name repeated at the start
+			try {
+				const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				if (variantInfo && variantInfo.length) {
+					// remove occurrences of full productName or displayName at the beginning
+					const patterns = [productName, displayName].filter(Boolean).map(p => escapeRegExp(p));
+					const prefixRe = new RegExp('^\\s*(?:' + patterns.join('|') + ')\\s*(?:[-|\\|\\/]\\s*)?', 'i');
+					variantInfo = variantInfo.replace(prefixRe, '').trim();
+
+					// remove leading separators like '|' or '-' if still present
+					variantInfo = variantInfo.replace(/^[\s\-|\|\/]+/, '').trim();
+				}
+			} catch (e) {
+				console.warn('Error normalizing variantInfo', e);
+			}
 
 			// Perform replacements with validation
 			const replacements = [
 				[
 					'{image}',
-					imageUrl || '/5s-fashion/public/assets/images/no-image.jpg',
+					imageUrl || '/zone-fashion/public/assets/images/no-image.jpg',
 				],
-				['{name}', productName],
+				['{name}', displayName],
 				['{variant_info}', variantInfo],
 				['{quantity}', item.quantity || 1],
+				// SKU replacement: prefer variant_sku then product_sku then generic sku
+				['{sku}', item.sku || item.variant_sku || item.product_sku || ''],
 				[
 					'{price}',
 					this.formatCurrency(
@@ -205,6 +272,27 @@ class CheckoutManager {
 
 		orderItemsContainer.innerHTML = html;
 
+		// Hide variant/SKU parts when data is missing (new template uses .variant-text, .sku-text, .meta-sep)
+		orderItemsContainer.querySelectorAll('.order-item').forEach((el) => {
+			const variantText = el.querySelector('.variant-text');
+			const skuEl = el.querySelector('.sku-text');
+			const sep = el.querySelector('.meta-sep');
+
+			const variantEmpty = !variantText || variantText.textContent.trim() === '';
+			const skuEmpty = !skuEl || skuEl.textContent.replace(/^SKU:\s*/i, '').trim() === '';
+
+			if (variantEmpty && skuEmpty) {
+				const meta = el.querySelector('.item-meta');
+				if (meta) meta.style.display = 'none';
+				return;
+			}
+
+			if (variantEmpty && sep) sep.style.display = 'none';
+			if (skuEmpty && sep) sep.style.display = 'none';
+			if (variantEmpty && variantText) variantText.style.display = 'none';
+			if (skuEmpty && skuEl) skuEl.style.display = 'none';
+		});
+
 		// Add error handling for images with better fallback
 		orderItemsContainer
 			.querySelectorAll('.item-image img')
@@ -213,7 +301,7 @@ class CheckoutManager {
 					// Only set fallback once to prevent loops
 					if (!this.src.includes('no-image.jpg')) {
 						this.src =
-							'/5s-fashion/public/assets/images/no-image.jpg';
+							'/zone-fashion/public/assets/images/no-image.jpg';
 						this.style.objectFit = 'contain';
 						this.style.padding = '10px';
 					}
@@ -237,6 +325,9 @@ class CheckoutManager {
 		if (window.appliedCoupon && window.appliedCoupon.discount_amount) {
 			this.orderSummary.discount = parseFloat(window.appliedCoupon.discount_amount);
 		}
+
+		const FREE_SHIPPING_THRESHOLD = 500000;
+		this.orderSummary.shipping = this.orderSummary.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 30000;
 
 		this.orderSummary.total =
 			this.orderSummary.subtotal +
@@ -267,7 +358,7 @@ class CheckoutManager {
 						</div>
 						<div class="d-flex justify-content-between mb-2">
 							<span>Phí vận chuyển:</span>
-							<span>${this.formatCurrency(this.orderSummary.shipping)}</span>
+							<span>${this.orderSummary.shipping === 0 ? '<span class="text-success fw-bold">Miễn phí</span>' : this.formatCurrency(this.orderSummary.shipping)}</span>
 						</div>
 						${
 							this.orderSummary.discount > 0 && window.appliedCoupon && window.appliedCoupon.code
@@ -317,7 +408,7 @@ class CheckoutManager {
 
 	async loadAddresses() {
 		try {
-			const response = await fetch('/5s-fashion/order/addresses');
+			const response = await fetch('/zone-fashion/order/addresses');
 			console.log('Address API response status:', response.status);
 
 			if (response.ok) {
@@ -345,7 +436,7 @@ class CheckoutManager {
 				console.warn('User not authenticated, redirecting to login...');
 				// Redirect to login if not authenticated
 				window.location.href =
-					'/5s-fashion/login?redirect=' +
+					'/zone-fashion/login?redirect=' +
 					encodeURIComponent(window.location.pathname);
 				return;
 			} else {
@@ -629,11 +720,12 @@ class CheckoutManager {
 			totals: this.orderSummary,
 			// Thêm discount_amount rõ ràng cho backend
 			discount_amount: this.orderSummary.discount || 0,
+			
 		};
 
 		try {
 			// Create order first
-			const response = await fetch('/5s-fashion/order/place', {
+			const response = await fetch('/zone-fashion/order/place', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -691,7 +783,7 @@ class CheckoutManager {
 				bank_code: bankCode,
 			};
 
-			const response = await fetch('/5s-fashion/payment/vnpay', {
+			const response = await fetch('/zone-fashion/payment/vnpay', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -734,7 +826,7 @@ class CheckoutManager {
 
 			console.log('[COD JS] Sending payment data:', paymentData);
 
-			const response = await fetch('/5s-fashion/payment/cod', {
+			const response = await fetch('/zone-fashion/payment/cod', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -840,6 +932,14 @@ class CheckoutManager {
  * Handles address management for checkout
  */
 class CheckoutAddressManager {
+       initAddressFormSubmit() {
+	       const form = document.getElementById('addressForm');
+	       if (!form) return;
+	       form.addEventListener('submit', (e) => {
+		       e.preventDefault();
+		       this.saveAddress();
+	       });
+       }
        constructor() {
 	       this.provinces = window.PROVINCES || [];
 	       this.districts = [];
@@ -849,26 +949,30 @@ class CheckoutAddressManager {
 	       this.selectedLocation = null;
        }
 
-       showAddressModal(addressId = null) {
-	       const modal = new bootstrap.Modal(
-		       document.getElementById('addressModal')
-	       );
-
+	showAddressModal(addressId = null) {
+	       const modal = new bootstrap.Modal(document.getElementById('addressModal'));
+	       const form = document.getElementById('addressForm');
+	       document.getElementById('addressModalTitle').textContent = addressId ? 'Sửa địa chỉ' : 'Thêm địa chỉ mới';
 	       if (addressId) {
 		       // Edit mode
-		       const address = checkoutManager.addresses.find(
-			       (addr) => addr.id === addressId
-		       );
+		       const address = checkoutManager.addresses.find((addr) => addr.id === addressId);
 		       if (address) {
-			       this.populateAddressForm(address);
+			       form.reset();
+			       form.address_id.value = address.id;
+			       form.name.value = address.name || '';
+			       form.phone.value = address.phone || '';
+			       form.address.value = address.address || '';
+			       form.note.value = address.note || '';
+			       form.is_default.checked = address.is_default == 1;
 		       }
 	       } else {
 		       // Add new mode
-		       document.getElementById('addressForm').reset();
+		       form.reset();
+		       form.address_id.value = '';
 	       }
-
-	       this.populateProvinceSelect();
-	       modal.show();
+			   this.populateProvinceSelect();
+			   this.initAddressFormSubmit();
+			   modal.show();
        }
 
 	// loadProvinces removed: now only use provinces from backend
@@ -936,75 +1040,80 @@ class CheckoutAddressManager {
 
 	// showAddressError: loại bỏ hoàn toàn, không hiển thị thông báo tỉnh/thành fallback nữa
 
-	async saveAddress() {
-		const form = document.getElementById('addressForm');
-		const formData = new FormData(form);
+       async saveAddress() {
+	       const form = document.getElementById('addressForm');
+	       const formData = new FormData(form);
+	       const addressId = formData.get('address_id');
+	       const addressData = {
+		       id: addressId || undefined,
+		       name: formData.get('name'),
+		       phone: formData.get('phone'),
+		       address: formData.get('address'),
+		       note: formData.get('note') || '',
+		       is_default: formData.get('is_default') ? 1 : 0,
+	       };
+	       try {
+		       const url = addressId ? '/zone-fashion/order/editAddress/' + addressId : '/zone-fashion/order/addAddress';
+		       const method = addressId ? 'PUT' : 'POST';
+		       const response = await fetch(url, {
+			       method: method,
+			       headers: {
+				       'Content-Type': 'application/json',
+			       },
+			       body: JSON.stringify(addressData),
+		       });
+		       if (response.ok) {
+			       const result = await response.json();
+			       if (result.success) {
+				       bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
+				       await checkoutManager.loadAddresses();
+				       checkoutManager.renderCheckoutForm();
+			       } else {
+				       alert(result.message || 'Không thể lưu địa chỉ');
+			       }
+		       } else {
+			       alert('Có lỗi xảy ra khi lưu địa chỉ');
+		       }
+	       } catch (error) {
+		       console.error('Error saving address:', error);
+		       alert('Có lỗi xảy ra khi lưu địa chỉ');
+	       }
+       }
 
-		// Get selected names (not just codes)
-		const provinceSelect = form.querySelector('select[name="province"]');
-		const districtSelect = form.querySelector('select[name="district"]');
-		const wardSelect = form.querySelector('select[name="ward"]');
-
-		const addressData = {
-			// Backend expects 'name' and 'address', not 'full_name' and 'address_line'
-			name: formData.get('full_name'),
-			phone: formData.get('phone'),
-			address: `${formData.get('address_line')}, ${
-				wardSelect.options[wardSelect.selectedIndex]?.dataset.name || ''
-			}, ${
-				districtSelect.options[districtSelect.selectedIndex]?.dataset
-					.name || ''
-			}, ${
-				provinceSelect.options[provinceSelect.selectedIndex]?.dataset
-					.name || ''
-			}`,
-			note: formData.get('note') || '', // Optional note field
-			is_default: formData.get('is_default') ? 1 : 0,
-		};
-
-		console.log('Sending address data:', addressData);
-
-		try {
-			const response = await fetch('/5s-fashion/order/addAddress', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(addressData),
-			});
-
-			if (response.ok) {
-				const result = await response.json();
-				if (result.success) {
-					// Close modal and reload addresses
-					bootstrap.Modal.getInstance(
-						document.getElementById('addressModal')
-					).hide();
-					await checkoutManager.loadAddresses();
-					checkoutManager.renderCheckoutForm();
-				} else {
-					alert(result.message || 'Không thể lưu địa chỉ');
-				}
-			} else {
-				alert('Có lỗi xảy ra khi lưu địa chỉ');
-			}
-		} catch (error) {
-			console.error('Error saving address:', error);
-			alert('Có lỗi xảy ra khi lưu địa chỉ');
-		}
-	}
-
-	async editAddress(addressId) {
-		// Implementation for editing existing address
-		await this.showAddressModal(addressId);
-	}
+       async editAddress(addressId) {
+	       // Ưu tiên lấy dữ liệu từ API nếu có route getAddress
+	       try {
+		       const res = await fetch(`/zone-fashion/order/getAddress/${addressId}`);
+		       if (res.ok) {
+			       const data = await res.json();
+			       if (data.success && data.address) {
+				       // Fill form bằng dữ liệu mới nhất từ server
+				       this.showAddressModal();
+				       const form = document.getElementById('addressForm');
+				       form.reset();
+				       form.address_id.value = data.address.id;
+				       form.name.value = data.address.name || '';
+				       form.phone.value = data.address.phone || '';
+				       form.address.value = data.address.address || '';
+				       form.note.value = data.address.note || '';
+				       form.is_default.checked = data.address.is_default == 1;
+				       document.getElementById('addressModalTitle').textContent = 'Sửa địa chỉ';
+				       return;
+			       }
+		       }
+	       } catch (e) {
+		       // Nếu lỗi, fallback như cũ
+	       }
+	       // Nếu không lấy được từ API, fallback lấy từ local list
+	       await this.showAddressModal(addressId);
+       }
 
 	async deleteAddress(addressId) {
 		if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
 
 		try {
 			const response = await fetch(
-				`/5s-fashion/order/deleteAddress/${addressId}`,
+				`/zone-fashion/order/deleteAddress/${addressId}`,
 				{
 					method: 'DELETE',
 				}
@@ -1030,7 +1139,7 @@ class CheckoutAddressManager {
 	async setDefaultAddress(id) {
 		try {
 			const response = await fetch(
-				`/5s-fashion/order/setDefaultAddress/${id}`,
+				`/zone-fashion/order/setDefaultAddress/${id}`,
 				{
 					method: 'PUT',
 					headers: {

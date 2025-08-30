@@ -10,13 +10,13 @@
             Tạo Voucher Mới
         </h1>
         <div class="admin-breadcrumb">
-            <a href="/5s-fashion/admin/coupons" class="breadcrumb-link">Quản lý Voucher</a>
+            <a href="/zone-fashion/admin/coupons" class="breadcrumb-link">Quản lý Voucher</a>
             <span class="breadcrumb-separator">›</span>
             <span class="breadcrumb-current">Tạo mới</span>
         </div>
     </div>
     <div class="admin-header-actions">
-        <a href="/5s-fashion/admin/coupons" class="btn btn-outline">
+        <a href="/zone-fashion/admin/coupons" class="btn btn-outline">
             <i class="fas fa-arrow-left"></i>
             Quay lại
         </a>
@@ -31,7 +31,7 @@
                             <h3 class="card-title">Thông tin voucher</h3>
                         </div>
 
-                        <form method="POST" action="/5s-fashion/admin/coupons/store">
+                        <form method="POST" action="/zone-fashion/admin/coupons/store">
                             <div class="card-body">
                                 <?php if (isset($error)): ?>
                                     <div class="alert alert-danger">
@@ -179,7 +179,7 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save"></i> Tạo Voucher
                                 </button>
-                                <a href="/5s-fashion/admin/coupons" class="btn btn-secondary">
+                                <a href="/zone-fashion/admin/coupons" class="btn btn-secondary">
                                     <i class="fas fa-times"></i> Hủy
                                 </a>
                             </div>
@@ -318,7 +318,7 @@ function toggleValueInput() {
 function generateCode() {
     const prefix = prompt('Nhập tiền tố (để trống nếu không cần):') || '';
 
-    fetch(`/5s-fashion/admin/coupons/generate-code?prefix=${prefix}&length=8`)
+    fetch(`/zone-fashion/admin/coupons/generate-code?prefix=${prefix}&length=8`)
         .then(response => response.json())
         .then(data => {
             document.getElementById('code').value = data.code;

@@ -1,5 +1,5 @@
 <?php
-$title = $title ?? 'Tạo tài khoản Admin - 5S Fashion Admin';
+$title = $title ?? 'Tạo tài khoản Admin - zone Fashion Admin';
 ?>
 
 <div class="container-fluid py-4">
@@ -22,7 +22,7 @@ $title = $title ?? 'Tạo tài khoản Admin - 5S Fashion Admin';
             </nav>
         </div>
         <div>
-            <a href="/5s-fashion/admin/users" class="btn btn-outline-secondary">
+            <a href="/zone-fashion/admin/users" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Quay lại
             </a>
         </div>
@@ -36,7 +36,7 @@ $title = $title ?? 'Tạo tài khoản Admin - 5S Fashion Admin';
                     <h5 class="card-title mb-0">Thông tin tài khoản</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="/5s-fashion/admin/users/create" enctype="multipart/form-data" id="createUserForm">
+                    <form method="POST" action="/zone-fashion/admin/users/create" enctype="multipart/form-data" id="createUserForm">
                         <div class="row">
                             <!-- Left Column -->
                             <div class="col-md-6">
@@ -123,7 +123,7 @@ $title = $title ?? 'Tạo tài khoản Admin - 5S Fashion Admin';
 
                         <!-- Form Actions -->
                         <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="/5s-fashion/admin/users" class="btn btn-secondary">
+                            <a href="/zone-fashion/admin/users" class="btn btn-secondary">
                                 <i class="fas fa-times me-2"></i>Hủy
                             </a>
                             <button type="submit" class="btn btn-primary">

@@ -30,13 +30,41 @@ class Cart extends BaseModel {
             // Cập nhật số lượng nếu đã có
             $newQuantity = $existingItem['quantity'] + $quantity;
             error_log("Cart::addToCart - Existing item found with quantity: {$existingItem['quantity']}, new total: $newQuantity");
-            return $this->updateQuantity($existingItem['id'], $newQuantity);
+            // Respect available stock (exclude the current cart item when calculating other carts)
+            $available = $this->getAvailableStock($productId, $variantId, $existingItem['id']);
+            $clamped = false;
+            if (is_numeric($available)) {
+                if ($available <= 0) {
+                    // No stock available
+                    return ['success' => false, 'message' => 'Sản phẩm đã hết hàng'];
+                }
+                if ($newQuantity > $available) {
+                    $newQuantity = $available;
+                    $clamped = true;
+                }
+            }
+
+            $res = $this->updateQuantity($existingItem['id'], $newQuantity);
+            return ['success' => (bool)$res, 'quantity' => $newQuantity, 'clamped' => $clamped];
         } else {
             // Thêm mới nếu chưa có
             $price = $this->getProductPrice($productId, $variantId);
             error_log("Cart::addToCart - Creating new cart item with quantity: $quantity");
 
-            return $this->create([
+            // Respect available stock for new items
+            $available = $this->getAvailableStock($productId, $variantId, null);
+            $clamped = false;
+            if (is_numeric($available)) {
+                if ($available <= 0) {
+                    return ['success' => false, 'message' => 'Sản phẩm đã hết hàng'];
+                }
+                if ($quantity > $available) {
+                    $quantity = $available;
+                    $clamped = true;
+                }
+            }
+
+            $created = $this->create([
                 'user_id' => $userId,
                 'session_id' => $sessionId,
                 'product_id' => $productId,
@@ -44,6 +72,8 @@ class Cart extends BaseModel {
                 'quantity' => $quantity,
                 'price' => $price
             ]);
+
+            return ['success' => (bool)$created, 'quantity' => $quantity, 'clamped' => $clamped];
         }
     }
 
@@ -62,8 +92,11 @@ class Cart extends BaseModel {
                 p.slug as product_slug,
                 p.sku as product_sku,
                 p.featured_image as product_image,
+                p.stock_quantity as product_stock,
+                pv.id as variant_id,
                 pv.variant_name,
                 pv.sku as variant_sku,
+                pv.stock_quantity as variant_stock,
                 GROUP_CONCAT(
                     CONCAT(pa.name, ': ', pav.value)
                     ORDER BY pa.sort_order SEPARATOR ', '
@@ -94,6 +127,102 @@ class Cart extends BaseModel {
         }
 
         return $this->update($cartId, ['quantity' => $quantity]);
+    }
+
+    /**
+     * Lấy thông tin item trong giỏ hàng theo ID (bao gồm stock của product/variant)
+     * @param int $cartId
+     * @return array|false
+     */
+    public function getCartItemById($cartId) {
+        $sql = "SELECT c.*, p.stock_quantity as product_stock, pv.id as variant_id, pv.stock_quantity as variant_stock
+                FROM {$this->table} c
+                JOIN products p ON c.product_id = p.id
+                LEFT JOIN product_variants pv ON c.variant_id = pv.id
+                WHERE c.id = ? LIMIT 1";
+
+        return $this->db->query($sql, [$cartId])->fetch();
+    }
+
+    /**
+     * Lấy số lượng tồn kho cho product hoặc variant
+     * @param int $productId
+     * @param int|null $variantId
+     * @return int|null  (null nếu không có thông tin)
+     */
+    public function getProductStock($productId, $variantId = null) {
+        if ($variantId) {
+            $sql = "SELECT stock_quantity FROM product_variants WHERE id = ? LIMIT 1";
+            $r = $this->db->query($sql, [$variantId])->fetch();
+            if ($r && isset($r['stock_quantity'])) {
+                return (int)$r['stock_quantity'];
+            }
+        }
+
+        $sql = "SELECT stock_quantity FROM products WHERE id = ? LIMIT 1";
+        $r = $this->db->query($sql, [$productId])->fetch();
+        if ($r && isset($r['stock_quantity'])) {
+            return (int)$r['stock_quantity'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Tính số lượng thực tế còn có thể bán: stock - reserved - số trong các giỏ hàng khác
+     * @param int $productId
+     * @param int|null $variantId
+     * @param int|null $excludeCartId  // cart id to exclude from counting (usually current cart)
+     * @return int|null
+     */
+    public function getAvailableStock($productId, $variantId = null, $excludeCartId = null) {
+        // Get base stock and reserved
+        if ($variantId) {
+            $sql = "SELECT stock_quantity, reserved_quantity FROM product_variants WHERE id = ? LIMIT 1";
+            $r = $this->db->query($sql, [$variantId])->fetch();
+            $stock = $r['stock_quantity'] ?? null;
+            $reserved = $r['reserved_quantity'] ?? 0;
+        } else {
+            $sql = "SELECT stock_quantity FROM products WHERE id = ? LIMIT 1";
+            $r = $this->db->query($sql, [$productId])->fetch();
+            $stock = $r['stock_quantity'] ?? null;
+            // products table does not have reserved_quantity; treat reserved as 0
+            $reserved = 0;
+        }
+
+        if (!is_numeric($stock)) {
+            return null; // unknown stock
+        }
+
+        $stock = (int)$stock;
+        $reserved = (int)$reserved;
+
+        // Sum quantities in other carts for same product/variant
+        if ($variantId) {
+            if ($excludeCartId) {
+                $sql = "SELECT COALESCE(SUM(quantity),0) as total FROM {$this->table} WHERE product_id = ? AND variant_id = ? AND id != ?";
+                $params = [$productId, $variantId, $excludeCartId];
+            } else {
+                $sql = "SELECT COALESCE(SUM(quantity),0) as total FROM {$this->table} WHERE product_id = ? AND variant_id = ?";
+                $params = [$productId, $variantId];
+            }
+        } else {
+            if ($excludeCartId) {
+                $sql = "SELECT COALESCE(SUM(quantity),0) as total FROM {$this->table} WHERE product_id = ? AND variant_id IS NULL AND id != ?";
+                $params = [$productId, $excludeCartId];
+            } else {
+                $sql = "SELECT COALESCE(SUM(quantity),0) as total FROM {$this->table} WHERE product_id = ? AND variant_id IS NULL";
+                $params = [$productId];
+            }
+        }
+
+        $r = $this->db->query($sql, $params)->fetch();
+        $otherCartsQty = (int)($r['total'] ?? 0);
+
+        $available = $stock - $reserved - $otherCartsQty;
+        if ($available < 0) $available = 0;
+
+        return $available;
     }
 
     /**

@@ -1,5 +1,5 @@
 <?php
-$title = 'Giỏ hàng - 5S Fashion';
+$title = 'Giỏ hàng - zone Fashion';
 // Start output buffering for content
 ob_start();
 ?>
@@ -47,7 +47,7 @@ ob_start();
                                             // Remove uploads/products/ prefix if present
                                             $imagePath = preg_replace('#^uploads/products/#', '', $imagePath);
                                             ?>
-                                            <img src="/5s-fashion/serve-file.php?file=<?= urlencode('products/' . $imagePath) ?>"
+                                            <img src="/zone-fashion/serve-file.php?file=<?= urlencode('products/' . $imagePath) ?>"
                                                 alt="<?= htmlspecialchars($item['product_name']) ?>"
                                                 class="product-image img-fluid">
                                         </div>
@@ -70,14 +70,22 @@ ob_start();
                                         </div>
 
                                         <div class="col-md-2">
+                                            <?php
+                                            // determine stock available for this cart item
+                                            $variantStock = isset($item['variant_stock']) ? (int)$item['variant_stock'] : null;
+                                            $productStock = isset($item['product_stock']) ? (int)$item['product_stock'] : null;
+                                            $maxStock = $variantStock !== null && $variantStock > 0 ? $variantStock : ($productStock !== null ? $productStock : 99);
+                                            if (!$maxStock || $maxStock <= 0) $maxStock = 0;
+                                            $isAtMax = $item['quantity'] >= $maxStock && $maxStock > 0;
+                                            ?>
                                             <div class="quantity-controls">
-                                                <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'decrease')">
+                                                <button type="button" class="quantity-btn quantity-decrease" onclick="updateCartQuantity(this, 'decrease')">
                                                     <i class="fas fa-minus"></i>
                                                 </button>
-                                                <input type="number" class="quantity-input cart-quantity-input"
-                                                    min="1" max="99" value="<?= $item['quantity'] ?>"
-                                                    data-cart-id="<?= $item['id'] ?>">
-                                                <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'increase')">
+                                                <input type="number" class="quantity-input cart-quantity-input" readonly
+                                                    min="1" max="<?= $maxStock ?: 99 ?>" value="<?= $item['quantity'] ?>"
+                                                    data-cart-id="<?= $item['id'] ?>" data-max-stock="<?= $maxStock ?>">
+                                                <button type="button" class="quantity-btn quantity-increase <?= $isAtMax ? 'disabled' : '' ?>" onclick="updateCartQuantity(this, 'increase')">
                                                     <i class="fas fa-plus"></i>
                                                 </button>
                                             </div>
@@ -138,65 +146,65 @@ ob_start();
 
             <!-- Cart Summary -->
             <?php if (!isset($error_message) && !empty($cartItems)): ?>
-            <div class="col-lg-4">
-                <!-- Promo Code Section -->
-                <div class="promo-section">
-                    <h6 class="mb-3">
-                        <i class="fas fa-tag me-2"></i>
-                        Mã giảm giá
-                    </h6>
-                    <div class="input-group">
-                        <input type="text" class="form-control promo-input" id="promo-code" placeholder="Nhập mã giảm giá">
-                        <button class="btn promo-btn btn-primary" type="button" onclick="applyPromoCode()" id="promo-action-btn">
-                            <i class="fas fa-check"></i>
-                            Áp dụng
+                <div class="col-lg-4">
+                    <!-- Promo Code Section -->
+                    <div class="promo-section">
+                        <h6 class="mb-3">
+                            <i class="fas fa-tag me-2"></i>
+                            Mã giảm giá
+                        </h6>
+                        <div class="input-group">
+                            <input type="text" class="form-control promo-input" id="promo-code" placeholder="Nhập mã giảm giá">
+                            <button class="btn promo-btn btn-primary" type="button" onclick="applyPromoCode()" id="promo-action-btn">
+                                <i class="fas fa-check"></i>
+                                Áp dụng
+                            </button>
+                        </div>
+                        <div id="voucher-message" class="mt-2 small"></div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="cart-summary">
+                        <h5 class="mb-4">
+                            <i class="fas fa-receipt me-2"></i>
+                            Tổng đơn hàng
+                        </h5>
+
+                        <div id="cart-summary-content">
+                            <div class="summary-row">
+                                <span class="summary-label">Tạm tính:</span>
+                                <span class="summary-value" id="subtotal"><?= number_format($cartTotal, 0, ',', '.') ?> ₫</span>
+                            </div>
+
+                            <div class="summary-row">
+                                <span class="summary-label">Phí vận chuyển:</span>
+                                <span class="summary-value text-success">Miễn phí</span>
+                            </div>
+
+                            <div class="summary-row">
+                                <span class="summary-label">Giảm giá:</span>
+                                <span class="summary-value text-success" id="discount">0 ₫</span>
+                            </div>
+
+                            <div class="summary-row summary-total">
+                                <span class="summary-label">Tổng cộng:</span>
+                                <span class="summary-value" id="total"><?= number_format($cartTotal, 0, ',', '.') ?> ₫</span>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-checkout mt-4" id="checkout-btn" <?= empty($cartItems) ? 'disabled' : '' ?>>
+                            <i class="fas fa-credit-card me-2"></i>
+                            Thanh toán
                         </button>
-                    </div>
-                    <div id="voucher-message" class="mt-2 small"></div>
-                </div>
 
-                <!-- Order Summary -->
-                <div class="cart-summary">
-                    <h5 class="mb-4">
-                        <i class="fas fa-receipt me-2"></i>
-                        Tổng đơn hàng
-                    </h5>
-
-                    <div id="cart-summary-content">
-                        <div class="summary-row">
-                            <span class="summary-label">Tạm tính:</span>
-                            <span class="summary-value" id="subtotal"><?= number_format($cartTotal, 0, ',', '.') ?> ₫</span>
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-lock me-1"></i>
+                                Thanh toán an toàn & bảo mật
+                            </small>
                         </div>
-
-                        <div class="summary-row">
-                            <span class="summary-label">Phí vận chuyển:</span>
-                            <span class="summary-value text-success">Miễn phí</span>
-                        </div>
-
-                        <div class="summary-row">
-                            <span class="summary-label">Giảm giá:</span>
-                            <span class="summary-value text-success" id="discount">0 ₫</span>
-                        </div>
-
-                        <div class="summary-row summary-total">
-                            <span class="summary-label">Tổng cộng:</span>
-                            <span class="summary-value" id="total"><?= number_format($cartTotal, 0, ',', '.') ?> ₫</span>
-                        </div>
-                    </div>
-
-                    <button class="btn btn-checkout mt-4" id="checkout-btn" <?= empty($cartItems) ? 'disabled' : '' ?>>
-                        <i class="fas fa-credit-card me-2"></i>
-                        Thanh toán
-                    </button>
-
-                    <div class="mt-3 text-center">
-                        <small class="text-muted">
-                            <i class="fas fa-lock me-1"></i>
-                            Thanh toán an toàn & bảo mật
-                        </small>
                     </div>
                 </div>
-            </div>
             <?php endif; ?>
         </div>
     </div>
@@ -266,11 +274,11 @@ ob_start();
 
                 <div class="col-md-2">
                     <div class="quantity-controls">
-                        <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'decrease')">
+                        <button type="button" class="quantity-btn quantity-decrease" onclick="updateCartQuantity(this, 'decrease')">
                             <i class="fas fa-minus"></i>
                         </button>
-                        <input type="number" class="quantity-input cart-quantity-input" min="1" max="99" value="1">
-                        <button type="button" class="quantity-btn" onclick="updateCartQuantity(this, 'increase')">
+                        <input type="number" class="quantity-input cart-quantity-input" min="1" max="99" value="1" data-cart-id="">
+                        <button type="button" class="quantity-btn quantity-increase" onclick="updateCartQuantity(this, 'increase')">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -305,8 +313,8 @@ ob_start();
     $content = ob_get_clean();
 
     // Set page variables for layout
-    $title = 'Giỏ hàng - 5S Fashion';
-    $meta_description = 'Giỏ hàng mua sắm tại 5S Fashion';
+    $title = 'Giỏ hàng - zone Fashion';
+    $meta_description = 'Giỏ hàng mua sắm tại zone Fashion';
 
     // Custom CSS following UI guidelines
     $custom_css = ['css/cart.css'];
@@ -319,24 +327,24 @@ ob_start();
     ?>
 
     <script>
-    function removeVoucher() {
-        const promoInput = document.getElementById('promo-code');
-        const promoBtn = document.querySelector('.promo-btn');
-        const removeBtn = document.getElementById('remove-voucher-btn');
-        document.getElementById('discount').textContent = '0 ₫';
-        // Tính lại tổng cộng: subtotal + phí ship
-        const subtotalElement = document.getElementById('subtotal');
-        const subtotalText = subtotalElement.textContent;
-        const subtotal = parseFloat(subtotalText.replace(/[^\d]/g, ''));
-        const shippingFee = 30000;
-        document.getElementById('total').textContent = new Intl.NumberFormat('vi-VN').format(subtotal + shippingFee) + ' ₫';
-        promoInput.value = '';
-        promoInput.disabled = false;
-        if (promoBtn) {
-            promoBtn.disabled = false;
-            promoBtn.innerHTML = promoBtn.dataset.originalText || 'Áp dụng';
+        function removeVoucher() {
+            const promoInput = document.getElementById('promo-code');
+            const promoBtn = document.querySelector('.promo-btn');
+            const removeBtn = document.getElementById('remove-voucher-btn');
+            document.getElementById('discount').textContent = '0 ₫';
+            // Tính lại tổng cộng: subtotal + phí ship
+            const subtotalElement = document.getElementById('subtotal');
+            const subtotalText = subtotalElement.textContent;
+            const subtotal = parseFloat(subtotalText.replace(/[^\d]/g, ''));
+            const shippingFee = subtotal >= 500000 ? 0 : 30000;
+            document.getElementById('total').textContent = new Intl.NumberFormat('vi-VN').format(subtotal + shippingFee) + ' ₫';
+            promoInput.value = '';
+            promoInput.disabled = false;
+            if (promoBtn) {
+                promoBtn.disabled = false;
+                promoBtn.innerHTML = promoBtn.dataset.originalText || 'Áp dụng';
+            }
+            if (removeBtn) removeBtn.style.display = 'none';
+            document.getElementById('voucher-message').innerHTML = '';
         }
-        if (removeBtn) removeBtn.style.display = 'none';
-        document.getElementById('voucher-message').innerHTML = '';
-    }
     </script>

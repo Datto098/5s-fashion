@@ -2,10 +2,10 @@
 
 /**
  * Account Controller (Client)
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
-class AccountController extends Controller
+class AccountController extends BaseController
 {
     private $userModel;
 
@@ -31,12 +31,12 @@ class AccountController extends Controller
         // $recentOrders = $this->model('Order')->getUserOrders($user['id'], 5);
 
         $data = [
-            'title' => 'Tài Khoản - 5S Fashion',
+            'title' => 'Tài Khoản - Zone Fashion',
             'user' => $user,
             'recent_orders' => $recentOrders
         ];
 
-        $this->view('client/account/index', $data);
+        $this->render('client/account/index', $data,'client/layouts/app');
     }
 
     /**
@@ -47,11 +47,11 @@ class AccountController extends Controller
         $user = getUser();
 
         $data = [
-            'title' => 'Thông Tin Cá Nhân - 5S Fashion',
+            'title' => 'Thông Tin Cá Nhân - Zone Fashion',
             'user' => $user
         ];
 
-        $this->view('client/account/profile', $data);
+        $this->render('client/account/profile', $data,'client/layouts/app');
     }
 
     /**
@@ -122,10 +122,10 @@ class AccountController extends Controller
     public function passwordForm()
     {
         $data = [
-            'title' => 'Đổi Mật Khẩu - 5S Fashion'
+            'title' => 'Đổi Mật Khẩu - Zone Fashion'
         ];
 
-        $this->view('client/account/password', $data);
+        $this->render('client/account/password', $data,'client/layouts/app');
     }
 
     /**
@@ -193,11 +193,11 @@ class AccountController extends Controller
         $orders = $orderModel->getByUserWithItems($user['id']);
 
         $data = [
-            'title' => 'Đơn Hàng - 5S Fashion',
+            'title' => 'Đơn Hàng - Zone Fashion',
             'orders' => $orders
         ];
 
-        $this->view('client/account/orders', $data);
+        $this->render('client/account/orders', $data,'client/layouts/app');
     }
 
     /**
@@ -219,11 +219,11 @@ class AccountController extends Controller
         }
 
         $data = [
-            'title' => 'Chi Tiết Đơn Hàng #' . $order['order_code'] . ' - 5S Fashion',
+            'title' => 'Chi Tiết Đơn Hàng #' . $order['order_code'] . ' - Zone Fashion',
             'order' => $order
         ];
 
-        $this->view('client/account/order-detail', $data);
+        $this->render('client/account/order-detail', $data, 'client/layouts/app');
     }
 
     /**
@@ -237,11 +237,11 @@ class AccountController extends Controller
         $addresses = $this->model('Customer')->getCustomerAddresses($user['id']);
 
         $data = [
-            'title' => 'Địa Chỉ - 5S Fashion',
+            'title' => 'Địa Chỉ - Zone Fashion',
             'addresses' => $addresses
         ];
 
-        $this->view('client/account/addresses', $data);
+        $this->render('client/account/addresses', $data, 'client/layouts/app');
     }
 
     /**
@@ -479,11 +479,11 @@ class AccountController extends Controller
         }
 
         $data = [
-            'title' => 'Sản Phẩm Yêu Thích - 5S Fashion',
+            'title' => 'Sản Phẩm Yêu Thích - Zone Fashion',
             'user' => $user,
             'wishlist' => $wishlist
         ];
 
-        $this->view('client/account/wishlist', $data);
+        $this->render('client/account/wishlist', $data, 'client/layouts/app');
     }
 }

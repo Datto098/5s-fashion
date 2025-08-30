@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var flash = document.querySelector('.alert-success, .alert-danger, .alert-warning, .alert-info');
     if (flash) {
         setTimeout(function() {
-            flash.style.transition = 'opacity 0.5s';
+            flash.style.transition = 'opacity 0.zone';
             flash.style.opacity = '0';
             setTimeout(function() {
                 flash.style.display = 'none';

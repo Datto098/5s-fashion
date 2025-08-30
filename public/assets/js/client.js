@@ -1,12 +1,12 @@
 /**
  * Client Website JavaScript
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 // Get base URL dynamically
 const BASE_URL = (() => {
   const pathParts = window.location.pathname.split("/").filter((part) => part);
-  // If we're in a subdirectory like /5s-fashion/, use it as base
+  // If we're in a subdirectory like /zone-fashion/, use it as base
   if (pathParts.length > 0 && !pathParts[0].includes(".")) {
     return "/" + pathParts[0];
   }
@@ -14,13 +14,16 @@ const BASE_URL = (() => {
   return "";
 })();
 
+// Backwards-compat: provide a global firstColor if other inline scripts reference it
+if (typeof window.firstColor === 'undefined') window.firstColor = null;
+
 // Global variables
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 // Wishlist is now handled via API, no localStorage needed
 
 /**
  * Client Website JavaScript
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 // Helper function to get proper image URL
@@ -309,16 +312,21 @@ function updateCartQuantity(key, quantity) {
   const variant = item.variant;
 
   // Send AJAX request to server to update quantity
+  // If cart item has an id (server-side cart), send cart_key. Otherwise fall back to product_id (local cart format).
+  const payload = { quantity: parseInt(quantity) };
+  if (item && item.id) {
+    payload.cart_key = item.id;
+  } else if (productId) {
+    payload.product_id = productId;
+  }
+  if (variant) payload.variant = variant;
+
   fetch(`${BASE_URL}/ajax/cart/update`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      product_id: productId,
-      variant: variant,
-      quantity: parseInt(quantity),
-    }),
+    body: JSON.stringify(payload),
   })
     .then((response) => response.json())
     .then((data) => {
@@ -1068,7 +1076,7 @@ const customCSS = `
 
 /* Ensure modal backdrop is properly handled */
 .modal-backdrop {
-    transition: opacity 0.15s linear;
+    transition: opacity 0.1zone linear;
 }
 
 .modal-backdrop.fade {
@@ -1217,112 +1225,75 @@ function renderQuickViewContent(product) {
     discountBadge = `<span class="badge bg-danger position-absolute" style="top: 10px; left: 10px;">-${discount}%</span>`;
   }
 
-  // Build variants HTML
+  // Build variants HTML (group by color, dedupe sizes per color)
   let variantsHTML = "";
   if (product.variants && product.variants.length > 0) {
-    // Group variants by color (đảm bảo key là tên màu thực sự)
+    // Group variants by color
     const variantsByColor = {};
-    product.variants.forEach((variant) => {
-      const colorName = variant.color || "Không xác định";
-      if (!variantsByColor[colorName]) {
-        variantsByColor[colorName] = [];
-      }
-      variantsByColor[colorName].push(variant);
+    product.variants.forEach(v => {
+      const cname = (v.color || 'Default').trim();
+      if (!variantsByColor[cname]) variantsByColor[cname] = [];
+      variantsByColor[cname].push(v);
     });
 
-    // Lấy danh sách tên màu thực sự
-    // Tạo colorList đúng dạng [{ name, color_code }]
-    const colorMap = {};
-    product.variants.forEach((variant) => {
-      if (variant.color && !colorMap[variant.color]) {
-        colorMap[variant.color] = {
-          name: variant.color,
-          color_code: variant.color_code || "#ccc", // fallback nếu không có
-        };
-      }
-    });
-    const colorList = Object.values(colorMap);
-    let firstColor = null;
-    let firstVariant = null;
-    if (colorList.length > 0) {
-      firstColor = colorList[0].name;
-      firstVariant = variantsByColor[firstColor][0];
+    // Build color list with color_code
+    const colorList = Object.keys(variantsByColor).map(name => ({
+      name,
+      color_code: (variantsByColor[name].find(x => x.color_code) || {}).color_code || '#ccc'
+    }));
+
+    // Choose preferred color: first color that has stock, otherwise first color
+    let preferredColor = null;
+    for (const c of colorList) {
+      const any = (variantsByColor[c.name] || []).some(v => (v.stock_quantity || v.stock) > 0);
+      if (any) { preferredColor = c.name; break; }
     }
-    if (!firstColor || !firstVariant) {
-      document.getElementById("quickViewContent").innerHTML = `<div class="alert alert-danger text-center">Không có màu hoặc biến thể hợp lệ</div>`;
-      return;
-    }
+    if (!preferredColor && colorList.length) preferredColor = colorList[0].name;
 
-    // Auto-select first variant
-    selectedVariant = {
-      id: firstVariant.id,
-      size: firstVariant.size,
-      price: parseFloat(firstVariant.price),
-      color: firstVariant.color,
-      stock_quantity: parseInt(firstVariant.stock_quantity || firstVariant.stock || 0)
-    };
+    // Render sizes for preferredColor (deduplicated by size)
+    const sizesForPref = (variantsByColor[preferredColor] || []);
+    const seen = new Set();
+  const sizeButtons = sizesForPref.filter(v => {
+      const k = (v.size || 'One Size').trim(); if (seen.has(k)) return false; seen.add(k); return true;
+    }).map((variant, index) => {
+      const outOfStock = !((variant.stock_quantity || variant.stock) > 0);
+      return `
+        <button type="button" class="btn btn-outline-secondary size-option ${(!outOfStock && index === 0) ? 'active' : ''}" data-variant-id="${variant.id}" data-size="${variant.size}" data-price="${variant.price}" data-color="${variant.color}" data-stock="${variant.stock_quantity || variant.stock || 0}" onclick="selectSize('${variant.id}', '${variant.size}', ${variant.price}, '${variant.color}')" ${outOfStock ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>
+          ${variant.size}
+        </button>
+      `;
+    }).join('');
 
-    // Render size buttons (Chọn Kích Thước): chỉ hiển thị size của variants thuộc màu đang chọn
-    const sizeSet = new Set();
-    // Tìm index của size đầu tiên còn hàng
-    const uniqueSizes = variantsByColor[firstColor].filter((variant) => {
-      if (sizeSet.has(variant.size)) return false;
-      sizeSet.add(variant.size);
-      return true;
-    });
-    let firstAvailableIndex = uniqueSizes.findIndex(
-      (v) => v.stock_quantity > 0 || v.stock > 0
-    );
-    const sizeButtons = uniqueSizes
-      .map((variant, index) => {
-        const outOfStock = !(variant.stock_quantity > 0 || variant.stock > 0);
-        return `
-          <button type="button" class="btn btn-outline-secondary size-option ${
-            (!outOfStock && index === firstAvailableIndex) ? "active" : ""
-          }" data-variant-id="${variant.id}" data-size="${variant.size}"
-            data-price="${variant.price}" data-color="${variant.color}"
-            onclick="selectSize('${variant.id}', '${variant.size}', ${variant.price}, '${variant.color}')"
-            ${outOfStock ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ""}>
-            ${variant.size}
-          </button>
-        `;
-      })
-      .join("");
-
-    // Render color buttons (Chọn Màu Sắc): hiển thị đúng tên màu và mã màu
-   const colorButtons = colorList
-  .map((colorObj, index) => {
-    return `
-      <button type="button" class="btn btn-outline-secondary color-option ${index === 0 ? "active" : ""}"
-        data-color="${colorObj.name}" onclick="selectColor('${colorObj.name}')"
-        title="${colorObj.name}">
+    // Render color buttons
+    const colorButtons = colorList.map((colorObj, idx) => `
+      <button type="button" class="btn btn-outline-secondary color-option ${colorObj.name === preferredColor ? 'active' : ''}" data-color="${colorObj.name}" onclick="selectColor('${colorObj.name}')" title="${colorObj.name}">
         <span class="color-swatch" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${colorObj.color_code};border:1px solid #ccc;vertical-align:middle;"></span>
       </button>
-    `;
-  })
-  .join("");
+    `).join('');
 
     variantsHTML = `
-			<div class="variant-selection mb-3">
-			<h6>Chọn Màu Sắc:</h6>
-				<div class="color-options mb-3">
-					${colorButtons}
-				</div>
-				<h6>Chọn Kích Thước:</h6>
-				<div class="size-options mb-3" id="sizeOptions">
-					${sizeButtons}
-				</div>
-				
-			</div>
-		`;
+      <div class="variant-selection mb-3">
+        <h6>Chọn Màu Sắc:</h6>
+        <div class="color-options mb-3">
+          ${colorButtons}
+        </div>
+        <h6>Chọn Kích Thước:</h6>
+        <div class="size-options mb-3" id="sizeOptions">
+          ${sizeButtons}
+        </div>
+      </div>
+    `;
   }
 
   // Create the complete modal content
-    // Determine if any variant has stock (used for initial Add-to-Cart label/state)
-    const hasAnyStock = !!(
-      product.variants &&
-      product.variants.some((v) => (v.stock_quantity || v.stock) > 0)
-    );
+    // Determine if the initially selected color has any stock (use this for initial Add-to-Cart state)
+    let hasAnyStock = false;
+    if (firstColor) {
+      const variantsForFirstColor = variantsByColor[firstColor] || [];
+      hasAnyStock = variantsForFirstColor.some(v => (v.stock_quantity || v.stock) > 0);
+    } else {
+      hasAnyStock = !!(product.variants && product.variants.some((v) => (v.stock_quantity || v.stock) > 0));
+    }
 
     const content = `
         <div class="row g-4">
@@ -1385,18 +1356,17 @@ function renderQuickViewContent(product) {
 
                     <div class="quantity-selection mb-3">
                         <label class="form-label">Số Lượng:</label>
-                        <div class="input-group" style="width:300px" >
-                            <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(-1)">-</button>
-							<input type="number" class="form-control text-center" id="quantityInput" value="1" min="1" max="10" style="border-radius: 0px !important;" readonly>
-                            <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(1)">+</button>
-                        </div>
+              <div class="input-group" style="width:300px" >
+              <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(-1)">-</button>
+              <input type="number" class="form-control text-center" id="quantityInput" value="1" min="1" max="10" style="border-radius: 0px !important;">
+              <button class="btn btn-outline-secondary" type="button" onclick="changeQuantity(1)">+</button>
+            </div>
                     </div>
 
                     <div class="product-actions d-block mt-auto">
-            <button class="btn btn-danger btn-lg me-2 mb-2 quickview-add-to-cart" onclick="addToCartFromQuickView(${product.id})" ${!product.in_stock ? "disabled aria-disabled=\"true\"" : ""}>
-              <i class="fas fa-shopping-cart me-2"></i>
-               ${hasAnyStock ? "Thêm Vào Giỏ" : "Hết Hàng"}
-            </button>
+            <button class="${hasAnyStock ? 'btn btn-danger btn-lg me-2 mb-2 quickview-add-to-cart' : 'btn btn-secondary btn-lg me-2 mb-2'}" onclick="addToCartFromQuickView(${product.id})" disabled aria-disabled="true">
+        ${hasAnyStock ? '<i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ Hàng' : '<i class="fas fa-times me-2"></i>Hết Hàng'}
+      </button>
                         <button class="btn btn-outline-secondary btn-lg mb-2" onclick="toggleWishlist(${
                           product.id
                         })">
@@ -1419,6 +1389,30 @@ function renderQuickViewContent(product) {
   // Set content to modal
   document.getElementById("quickViewContent").innerHTML = content;
 
+  // Expose product data and initialize color/size UI in the modal
+  try {
+    window.currentQuickViewProduct = product;
+    // pick preferred color (first with stock) if available
+    setTimeout(() => {
+      try {
+        const colorBtns = Array.from(document.querySelectorAll('#quickViewContent .color-option, .color-options .color-option'));
+        let chosen = null;
+        if (colorBtns.length) {
+          for (const btn of colorBtns) {
+            const name = btn.getAttribute('data-color');
+            const variantsForColor = (product.variants || []).filter(v => ((v.color||'Default').trim() === (name||'Default')));
+            const hasStock = variantsForColor.some(v => (v.stock_quantity || v.stock) > 0);
+            if (hasStock) { chosen = name; break; }
+          }
+          if (!chosen) chosen = colorBtns[0].getAttribute('data-color');
+          if (chosen) {
+            try { selectColor(chosen); } catch(e){ console.warn('auto selectColor failed', e); }
+          }
+        }
+      } catch(e) { console.warn('init quickview selection failed', e); }
+    }, 30);
+  } catch(e) {}
+
   // Expose current product data for other handlers and initialize selected variant UI
   try {
     window.currentQuickViewProduct = product;
@@ -1431,26 +1425,23 @@ function renderQuickViewContent(product) {
       initialCandidate = product.variants.find(v => (v.stock_quantity || v.stock) > 0) || product.variants[0];
     }
     if (initialCandidate) {
-      // mark related buttons active in DOM (color + size)
-      setTimeout(() => {
-        try {
-          // activate color button
-          const colorBtn = document.querySelector(`#quickViewContent .color-option[data-color="${initialCandidate.color}"]`);
-          if (colorBtn) {
-            document.querySelectorAll('#quickViewContent .color-option').forEach(b=>b.classList.remove('active'));
-            colorBtn.classList.add('active');
-          }
-          // render sizes for that color (if renderSizeOptions flow exists) - here size buttons are already rendered
-          const sizeBtn = document.querySelector(`#quickViewContent .size-option[data-variant-id="${initialCandidate.id}"]`);
-          if (sizeBtn) {
-            document.querySelectorAll('#quickViewContent .size-option').forEach(b=>b.classList.remove('active'));
-            sizeBtn.classList.add('active');
-          }
-          selectSize(initialCandidate.id, initialCandidate.size, initialCandidate.price, initialCandidate.color);
-        } catch(e) {
-          console.warn('quickview initial select failed', e);
+      // Only sync internal selection (don't mutate DOM) so we don't override user clicks.
+      selectedVariant = {
+        id: initialCandidate.id,
+        size: initialCandidate.size,
+        price: parseFloat(initialCandidate.price) || 0,
+        color: initialCandidate.color,
+        stock_quantity: parseInt(initialCandidate.stock_quantity || initialCandidate.stock || 0)
+      };
+      // Update qty input max (no DOM active changes)
+      try {
+        const qtyInput = document.getElementById('quantityInput');
+        if (qtyInput) {
+          const maxQty = selectedVariant.stock_quantity || parseInt(product.stock) || 10;
+          qtyInput.max = maxQty;
+          if (parseInt(qtyInput.value) > maxQty) qtyInput.value = maxQty;
         }
-      }, 30);
+      } catch(e) {}
     }
   } catch(e) {
     console.warn('initial quickview selection error', e);
@@ -1675,7 +1666,7 @@ function updateAddToCartState(available) {
       // restore primary danger look
       el.classList.remove('btn-secondary');
       el.classList.add('btn-danger');
-      el.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ';
+      el.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ Hàng';
     }
   };
 

@@ -26,10 +26,10 @@ $statusClass = [
                     <p class="text-muted mb-0">Mã sản phẩm: <?= htmlspecialchars($product['sku']) ?></p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/products/edit/<?= $product['id'] ?>" class="btn btn-primary me-2">
+                    <a href="/zone-fashion/admin/products/edit/<?= $product['id'] ?>" class="btn btn-primary me-2">
                         <i class="fas fa-edit"></i> Chỉnh sửa
                     </a>
-                    <a href="/5s-fashion/admin/products" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/products" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -59,7 +59,7 @@ $statusClass = [
                             } else {
                                 $cleanPath = ltrim($imagePath, '/');
                             }
-                            $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                            $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                             ?>
                             <img src="<?= htmlspecialchars($imageUrl) ?>"
                                  alt="<?= htmlspecialchars($product['name']) ?>"
@@ -89,7 +89,7 @@ $statusClass = [
                                         } else {
                                             $cleanPath = ltrim($imagePath, '/');
                                         }
-                                        $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                        $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                         ?>
                                         <img src="<?= htmlspecialchars($imageUrl) ?>"
                                              alt=""

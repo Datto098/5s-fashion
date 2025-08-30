@@ -10,7 +10,7 @@ ob_start();
                 <div class="auth-card">
                     <div class="auth-header text-center mb-4">
                         <h2 class="auth-title">Đăng Nhập</h2>
-                        <p class="auth-subtitle">Chào mừng bạn quay lại 5S Fashion</p>
+                        <p class="auth-subtitle">Chào mừng bạn quay lại zone Fashion</p>
                     </div>
 
                     <form action="<?= url('login') ?>" method="POST" class="auth-form" id="loginForm">

@@ -836,7 +836,7 @@
     function openCreateModal() {
         document.getElementById('modalTitle').textContent = 'Thêm khách hàng mới';
         document.getElementById('customerForm').reset();
-        document.getElementById('customerForm').action = '/5s-fashion/admin/customers/store';
+        document.getElementById('customerForm').action = '/zone-fashion/admin/customers/store';
         document.getElementById('submitBtn').textContent = 'Lưu khách hàng';
         document.getElementById('passwordGroup').style.display = 'block';
         document.getElementById('customerPassword').required = true;
@@ -847,13 +847,13 @@
     function editCustomer(id) {
         // Set modal title and form action
         document.getElementById('modalTitle').textContent = 'Chỉnh sửa khách hàng';
-        document.getElementById('customerForm').action = '/5s-fashion/admin/customers/update/' + id;
+        document.getElementById('customerForm').action = '/zone-fashion/admin/customers/update/' + id;
         document.getElementById('submitBtn').textContent = 'Cập nhật';
         document.getElementById('customerPassword').required = false;
         document.querySelector('#passwordGroup .form-help').style.display = 'block';
 
         // Load customer data via AJAX
-        fetch(`/5s-fashion/admin/customers/api/${id}`)
+        fetch(`/zone-fashion/admin/customers/api/${id}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -899,7 +899,7 @@
         } [newStatus];
 
         if (confirm(`Bạn có chắc chắn muốn ${statusText} khách hàng này?`)) {
-            fetch(`/5s-fashion/admin/customers/update-status/${customerId}`, {
+            fetch(`/zone-fashion/admin/customers/update-status/${customerId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -976,7 +976,7 @@
         const formData = new FormData(this);
         const data = Object.fromEntries(formData.entries());
 
-        fetch(`/5s-fashion/admin/customers/send-email/${currentCustomerId}`, {
+        fetch(`/zone-fashion/admin/customers/send-email/${currentCustomerId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1029,7 +1029,7 @@
     function bulkExport() {
         const selectedIds = Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.value);
 
-        let url = '/5s-fashion/admin/customers/export';
+        let url = '/zone-fashion/admin/customers/export';
         if (selectedIds.length > 0) {
             url += '?ids=' + selectedIds.join(',');
         }

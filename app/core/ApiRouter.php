@@ -133,8 +133,8 @@ class ApiRouter
         $requestUri = $_SERVER['REQUEST_URI'];
         $path = parse_url($requestUri, PHP_URL_PATH);
 
-        // Remove project folder from path first (for WAMP: /5s-fashion)
-        $projectFolder = '/5s-fashion';
+        // Remove project folder from path first (for WAMP: /zone-fashion)
+        $projectFolder = '/zone-fashion';
         if (strpos($path, $projectFolder) === 0) {
             $path = substr($path, strlen($projectFolder));
         }

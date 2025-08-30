@@ -3,7 +3,7 @@
 
 return [
     // General settings
-    'site_name' => '5S Fashion',
+    'site_name' => 'zone Fashion',
     'site_description' => 'Thời trang cao cấp',
     'site_logo' => null,
 
@@ -20,7 +20,7 @@ return [
     // Contact information
     'contact' => [
         'phone' => '1900-xxxx',
-        'email' => 'info@5sfashion.com',
+        'email' => 'info@zonefashion.com',
         'address' => 'Số 1 Đường ABC, Quận XYZ, TP. Hồ Chí Minh'
     ],
 

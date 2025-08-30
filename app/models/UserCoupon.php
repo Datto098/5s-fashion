@@ -1,7 +1,7 @@
 <?php
 /**
  * UserCoupon Model
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once dirname(__DIR__) . '/core/Model.php';

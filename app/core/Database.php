@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Connection Class
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class Database
@@ -27,7 +27,7 @@ class Database
                     'mysql' => [
                         'host' => 'localhost',
                         'port' => '3306',
-                        'database' => '5s_fashion',
+                        'database' => 'zone_fashion',
                         'username' => 'root',
                         'password' => '',
                         'charset' => 'utf8',
@@ -65,7 +65,7 @@ class Database
             // Validate required config values
             $host = $config['host'] ?? 'localhost';
             $port = $config['port'] ?? '3306';
-            $database = $config['database'] ?? '5s_fashion';
+            $database = $config['database'] ?? 'zone_fashion';
             $username = $config['username'] ?? 'root';
             $password = $config['password'] ?? '';
             $charset = $config['charset'] ?? 'utf8';

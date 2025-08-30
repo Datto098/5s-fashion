@@ -11,7 +11,7 @@ class CartPageManager {
 		this.shippingFee = 0;
 		this.discount = 0;
 		this.total = 0;
-		this.baseUrl = '/5s-fashion/ajax'; // Add base URL for API calls
+		this.baseUrl = '/zone-fashion/ajax'; // Add base URL for API calls
 		this.init();
 	}
 
@@ -162,7 +162,7 @@ class CartPageManager {
 		}
 
 		// Redirect to checkout page
-		window.location.href = '/5s-fashion/checkout';
+		window.location.href = '/zone-fashion/checkout';
 	}
 
 	/**

@@ -21,7 +21,7 @@ $period = $period ?? '30';
                 <option value="90" <?= $period == '90' ? 'selected' : '' ?>>3 tháng qua</option>
                 <option value="365" <?= $period == '365' ? 'selected' : '' ?>>1 năm qua</option>
             </select>
-            <a href="/5s-fashion/admin/statistics" class="btn btn-secondary btn-sm">
+            <a href="/zone-fashion/admin/statistics" class="btn btn-secondary btn-sm">
                 <i class="fas fa-arrow-left me-1"></i>Quay lại
             </a>
         </div>
@@ -72,7 +72,7 @@ $period = $period ?? '30';
                                                         } else {
                                                             $cleanPath = ltrim($imagePath, '/');
                                                         }
-                                                        $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                                        $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                                         ?>
                                                         <img src="<?= htmlspecialchars($imageUrl) ?>"
                                                              alt="<?= htmlspecialchars($product['name']) ?>"
@@ -131,7 +131,7 @@ $period = $period ?? '30';
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-clock me-2"></i>Đánh giá gần đây
                     </h6>
-                    <a href="/5s-fashion/admin/reviews" class="btn btn-primary btn-sm">
+                    <a href="/zone-fashion/admin/reviews" class="btn btn-primary btn-sm">
                         <i class="fas fa-eye me-1"></i>Xem tất cả
                     </a>
                 </div>
@@ -153,7 +153,7 @@ $period = $period ?? '30';
                                                 } else {
                                                     $cleanPath = ltrim($imagePath, '/');
                                                 }
-                                                $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                                $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                                 ?>
                                                 <img src="<?= htmlspecialchars($imageUrl) ?>"
                                                      alt="<?= htmlspecialchars($review['product_name']) ?>"

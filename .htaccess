@@ -18,7 +18,7 @@ RewriteRule .* - [L]
 
 # Allow direct access to API files in public/api/
 RewriteCond %{REQUEST_FILENAME} -f
-RewriteCond %{REQUEST_URI} ^/5s-fashion/api/ [NC]
+RewriteCond %{REQUEST_URI} ^/zone-fashion/api/ [NC]
 RewriteRule ^api/(.*)$ public/api/$1 [L]
 
 # Handle chatbot API requests

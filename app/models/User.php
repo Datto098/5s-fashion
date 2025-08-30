@@ -1,7 +1,7 @@
 <?php
 /**
  * User Model
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class User extends BaseModel
@@ -505,23 +505,12 @@ protected $fillable = [
     {
         // Temporarily disabled until reset_token columns are added to database
         // TODO: Run migration to add reset_token and reset_token_expires_at columns
-        // $sql = "UPDATE {$this->table} SET reset_token = :token, reset_token_expires_at = :expiry WHERE id = :id";
-        // return $this->db->execute($sql, [
-        //     'id' => $userId,
-        //     'token' => $token,
-        //     'expiry' => $expiry
-        // ]);
-        return true;
-    }
-
-    /**
-     * Find user by reset token
-     */
-    public function findByResetToken($token)
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE reset_token = :token AND reset_token_expires_at > NOW()";
-        $result = $this->db->fetchOne($sql, ['token' => $token]);
-        return $result ? $this->hideFields($result) : null;
+        $sql = "UPDATE {$this->table} SET reset_token = :token, reset_token_expires_at = :expiry WHERE id = :id";
+        return $this->db->execute($sql, [
+            'id' => $userId,
+            'token' => $token,
+            'expiry' => $expiry
+        ]);
     }
 
     /**

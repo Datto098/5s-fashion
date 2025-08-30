@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Dashboard Controller
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once dirname(__DIR__) . '/BaseController.php';
@@ -26,7 +26,7 @@ class DashboardController extends BaseController
     {
         // Get dashboard data with full functionality
         $data = [
-            'title' => 'Dashboard - 5S Fashion Admin',
+            'title' => 'Dashboard - zone Fashion Admin',
             'stats' => [
                 'total_products' => 150,
                 'published_products' => 120,

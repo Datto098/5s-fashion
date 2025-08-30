@@ -186,7 +186,7 @@
                                                 } else {
                                                     $cleanPath = ltrim($imagePath, '/');
                                                 }
-                                                $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                                $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                                 ?>
                                                 <img src="<?= htmlspecialchars($imageUrl) ?>"
                                                      alt="Product" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
@@ -241,7 +241,7 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="/5s-fashion/admin/reviews/<?= $review['id'] ?>"
+                                            <a href="/zone-fashion/admin/reviews/<?= $review['id'] ?>"
                                                class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
                                                 <i class="fas fa-eye"></i>
                                             </a>
@@ -284,7 +284,7 @@
 function updateStatus(reviewId, status) {
     const statusText = status === 'approved' ? 'duyệt' : 'từ chối';
     if (confirm(`Bạn có chắc muốn ${statusText} đánh giá này?`)) {
-        fetch('/5s-fashion/admin/reviews/update-status', {
+        fetch('/zone-fashion/admin/reviews/update-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ review_id: reviewId, status: status })
@@ -306,7 +306,7 @@ function updateStatus(reviewId, status) {
 
 function deleteReview(reviewId) {
     if (confirm('Bạn có chắc muốn xóa đánh giá này? Hành động này không thể hoàn tác.')) {
-        fetch('/5s-fashion/admin/reviews/delete', {
+        fetch('/zone-fashion/admin/reviews/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ review_id: reviewId })
@@ -359,7 +359,7 @@ function bulkAction(action) {
     };
 
     if (confirm(`Bạn có chắc muốn ${actionText[action]} ${reviewIds.length} đánh giá đã chọn?`)) {
-        fetch('/5s-fashion/admin/reviews/bulk-action', {
+        fetch('/zone-fashion/admin/reviews/bulk-action', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: action, review_ids: reviewIds })

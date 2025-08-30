@@ -3,6 +3,9 @@
  * Handles login, register, forgot password functionality
  */
 
+// auth.js loaded
+
+
 class AuthManager {
 	constructor() {
 		this.currentUser = null;
@@ -106,9 +109,11 @@ class AuthManager {
 
 		// Email validation
 		const emailInput = document.getElementById('forgotEmail');
-		emailInput.addEventListener('blur', () =>
-			this.validateForgotPasswordField(emailInput)
-		);
+		if (emailInput) {
+			emailInput.addEventListener('blur', () =>
+				this.validateForgotPasswordField(emailInput)
+			);
+		}
 	}
 
 	/**
@@ -201,7 +206,7 @@ class AuthManager {
 
 				// Show success message
 				this.showMessage(
-					'Đăng ký thành công! Chào mừng bạn đến với 5S Fashion!',
+					'Đăng ký thành công! Chào mừng bạn đến với zone Fashion!',
 					'success'
 				);
 
@@ -227,8 +232,13 @@ class AuthManager {
 	 * Handle forgot password form submission
 	 */
 	async handleForgotPassword() {
-		const form = document.getElementById('forgotPasswordForm');
-		const email = form.email.value;
+		const form = document.getElementById('forgotPasswordForm') || document.querySelector('form[action*="forgot-password"]');
+		if (!form) {
+			console.warn('Forgot password form not found');
+			return;
+		}
+
+		const email = (form.email && form.email.value) || document.getElementById('forgotEmail')?.value || '';
 
 		// Validate email
 		if (!this.isValidEmail(email)) {
@@ -243,11 +253,37 @@ class AuthManager {
 			// Simulate API call
 			const result = await this.sendPasswordReset(email);
 
-			if (result.success) {
-				// Hide form and show success message
-				form.style.display = 'none';
-				document.getElementById('successMessage').style.display =
-					'block';
+			// Server response is in `result` (logged during development)
+
+			if (result && result.success) {
+				// Hide form and show success message (guard nulls)
+				try {
+					if (form && form.style) form.style.display = 'none';
+					let successEl = document.getElementById('successMessage');
+					if (successEl && successEl.style) {
+						successEl.style.display = 'block';
+					} else {
+						// Create fallback success element so user sees feedback
+						try {
+							successEl = document.createElement('div');
+							successEl.id = 'successMessage';
+							successEl.className = 'alert alert-success';
+							successEl.textContent = 'Liên kết đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email của bạn.';
+							if (form && form.parentNode) {
+								form.parentNode.insertBefore(successEl, form.nextSibling);
+							} else {
+								document.body.appendChild(successEl);
+							}
+						} catch (createErr) {
+							console.error('Could not create fallback success element', createErr);
+						}
+					}
+
+					// Also show a toast as a backup notification
+					this.showMessage('Link đặt lại mật khẩu đã được gửi đến email của bạn', 'success');
+				} catch (domErr) {
+					console.error('DOM update error in handleForgotPassword:', domErr, { formExists: !!form, successEl: document.getElementById('successMessage') });
+				}
 			} else {
 				throw new Error(
 					result.message || 'Không thể gửi email khôi phục'
@@ -280,7 +316,7 @@ class AuthManager {
 				firstName: 'Nguyễn',
 				lastName: 'Văn A',
 				role: 'customer',
-				avatar: '/5s-fashion/public/assets/images/avatar-customer.jpg',
+				avatar: '/zone-fashion/public/assets/images/avatar-customer.jpg',
 			},
 			'admin@demo.com': {
 				id: 2,
@@ -289,7 +325,7 @@ class AuthManager {
 				firstName: 'Admin',
 				lastName: 'System',
 				role: 'admin',
-				avatar: '/5s-fashion/public/assets/images/avatar-admin.jpg',
+				avatar: '/zone-fashion/public/assets/images/avatar-admin.jpg',
 			},
 		};
 
@@ -338,7 +374,7 @@ class AuthManager {
 			birthDate: userData.birthDate,
 			gender: userData.gender,
 			role: 'customer',
-			avatar: '/5s-fashion/public/assets/images/avatar-default.jpg',
+			avatar: '/zone-fashion/public/assets/images/avatar-default.jpg',
 			createdAt: new Date().toISOString(),
 		};
 
@@ -353,14 +389,32 @@ class AuthManager {
 	 * Send password reset email (mock API)
 	 */
 	async sendPasswordReset(email) {
-		// Simulate API delay
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+		try {
+			const formData = new FormData();
+			formData.append('email', email);
 
-		// Mock successful response
-		return {
-			success: true,
-			message: 'Email khôi phục đã được gửi',
-		};
+			const response = await fetch('/zone-fashion/public/forgot-password', {
+				method: 'POST',
+				body: formData,
+				credentials: 'same-origin',
+				headers: {
+					'X-Requested-With': 'XMLHttpRequest'
+				}
+			});
+
+			// Expect JSON response for AJAX requests. If server returns JSON, use it.
+			const contentType = response.headers.get('content-type') || '';
+			if (contentType.includes('application/json')) {
+				const data = await response.json();
+				return data;
+			}
+
+			// If server did not return JSON, treat as failure for AJAX flow so frontend doesn't show false success.
+			return { success: false, message: 'Lỗi máy chủ: server không trả về JSON' };
+		} catch (err) {
+			console.error('Error sending password reset:', err);
+			return { success: false, message: 'Lỗi kết nối máy chủ' };
+		}
 	}
 
 	/**

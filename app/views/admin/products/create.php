@@ -14,7 +14,7 @@
         </div>
     </div>
     <div class="admin-header-actions">
-        <a href="/5s-fashion/admin/products" class="btn btn-secondary">
+        <a href="/zone-fashion/admin/products" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i>
             Quay lại
         </a>
@@ -22,7 +22,7 @@
 </div>
 
 <!-- Product Form -->
-<form method="POST" action="/5s-fashion/admin/products/store" enctype="multipart/form-data" id="productForm">
+<form method="POST" action="/zone-fashion/admin/products/store" enctype="multipart/form-data" id="productForm">
     <div class="form-container">
         <div class="form-grid-main">
             <!-- Left Column - Main Information -->

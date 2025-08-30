@@ -5,6 +5,8 @@
 
 class QuickViewModal {
 	constructor() {
+		// Ensure a global fallback exists to avoid reference errors from other scripts
+		if (typeof window.firstColor === 'undefined') window.firstColor = null;
 		console.log('QuickViewModal constructor called');
 		this.modal = null;
 		this.modalContent = null;
@@ -167,7 +169,7 @@ class QuickViewModal {
 		try {
 			// Fetch product data
 			const response = await fetch(
-				`/5s-fashion/ajax/getProductForQuickView?id=${productId}`
+				`/zone-fashion/ajax/getProductForQuickView?id=${productId}`
 			);
 			const data = await response.json();
 			console.log('API Response:', data);
@@ -231,6 +233,58 @@ class QuickViewModal {
                 </div>
             </div>
         `;
+
+		// After injecting HTML, ensure the initial selected color/size reflect availability
+		try {
+			// Find color buttons (buttons with data-color)
+			const colorButtons = Array.from(this.modalContent.querySelectorAll('[data-color]'));
+			let chosenColorBtn = null;
+			if (colorButtons.length) {
+				chosenColorBtn = colorButtons.find(b => parseInt(b.getAttribute('data-stock') || '0') > 0) || colorButtons[0];
+				if (chosenColorBtn) {
+					// remove active from siblings then set active
+					const parent = chosenColorBtn.parentElement;
+					parent.querySelectorAll('[data-color]').forEach(b => b.classList.remove('active'));
+					chosenColorBtn.classList.add('active');
+				}
+			}
+
+			// Find size buttons (buttons in variant-group whose label includes 'kích' / 'kích thước')
+			const allStockButtons = Array.from(this.modalContent.querySelectorAll('[data-stock]'));
+			const sizeButtons = allStockButtons.filter(el => {
+				const vg = el.closest('.variant-group');
+				if (!vg) return false;
+				const label = vg.querySelector('.form-label');
+				if (!label) return false;
+				return label.textContent.toLowerCase().includes('kích');
+			});
+			if (sizeButtons.length) {
+				const chosenSizeBtn = sizeButtons.find(b => parseInt(b.getAttribute('data-stock') || '0') > 0) || sizeButtons[0];
+				if (chosenSizeBtn) {
+					// deactivate siblings and activate chosen
+					const parent = chosenSizeBtn.parentElement;
+					parent.querySelectorAll('[data-stock]').forEach(b => b.classList.remove('active'));
+					chosenSizeBtn.classList.add('active');
+
+					// sync quantity input max to chosen size stock
+					const qtyInput = this.modalContent.querySelector('#productQuantity');
+					const maxStock = parseInt(chosenSizeBtn.getAttribute('data-stock') || '0') || parseInt(product.stock || '0') || 0;
+					if (qtyInput) {
+						qtyInput.setAttribute('max', String(maxStock || 99));
+						if (parseInt(qtyInput.value) > maxStock && maxStock > 0) {
+							qtyInput.value = maxStock;
+							qtyInput.dispatchEvent(new Event('change'));
+						}
+						qtyInput.disabled = maxStock <= 0;
+					}
+				}
+			}
+
+			// Finally, ensure action buttons reflect the selected variant
+			setTimeout(() => this.updateActionButtonsAvailability(), 0);
+		} catch (err) {
+			console.warn('QuickView initial selection sync failed', err);
+		}
 	}
 
 	/**
@@ -244,6 +298,9 @@ class QuickViewModal {
 			return;
 		}
 
+		// Keep a reference to the rendered product for handlers (selectColor/selectSize)
+		this.currentRenderedProduct = product;
+
 		console.log('Rendering product:', product);
 
 		const salePrice =
@@ -256,7 +313,7 @@ class QuickViewModal {
 			: 0;
 
 		// Format image URL
-		let imageUrl = '/5s-fashion/public/assets/images/no-image.jpg';
+		let imageUrl = '/zone-fashion/public/assets/images/no-image.jpg';
 		if (product.featured_image) {
 			let imagePath = product.featured_image;
 			if (imagePath.startsWith('/uploads/')) {
@@ -266,7 +323,7 @@ class QuickViewModal {
 			} else {
 				imagePath = imagePath.replace(/^\/+/, '');
 			}
-			imageUrl = `/5s-fashion/serve-file.php?file=${encodeURIComponent(
+			imageUrl = `/zone-fashion/serve-file.php?file=${encodeURIComponent(
 				imagePath
 			)}`;
 		}
@@ -383,44 +440,28 @@ class QuickViewModal {
 									: ''
 							}
 
-                            <!-- Actions -->
-                            <div class="product-actions mt-auto pt-4">
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        ${
-											product.in_stock
-												? `
-                                            <button class="btn-primary-action w-100" onclick="window.quickViewModal.addToCartAndClose(${product.id})">
-                                                <i class="fas fa-shopping-cart me-2"></i>
-                                                Thêm vào giỏ hàng
-                                            </button>
-                                        `
-												: `
-											<button class="btn btn-secondary w-100" disabled aria-disabled="true" style="border-radius: 50px; padding: 15px 30px;">
-												<i class="fas fa-times me-2"></i>
-												Hết Hàng
-											</button>
-                                        `
-										}
-                                    </div>
-                                    <div class="col-6">
-                                        <button class="btn-outline-primary-action w-100" onclick="window.quickViewModal.addToWishlist(${
-											product.id
-										})">
-                                            <i class="far fa-heart me-2"></i>
-                                            Yêu thích
-                                        </button>
-                                    </div>
-                                    <div class="col-6">
-                                        <a href="/5s-fashion/product/${
-											product.id
-										}" class="btn-outline-secondary-action w-100 text-decoration-none">
-                                            <i class="fas fa-eye me-2"></i>
-                                            Xem chi tiết
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+							<!-- Actions -->
+							<div class="product-actions mt-auto pt-4">
+								<div class="row g-3">
+									<div class="col-12">
+										<button class="${product.in_stock ? 'btn btn-danger btn-lg w-100 quickview-add-to-cart' : 'btn btn-secondary btn-lg w-100'}" onclick="addToCartFromQuickView(${product.id})" disabled aria-disabled="true">
+											${product.in_stock ? '<i class="fas fa-shopping-cart me-2"></i>Thêm Vào Giỏ Hàng' : '<i class="fas fa-times me-2"></i>Hết Hàng'}
+										</button>
+									</div>
+									<div class="col-6">
+										<button class="btn-outline-primary-action w-100" onclick="window.quickViewModal.addToWishlist(${product.id})">
+											<i class="far fa-heart me-2"></i>
+											Yêu thích
+										</button>
+									</div>
+									<div class="col-6">
+										<a href="/zone-fashion/product/${product.id}" class="btn-outline-secondary-action w-100 text-decoration-none">
+											<i class="fas fa-eye me-2"></i>
+											Xem chi tiết
+										</a>
+									</div>
+								</div>
+							</div>
                         </div>
                     </div>
                 </div>
@@ -459,50 +500,170 @@ class QuickViewModal {
 	 * Render product variants (if any)
 	 */
 	renderVariants(variants) {
-		if (!variants || variants.length === 0) {
-			return '';
+		if (!variants || variants.length === 0) return '';
+
+		// Group variants by color for correct per-color size rendering
+		const variantsByColor = {};
+		variants.forEach(v => {
+			const c = (v.color || 'Default').trim();
+			if (!variantsByColor[c]) variantsByColor[c] = [];
+			variantsByColor[c].push(v);
+		});
+
+		// Build deduplicated color list and choose a sensible initial color
+		const colorList = Object.keys(variantsByColor).map(name => ({
+			name,
+			color_code: (variantsByColor[name].find(v => v.color_code) || {}).color_code || '#ccc'
+		}));
+
+		// Prefer first color that has any stock
+		let preferredColor = null;
+		for (const c of colorList) {
+			const any = (variantsByColor[c.name] || []).some(v => (v.stock_quantity || v.stock) > 0);
+			if (any) { preferredColor = c.name; break; }
 		}
+		if (!preferredColor && colorList.length) preferredColor = colorList[0].name;
+
+		// Render unique sizes for the preferredColor only (sizes will change when user selects a color)
+		const sizesForPreferred = (variantsByColor[preferredColor] || []);
+		const seenSizes = new Set();
+		const sizeButtonsHtml = sizesForPreferred.map(v => v).filter(v => {
+			const key = (v.size || 'One Size').trim();
+			if (seenSizes.has(key)) return false;
+			seenSizes.add(key);
+			return true;
+		}).map((v, idx) => {
+			const stockVal = parseInt(v.stock_quantity || v.stock || 0) || 0;
+			const disabledAttr = stockVal <= 0 ? 'disabled aria-disabled="true"' : '';
+			const activeClass = (stockVal > 0 && idx === 0) ? ' active' : '';
+			return `
+				<button type="button" class="btn btn-outline-secondary size-option${activeClass} btn-sm" data-variant-id="${v.id || ''}" data-stock="${stockVal}" data-color="${v.color || ''}" style="border-radius: 25px; min-width: 45px;" onclick="window.quickViewModal.selectSize('${v.id}')">
+					${v.size || 'One Size'}
+				</button>
+			`;
+		}).join('');
+
+		// Render color buttons deduplicated
+		const colorButtonsHtml = colorList.map((c, idx) => `
+			<button type="button" class="btn btn-outline-secondary color-option ${idx === 0 ? 'active' : ''}" data-color="${c.name}" style="border-radius: 25px; min-width:45px; padding:4px 6px;" onclick="window.quickViewModal.selectColor('${c.name.replace(/'/g,'\\\'')}')">
+				<span class="color-swatch" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${c.color_code};border:1px solid #ccc;vertical-align:middle;"></span>
+			</button>
+		`).join('');
 
 		return `
-            <div class="product-variants mb-4">
-                <h6 class="fw-semibold mb-3">Tùy chọn:</h6>
-                <div class="variants-container">
-                    <!-- Size variants -->
-                    <div class="variant-group mb-3">
-                        <label class="form-label small fw-semibold">Kích thước:</label>
-							<div class="d-flex flex-wrap gap-2">
-								${variants
-								.slice(0, 10)
-								.map((v, i) => {
-									const stockVal = parseInt(v.stock_quantity || v.stock || 0) || 0;
-									const disabledAttr = stockVal <= 0 ? 'disabled aria-disabled="true"' : '';
-									const extraClass = stockVal <= 0 ? ' unavailable disabled' : '';
-									return `
-									<button class="btn btn-outline-secondary btn-sm ${i === 0 ? 'active' : ''}${extraClass}" data-variant-id="${v.id || ''}" data-stock="${stockVal}" ${disabledAttr} style="border-radius: 25px; min-width: 45px;">
-										${v.size || 'One Size'}
-									</button>
-								`
-								}).join('')}
+			<div class="product-variants mb-4">
+				<h6 class="fw-semibold mb-3">Tùy chọn:</h6>
+				<div class="variants-container">
+					<div class="variant-group mb-3">
+						<label class="form-label small fw-semibold">Chọn Màu Sắc:</label>
+						<div class="d-flex flex-wrap gap-2 color-options">
+							${colorButtonsHtml}
 						</div>
-                    </div>
+					</div>
+					<div class="variant-group mb-3">
+						<label class="form-label small fw-semibold">Chọn Kích Thước:</label>
+						<div class="d-flex flex-wrap gap-2" id="quickview-size-options">
+							${sizeButtonsHtml}
+						</div>
+					</div>
+				</div>
+			</div>
+		`;
 
-                    <!-- Color variants -->
-                    <div class="variant-group">
-                        <label class="form-label small fw-semibold">Màu sắc:</label>
-							<div class="d-flex flex-wrap gap-2">
-							${variants
-								.slice(0, 10)
-								.map((v, i) => `
-									<button class="btn btn-outline-secondary btn-sm ${i === 0 ? 'active' : ''}" data-variant-id="${v.id || ''}" data-stock="${v.stock_quantity || v.stock || 0}" data-color="${v.color || ''}" style="border-radius: 25px;">
-										${v.color || 'Default'}
-									</button>
-								`)
-								.join('')}
-						</div>
-                    </div>
-                </div>
-            </div>
-        `;
+		// After injecting HTML, ensure color/size UI is initialized
+		setTimeout(() => {
+			try {
+				const activeColorBtn = this.modalContent.querySelector('.color-option.active') || this.modalContent.querySelector('.color-option');
+				if (activeColorBtn) {
+					const color = activeColorBtn.getAttribute('data-color');
+					this.selectColor(color);
+				} else {
+					this.updateActionButtonsAvailability();
+				}
+			} catch (err) {
+				console.warn('init color/size after render failed', err);
+			}
+		}, 30);
+	}
+
+	// Select a color programmatically and update sizes
+	selectColor(colorName) {
+		try {
+			// update color buttons
+			this.modalContent.querySelectorAll('.color-option').forEach(b => b.classList.remove('active'));
+			const btn = this.modalContent.querySelector(`.color-option[data-color="${colorName}"]`);
+			if (btn) btn.classList.add('active');
+
+			// find variants for the color
+			const product = this.currentRenderedProduct || this.modalProduct || null;
+			if (!product || !product.variants) {
+				this.updateActionButtonsAvailability();
+				return;
+			}
+			const variantsByColor = {};
+			product.variants.forEach(v => {
+				const c = (v.color || 'Default').trim();
+				if (!variantsByColor[c]) variantsByColor[c] = [];
+				variantsByColor[c].push(v);
+			});
+			const list = variantsByColor[colorName] || [];
+			if (list.length === 0) {
+				// render placeholder
+				document.getElementById('quickview-size-options').innerHTML = '<p class="text-muted">Không có biến thể cho màu này.</p>';
+				this.updateActionButtonsAvailability();
+				return;
+			}
+
+			// build unique sizes for this color
+			const seen = new Set();
+			const html = list.filter(v => {
+				const k = (v.size || 'One Size').trim();
+				if (seen.has(k)) return false; seen.add(k); return true;
+			}).map((v, idx) => {
+				const stockVal = parseInt(v.stock_quantity || v.stock || 0) || 0;
+				const disabledAttr = stockVal <= 0 ? 'disabled aria-disabled="true"' : '';
+				const activeClass = (stockVal > 0 && idx === 0) ? ' active' : '';
+				return `
+					<button type="button" class="btn btn-outline-secondary size-option${activeClass} btn-sm" data-variant-id="${v.id || ''}" data-stock="${stockVal}" data-color="${v.color || ''}" style="border-radius: 25px; min-width: 45px;" onclick="window.quickViewModal.selectSize('${v.id}')">
+						${v.size || 'One Size'}
+					</button>
+				`;
+			}).join('');
+
+			document.getElementById('quickview-size-options').innerHTML = html;
+			// auto select first available size
+			const firstAvailable = document.querySelector('#quickview-size-options .size-option:not([disabled])');
+			if (firstAvailable) {
+				firstAvailable.classList.add('active');
+				this.selectSize(firstAvailable.getAttribute('data-variant-id'));
+			} else {
+				// no stock in this color
+				this.selectSize(null);
+			}
+			this.updateActionButtonsAvailability();
+		} catch (err) {
+			console.warn('selectColor failed', err);
+		}
+	}
+
+	selectSize(variantId) {
+		try {
+			// clear active
+			this.modalContent.querySelectorAll('.size-option').forEach(b => b.classList.remove('active'));
+			const target = variantId ? this.modalContent.querySelector(`.size-option[data-variant-id="${variantId}"]`) : null;
+			if (target) target.classList.add('active');
+			// update quantity max
+			const stock = target ? parseInt(target.getAttribute('data-stock') || '0') : 0;
+			const qty = this.modalContent.querySelector('#productQuantity') || this.modalContent.querySelector('#quantityInput');
+			if (qty) {
+				qty.max = Math.max(1, stock || 1);
+				if (parseInt(qty.value) > qty.max) qty.value = qty.max;
+				qty.disabled = qty.max <= 0;
+			}
+			this.updateActionButtonsAvailability();
+		} catch (err) {
+			console.warn('selectSize failed', err);
+		}
 	}
 
 	/**
@@ -802,26 +963,15 @@ class QuickViewModal {
 		const initial = product.variants.find(v => (parseInt(v.stock_quantity || v.stock) || 0) > 0) || product.variants[0];
 		if (!initial) return;
 
-		// Activate any buttons that match this variant id
-		const variantButtons = this.modalContent.querySelectorAll(`[data-variant-id="${initial.id}"]`);
-		variantButtons.forEach(btn => {
-			// remove active from siblings in the same group
-			if (btn.parentElement) {
-				btn.parentElement.querySelectorAll('.btn-outline-secondary').forEach(b => b.classList.remove('active'));
-			}
-			btn.classList.add('active');
-		});
-
-		// If no specific button found, try to activate first size/color groups
-		if (variantButtons.length === 0) {
-			const sizeGroup = this.modalContent.querySelector('.variant-group');
-			if (sizeGroup) {
-				sizeGroup.querySelectorAll('.btn-outline-secondary').forEach((b, i) => {
-					b.classList.remove('active');
-					if (i === 0) b.classList.add('active');
-				});
-			}
-		}
+		// Do NOT mutate DOM active classes here (avoid overriding user's clicks).
+		// Instead, store the selected variant internally so other handlers can read it.
+		selectedVariant = {
+			id: initial.id,
+			size: initial.size,
+			price: parseFloat(initial.price) || 0,
+			color: initial.color,
+			stock_quantity: parseInt(initial.stock_quantity || initial.stock || 0)
+		};
 
 		// Set quantity input max to variant stock or product stock
 		let stock = parseInt(initial.stock_quantity || initial.stock);

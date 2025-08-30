@@ -18,7 +18,7 @@ class StatisticsController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -33,7 +33,7 @@ class StatisticsController extends BaseController
             $period = $_GET['period'] ?? '30'; // Default 30 days
 
             $data = [
-                'title' => 'Thống kê tổng quan - 5S Fashion Admin',
+                'title' => 'Thống kê tổng quan - zone Fashion Admin',
                 'overview' => $this->getOverviewStats(),
                 'reviews' => $this->getReviewStats($period),
                 'products' => $this->getProductStats($period),
@@ -42,7 +42,7 @@ class StatisticsController extends BaseController
                 'charts' => $this->getChartData($period),
                 'period' => $period,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['name' => 'Thống kê', 'url' => '']
                 ]
             ];
@@ -51,7 +51,7 @@ class StatisticsController extends BaseController
         } catch (Exception $e) {
             error_log('Error in StatisticsController::index: ' . $e->getMessage());
             $this->render('admin/statistics/index', [
-                'title' => 'Thống kê tổng quan - 5S Fashion Admin',
+                'title' => 'Thống kê tổng quan - zone Fashion Admin',
                 'error' => 'Có lỗi xảy ra khi tải dữ liệu thống kê'
             ], 'admin/layouts/main-inline');
         }
@@ -63,15 +63,15 @@ class StatisticsController extends BaseController
             $period = $_GET['period'] ?? '30';
 
             $data = [
-                'title' => 'Thống kê đánh giá - 5S Fashion Admin',
+                'title' => 'Thống kê đánh giá - zone Fashion Admin',
                 'stats' => $this->getDetailedReviewStats($period),
                 'charts' => $this->getReviewChartData($period),
                 'topProducts' => $this->getTopRatedProducts(),
                 'recentReviews' => $this->getRecentReviews(10),
                 'period' => $period,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['name' => 'Thống kê', 'url' => '/5s-fashion/admin/statistics'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['name' => 'Thống kê', 'url' => '/zone-fashion/admin/statistics'],
                     ['name' => 'Đánh giá', 'url' => '']
                 ]
             ];
@@ -80,7 +80,7 @@ class StatisticsController extends BaseController
         } catch (Exception $e) {
             error_log('Error in StatisticsController::reviews: ' . $e->getMessage());
             $this->render('admin/statistics/reviews', [
-                'title' => 'Thống kê đánh giá - 5S Fashion Admin',
+                'title' => 'Thống kê đánh giá - zone Fashion Admin',
                 'error' => 'Có lỗi xảy ra khi tải dữ liệu'
             ], 'admin/layouts/main-inline');
         }

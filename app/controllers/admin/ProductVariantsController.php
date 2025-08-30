@@ -22,7 +22,7 @@ class ProductVariantsController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -41,7 +41,7 @@ class ProductVariantsController extends BaseController
             // Get product info
             $product = $this->productModel->find($productId);
             if (!$product) {
-                header('Location: /5s-fashion/admin/products?error=' . urlencode('Không tìm thấy sản phẩm'));
+                header('Location: /zone-fashion/admin/products?error=' . urlencode('Không tìm thấy sản phẩm'));
                 exit;
             }
 
@@ -69,9 +69,9 @@ class ProductVariantsController extends BaseController
                 'sizes' => $sizes ?: [],
                 'materials' => $materials,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['title' => 'Sản phẩm', 'url' => '/5s-fashion/admin/products'],
-                    ['title' => $product['name'], 'url' => '/5s-fashion/admin/products/' . $productId . '/edit'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['title' => 'Sản phẩm', 'url' => '/zone-fashion/admin/products'],
+                    ['title' => $product['name'], 'url' => '/zone-fashion/admin/products/' . $productId . '/edit'],
                     ['title' => 'Quản lý biến thể']
                 ]
             ];
@@ -112,7 +112,7 @@ class ProductVariantsController extends BaseController
                 exit;
             }
 
-            header('Location: /5s-fashion/admin/products?error=' . urlencode('Có lỗi xảy ra: ' . $e->getMessage()));
+            header('Location: /zone-fashion/admin/products?error=' . urlencode('Có lỗi xảy ra: ' . $e->getMessage()));
             exit;
         }
     }
@@ -190,7 +190,7 @@ class ProductVariantsController extends BaseController
                 }
 
                 // Chuyển hướng như thông thường nếu không phải AJAX
-                $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
+                $this->redirect("/zone-fashion/admin/products/{$productId}/variants");
 
             } catch (Exception $e) {
                 error_log("Error creating variant: " . $e->getMessage());
@@ -209,7 +209,7 @@ class ProductVariantsController extends BaseController
                 }
 
                 // Chuyển hướng như thông thường nếu không phải AJAX
-                $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
+                $this->redirect("/zone-fashion/admin/products/{$productId}/variants");
             }
         }
 
@@ -277,7 +277,7 @@ class ProductVariantsController extends BaseController
             }
         }
 
-        $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
+        $this->redirect("/zone-fashion/admin/products/{$productId}/variants");
     }
 
     /**
@@ -312,7 +312,7 @@ class ProductVariantsController extends BaseController
             $_SESSION['error'] = $e->getMessage();
         }
 
-        $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
+        $this->redirect("/zone-fashion/admin/products/{$productId}/variants");
     }
 
     /**
@@ -468,7 +468,7 @@ class ProductVariantsController extends BaseController
         }
 
         // Nếu không phải AJAX request, chuyển hướng như thông thường
-        $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
+        $this->redirect("/zone-fashion/admin/products/{$productId}/variants");
     }
 
     /**
@@ -592,7 +592,7 @@ class ProductVariantsController extends BaseController
             $_SESSION['error'] = "Có lỗi xảy ra: " . $e->getMessage();
         }
 
-        $this->redirect("/5s-fashion/admin/products/{$productId}/variants");
+        $this->redirect("/zone-fashion/admin/products/{$productId}/variants");
     }
 
     /**

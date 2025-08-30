@@ -2,7 +2,7 @@
 /**
  * AJAX Controller
  * Handle AJAX requests for cart operations
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once APP_PATH . '/core/Controller.php';
@@ -78,7 +78,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
                         'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
-                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                        'redirect_url' => '/zone-fashion/admin/dashboard'
                     ]);
                 } else {
                     http_response_code(401);
@@ -86,7 +86,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng',
                         'error_code' => 'AUTHENTICATION_REQUIRED',
-                        'redirect_url' => '/5s-fashion/login'
+                        'redirect_url' => '/zone-fashion/login'
                     ]);
                 }
                 return;
@@ -203,8 +203,20 @@ class AjaxController extends Controller
             // Add to cart using Cart model
             $result = $cartModel->addToCart($productId, $quantity, $variantId);
 
-            if (!$result) {
-                throw new Exception('Could not add product to cart');
+            // Cart::addToCart now returns structured array ['success'=>bool, 'quantity'=>int, 'clamped'=>bool] or ['success'=>false,'message'=>...]
+            if (is_array($result)) {
+                if (empty($result['success'])) {
+                    throw new Exception($result['message'] ?? 'Could not add product to cart');
+                }
+                $addedQuantity = $result['quantity'] ?? $quantity;
+                $wasClamped = !empty($result['clamped']);
+            } else {
+                // Backwards compatibility: boolean true/false
+                if (!$result) {
+                    throw new Exception('Could not add product to cart');
+                }
+                $addedQuantity = $quantity;
+                $wasClamped = false;
             }
 
             // Get updated cart data
@@ -227,7 +239,9 @@ class AjaxController extends Controller
                 'message' => 'Sản phẩm đã được thêm vào giỏ hàng!',
                 'cart_count' => $cartCount,
                 'cart_total' => $cartTotal,
-                'item' => $addedItem
+                'item' => $addedItem,
+                'added_quantity' => $addedQuantity,
+                'clamped' => !empty($wasClamped)
             ];
 
             echo json_encode($response);
@@ -257,7 +271,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
                         'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
-                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                        'redirect_url' => '/zone-fashion/admin/dashboard'
                     ]);
                 } else {
                     http_response_code(401);
@@ -265,7 +279,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Bạn cần đăng nhập để cập nhật giỏ hàng',
                         'error_code' => 'AUTHENTICATION_REQUIRED',
-                        'redirect_url' => '/5s-fashion/login'
+                        'redirect_url' => '/zone-fashion/login'
                     ]);
                 }
                 return;
@@ -290,6 +304,37 @@ class AjaxController extends Controller
             }
             $cartModel = new Cart();
 
+
+            // Server-side stock validation: ensure requested quantity does not exceed available stock
+            $clamped = false;
+            // Try to get cart item to determine product/variant
+            $cartItem = $cartModel->getCartItemById($cartKey);
+            if ($cartItem) {
+                // Use available stock that subtracts reserved and quantities in other carts
+                $availableStock = $cartModel->getAvailableStock($cartItem['product_id'], $cartItem['variant_id'] ?? null, $cartItem['id']);
+
+                // If availableStock is numeric, clamp quantity to it
+                if (is_numeric($availableStock)) {
+                    $availableStock = (int)$availableStock;
+                    if ($availableStock <= 0) {
+                        // No stock available: remove item from cart
+                        $cartModel->removeItem($cartKey);
+                        echo json_encode([
+                            'success' => false,
+                            'message' => 'Sản phẩm hiện đã hết hàng và đã được xóa khỏi giỏ hàng',
+                            'cart_count' => $cartModel->getCartCount(),
+                            'cart_total' => $cartModel->getCartTotal()
+                        ]);
+                        return;
+                    }
+
+                    if ($quantity > $availableStock) {
+                        $quantity = $availableStock;
+                        $clamped = true;
+                    }
+                }
+            }
+
             // Update quantity using cart ID
             $result = $cartModel->updateQuantity($cartKey, $quantity);
 
@@ -301,12 +346,19 @@ class AjaxController extends Controller
             $cartTotal = $cartModel->getCartTotal();
             $cartCount = $cartModel->getCartCount();
 
-            echo json_encode([
+            $response = [
                 'success' => true,
                 'message' => 'Giỏ hàng đã được cập nhật!',
                 'cart_count' => $cartCount,
                 'cart_total' => $cartTotal
-            ]);
+            ];
+
+            if (isset($clamped) && $clamped) {
+                $response['clamped'] = true;
+                $response['message'] = 'Số lượng đã được điều chỉnh về mức tồn kho hiện có';
+            }
+
+            echo json_encode($response);
 
         } catch (Exception $e) {
             http_response_code(400);
@@ -333,7 +385,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
                         'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
-                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                        'redirect_url' => '/zone-fashion/admin/dashboard'
                     ]);
                 } else {
                     http_response_code(401);
@@ -341,7 +393,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Bạn cần đăng nhập để xóa sản phẩm khỏi giỏ hàng',
                         'error_code' => 'AUTHENTICATION_REQUIRED',
-                        'redirect_url' => '/5s-fashion/login'
+                        'redirect_url' => '/zone-fashion/login'
                     ]);
                 }
                 return;
@@ -409,6 +461,26 @@ class AjaxController extends Controller
             // Format items for JavaScript
             $formattedItems = [];
             foreach ($cartItems as $item) {
+                // Provide both product and variant SKUs and a unified "sku" (prefer variant sku)
+                $productSku = $item['product_sku'] ?? '';
+                $variantSku = $item['variant_sku'] ?? '';
+                $sku = !empty($variantSku) ? $variantSku : $productSku;
+
+                // Build a readable variant string from variant_name and variant_attributes
+                $variantName = trim($item['variant_name'] ?? '');
+                $variantAttributes = trim($item['variant_attributes'] ?? '');
+                $variantStr = '';
+                if ($variantName !== '') {
+                    $variantStr = $variantName;
+                }
+                if ($variantAttributes !== '') {
+                    if ($variantStr !== '') {
+                        $variantStr .= ' | ' . $variantAttributes;
+                    } else {
+                        $variantStr = $variantAttributes;
+                    }
+                }
+
                 $formattedItems[] = [
                     'cart_key' => $item['id'], // Use cart ID as key
                     'product_id' => $item['product_id'],
@@ -416,7 +488,10 @@ class AjaxController extends Controller
                     'product_image' => $item['product_image'],
                     'price' => $item['price'],
                     'quantity' => $item['quantity'],
-                    'variant' => $item['variant'] ?? null
+                    'variant' => $variantStr ?: null,
+                    'product_sku' => $productSku,
+                    'variant_sku' => $variantSku,
+                    'sku' => $sku
                 ];
             }
 
@@ -487,10 +562,43 @@ class AjaxController extends Controller
             }
 
             $user = getUser();
-            $productId = $_POST['product_id'] ?? null;
+
+            // Safely obtain product_id from different body formats.
+            $productId = $_POST['product_id'] ?? $_POST['productId'] ?? null;
+
+            // If not present in $_POST, attempt to parse raw input (JSON or urlencoded)
+            if (empty($productId)) {
+                $contentType = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
+                $raw = file_get_contents('php://input');
+                if ($raw) {
+                    // Try JSON
+                    if (stripos($contentType, 'application/json') !== false) {
+                        $json = json_decode($raw, true);
+                        if (is_array($json)) {
+                            $productId = $json['product_id'] ?? $json['productId'] ?? $productId;
+                        }
+                    } else {
+                        // Parse urlencoded raw body
+                        parse_str($raw, $parsed);
+                        if (is_array($parsed)) {
+                            $productId = $parsed['product_id'] ?? $parsed['productId'] ?? $productId;
+                        }
+                    }
+                }
+            }
+
+            // Normalize to int when present
+            $productId = $productId !== null ? (int)$productId : null;
 
             if (!$productId) {
-                throw new Exception('Product ID is required');
+                // Return JSON error instead of throwing (keeps AJAX flow consistent)
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Product ID is required',
+                    'productId' => $productId
+                ]);
+                return;
             }
 
             // Validate product exists
@@ -585,7 +693,7 @@ class AjaxController extends Controller
             }
 
             // Get additional product data (images, variants, etc.)
-            $productImages = $this->product->getImages($productId);
+            // $productImages = $this->product->getImages($productId);
             $productVariants = $this->product->getVariants($productId);
 
             // Format product data for quick view
@@ -598,7 +706,7 @@ class AjaxController extends Controller
                 'sale_price' => $product['sale_price'],
                 'status' => $product['status'],
                 'featured_image' => $product['featured_image'],
-                'images' => $productImages,
+                // 'images' => $productImages,
                 'variants' => $productVariants,
                 'category_name' => $product['category_name'] ?? '',
                 'in_stock' => $product['status'] !== 'out_of_stock'
@@ -656,8 +764,29 @@ class AjaxController extends Controller
             }
             $variants = array_values($variantMap);
 
+            // Normalize variants to include available stock (stock - reserved - qty in other carts)
+            // Use Cart model helper to compute available stock
+            if (!class_exists('Cart')) {
+                require_once APP_PATH . '/models/Cart.php';
+            }
+            $cartModel = new Cart();
+            foreach ($variants as &$v) {
+                $vid = $v['id'] ?? null;
+                $available = null;
+                if ($vid) {
+                    $available = $cartModel->getAvailableStock($productId, $vid, null);
+                }
+                // If we couldn't resolve available, fall back to provided stock_quantity
+                if (!is_numeric($available)) {
+                    $available = isset($v['stock_quantity']) ? (int)$v['stock_quantity'] : (isset($v['stock']) ? (int)$v['stock'] : 0);
+                }
+                // Expose both fields for compatibility
+                $v['available_stock'] = (int)$available;
+                $v['stock_quantity'] = (int)$available; // overwrite so client uses available value
+            }
+
             // Get product images (if available)
-            $images = $this->product->getImages($productId) ?? [];
+            // $images = $this->product->getImages($productId) ?? [];
 
             // Format response
             $response = [
@@ -668,7 +797,6 @@ class AjaxController extends Controller
                 'sale_price' => $product['sale_price'] ?? null,
                 'featured_image' => $product['featured_image'],
                 'image' => $product['featured_image'],
-                'images' => $images,
                 'variants' => $variants,
                 'in_stock' => $product['status'] !== 'out_of_stock',
                 'category_name' => $product['category_name'] ?? null,

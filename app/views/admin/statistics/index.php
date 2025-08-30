@@ -185,7 +185,7 @@ $period = $period ?? '30';
                         </div>
                     </div>
                     <div class="text-center mt-3">
-                        <a href="/5s-fashion/admin/products" class="btn btn-primary btn-sm">
+                        <a href="/zone-fashion/admin/products" class="btn btn-primary btn-sm">
                             <i class="fas fa-eye me-1"></i>Xem chi tiết
                         </a>
                     </div>
@@ -219,7 +219,7 @@ $period = $period ?? '30';
                         <p class="text-muted text-center">Chưa có đánh giá nào</p>
                     <?php endif; ?>
                     <div class="text-center mt-3">
-                        <a href="/5s-fashion/admin/reviews" class="btn btn-primary btn-sm">
+                        <a href="/zone-fashion/admin/reviews" class="btn btn-primary btn-sm">
                             <i class="fas fa-eye me-1"></i>Xem đánh giá
                         </a>
                     </div>

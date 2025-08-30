@@ -19,7 +19,7 @@ class OrdersController extends BaseController
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
             error_log("Admin not authenticated for updatePaymentStatus");
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -79,14 +79,14 @@ class OrdersController extends BaseController
             $needsAttention = $this->orderModel->getOrdersNeedingAttention();
 
             $data = [
-                'title' => 'Quản lý đơn hàng - 5S Fashion Admin',
+                'title' => 'Quản lý đơn hàng - zone Fashion Admin',
                 'orders' => $orders,
                 'stats' => $stats,
                 'needsAttention' => $needsAttention,
                 'search' => $search,
                 'filters' => $filters,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['title' => 'Đơn hàng']
                 ]
             ];
@@ -95,13 +95,13 @@ class OrdersController extends BaseController
 
         } catch (Exception $e) {
             $data = [
-                'title' => 'Quản lý đơn hàng - 5S Fashion Admin',
+                'title' => 'Quản lý đơn hàng - zone Fashion Admin',
                 'error' => 'Lỗi khi tải danh sách đơn hàng: ' . $e->getMessage(),
                 'orders' => [],
                 'stats' => [],
                 'needsAttention' => [],
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['title' => 'Đơn hàng']
                 ]
             ];
@@ -126,11 +126,11 @@ class OrdersController extends BaseController
             $stats = $this->orderModel->getPendingStatistics();
 
             $data = [
-                'title' => 'Đơn hàng chờ xử lý - 5S Fashion Admin',
+                'title' => 'Đơn hàng chờ xử lý - zone Fashion Admin',
                 'orders' => $pendingOrders,
                 'stats' => $stats,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['name' => 'Đơn hàng chờ xử lý', 'url' => '']
                 ]
             ];
@@ -138,14 +138,28 @@ class OrdersController extends BaseController
             $this->render('admin/orders/pending', $data, 'admin/layouts/main-inline');
         } catch (Exception $e) {
             error_log('Error in OrdersController::pending: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode('Có lỗi xảy ra'));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode('Có lỗi xảy ra'));
             exit;
         }
     }
 
-    public function view($id)
+    // Signature kept compatible with BaseController::view($view, $data = [], $layout = 'client/layouts/app')
+    // We support calling this method with a numeric first argument (order id) for existing routes.
+    public function view($view, $data = [], $layout = 'admin/layouts/main-inline')
     {
+        // If $view is numeric, treat it as the order ID (backwards-compatible route calling)
+        if (is_numeric($view)) {
+            $id = (int)$view;
+        } else {
+            // If first arg isn't numeric, try to extract order id from provided data
+            $id = is_array($data) && isset($data['id']) ? (int)$data['id'] : null;
+        }
+
         try {
+            if (!$id) {
+                throw new Exception('Thiếu ID đơn hàng');
+            }
+
             // Get order details
             $order = $this->orderModel->getFullDetails($id);
 
@@ -153,20 +167,25 @@ class OrdersController extends BaseController
                 throw new Exception('Không tìm thấy đơn hàng');
             }
 
-            $data = [
-                'title' => 'Chi tiết đơn hàng #' . $order['order_code'] . ' - 5S Fashion Admin',
+            $viewData = [
+                'title' => 'Chi tiết đơn hàng #' . $order['order_code'] . ' - zone Fashion Admin',
                 'order' => $order,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['title' => 'Đơn hàng', 'url' => '/5s-fashion/admin/orders'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['title' => 'Đơn hàng', 'url' => '/zone-fashion/admin/orders'],
                     ['title' => 'Chi tiết #' . $order['order_code']]
                 ]
             ];
 
-            $this->render('admin/orders/view', $data, 'admin/layouts/main-inline');
+            // Merge any additional $data passed through
+            if (is_array($data)) {
+                $viewData = array_merge($viewData, $data);
+            }
+
+            $this->render('admin/orders/view', $viewData, $layout);
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -176,7 +195,7 @@ class OrdersController extends BaseController
         try {
             // Allow both GET and POST for admin interface
             if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'GET'])) {
-                header('Location: /5s-fashion/admin/orders');
+                header('Location: /zone-fashion/admin/orders');
                 exit;
             }
 
@@ -194,13 +213,13 @@ class OrdersController extends BaseController
             // For GET requests, show update form
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 if (!$orderId) {
-                    header('Location: /5s-fashion/admin/orders');
+                    header('Location: /zone-fashion/admin/orders');
                     exit;
                 }
 
                 $order = $this->orderModel->find($orderId);
                 if (!$order) {
-                    header('Location: /5s-fashion/admin/orders');
+                    header('Location: /zone-fashion/admin/orders');
                     exit;
                 }
 
@@ -208,7 +227,8 @@ class OrdersController extends BaseController
                 $data = [
                     'title' => 'Cập nhật trạng thái đơn hàng',
                     'order' => $order,
-                    'validStatuses' => ['pending', 'processing', 'shipping', 'delivered', 'cancelled']
+                    // Admin allowed statuses (match admin UI)
+                    'validStatuses' => ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'confirmed']
                 ];
 
                 require VIEW_PATH . '/admin/orders/update-status.php';
@@ -238,7 +258,8 @@ class OrdersController extends BaseController
             }
 
             // Validate status
-            $validStatuses = ['pending', 'processing', 'shipping', 'delivered', 'cancelled'];
+            // Accept statuses used in the admin UI
+            $validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'confirmed'];
             if (!in_array($status, $validStatuses)) {
                 throw new Exception('Trạng thái không hợp lệ');
             }
@@ -270,7 +291,7 @@ class OrdersController extends BaseController
                 ]);
                 exit; // Make sure we don't continue execution
             } else {
-                header('Location: /5s-fashion/admin/orders/show/' . $orderId . '?success=' . urlencode('Cập nhật trạng thái đơn hàng thành công'));
+                header('Location: /zone-fashion/admin/orders/show/' . $orderId . '?success=' . urlencode('Cập nhật trạng thái đơn hàng thành công'));
                 exit;
             }
 
@@ -279,14 +300,14 @@ class OrdersController extends BaseController
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => false,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
                 exit;
             } else {
                 // Use orderId if available, otherwise redirect to orders list
                 $redirectUrl = ($orderId)
-                    ? "/5s-fashion/admin/orders/show/$orderId?error=" . urlencode($e->getMessage())
-                    : "/5s-fashion/admin/orders?error=" . urlencode($e->getMessage());
+                    ? "/zone-fashion/admin/orders/show/$orderId?error=" . urlencode($e->getMessage())
+                    : "/zone-fashion/admin/orders?error=" . urlencode($e->getMessage());
                 header('Location: ' . $redirectUrl);
                 exit;
             }
@@ -299,7 +320,7 @@ class OrdersController extends BaseController
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 error_log("Not a POST request");
-                header('Location: /5s-fashion/admin/orders');
+                header('Location: /zone-fashion/admin/orders');
                 exit;
             }
 
@@ -351,7 +372,7 @@ class OrdersController extends BaseController
                     'message' => 'Cập nhật trạng thái thanh toán thành công'
                 ]);
             } else {
-                header('Location: /5s-fashion/admin/orders?success=' . urlencode('Cập nhật trạng thái thanh toán thành công'));
+                header('Location: /zone-fashion/admin/orders?success=' . urlencode('Cập nhật trạng thái thanh toán thành công'));
             }
 
         } catch (Exception $e) {
@@ -359,10 +380,10 @@ class OrdersController extends BaseController
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => false,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             } else {
-                header('Location: /5s-fashion/admin/orders?error=' . urlencode($e->getMessage()));
+                header('Location: /zone-fashion/admin/orders?error=' . urlencode($e->getMessage()));
             }
         }
     }
@@ -371,7 +392,7 @@ class OrdersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/orders');
+                header('Location: /zone-fashion/admin/orders');
                 exit;
             }
 
@@ -403,11 +424,11 @@ class OrdersController extends BaseController
             // Send cancellation notification to customer
             $this->sendOrderCancellationNotification($order, $reason);
 
-            header('Location: /5s-fashion/admin/orders?success=' . urlencode('Hủy đơn hàng thành công'));
+            header('Location: /zone-fashion/admin/orders?success=' . urlencode('Hủy đơn hàng thành công'));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -419,7 +440,7 @@ class OrdersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/orders');
+                header('Location: /zone-fashion/admin/orders');
                 exit;
             }
 
@@ -473,11 +494,11 @@ class OrdersController extends BaseController
                 }
             }
 
-            header('Location: /5s-fashion/admin/orders?success=' . urlencode("Đã thực hiện thao tác cho {$count} đơn hàng"));
+            header('Location: /zone-fashion/admin/orders?success=' . urlencode("Đã thực hiện thao tác cho {$count} đơn hàng"));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -520,12 +541,12 @@ class OrdersController extends BaseController
                 $this->exportToCsv($exportData, 'orders_' . date('Y-m-d_H-i-s') . '.csv');
             } else {
                 // Excel export not implemented yet
-                header('Location: /5s-fashion/admin/orders?error=' . urlencode('Excel export not implemented'));
+                header('Location: /zone-fashion/admin/orders?error=' . urlencode('Excel export not implemented'));
                 exit;
             }
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode('Lỗi khi xuất dữ liệu: ' . $e->getMessage()));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode('Lỗi khi xuất dữ liệu: ' . $e->getMessage()));
             exit;
         }
     }
@@ -550,7 +571,7 @@ class OrdersController extends BaseController
             $this->render('admin/orders/print', $data, 'admin/layouts/print');
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -580,7 +601,7 @@ class OrdersController extends BaseController
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => false,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -599,7 +620,7 @@ class OrdersController extends BaseController
             'delivered' => 'Đơn hàng của bạn đã được giao thành công'
         ];
 
-        $subject = "Cập nhật đơn hàng #{$order['order_code']} - 5S Fashion";
+        $subject = "Cập nhật đơn hàng #{$order['order_code']} - zone Fashion";
         $message = $statusMessages[$status] ?? 'Trạng thái đơn hàng đã được cập nhật';
 
         // TODO: Implement actual email sending
@@ -611,7 +632,7 @@ class OrdersController extends BaseController
      */
     private function sendOrderCancellationNotification($order, $reason)
     {
-        $subject = "Đơn hàng #{$order['order_code']} đã bị hủy - 5S Fashion";
+        $subject = "Đơn hàng #{$order['order_code']} đã bị hủy - zone Fashion";
         $message = "Đơn hàng của bạn đã bị hủy. Lý do: " . ($reason ?: 'Không có lý do cụ thể');
 
         // TODO: Implement actual email sending
@@ -707,7 +728,7 @@ class OrdersController extends BaseController
             ]);
         } catch (Exception $e) {
             error_log('Error in OrdersController::create: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode('Có lỗi xảy ra khi tải trang tạo đơn hàng'));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode('Có lỗi xảy ra khi tải trang tạo đơn hàng'));
             exit;
         }
     }
@@ -718,7 +739,7 @@ class OrdersController extends BaseController
             // Get order details - use getFullDetails instead of findById
             $order = $this->orderModel->getFullDetails($id);
             if (!$order) {
-                header('Location: /5s-fashion/admin/orders?error=' . urlencode('Không tìm thấy đơn hàng'));
+                header('Location: /zone-fashion/admin/orders?error=' . urlencode('Không tìm thấy đơn hàng'));
                 exit;
             }
 
@@ -761,7 +782,7 @@ class OrdersController extends BaseController
             ], 'admin/layouts/main-inline');
         } catch (Exception $e) {
             error_log('Error in OrdersController::show: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode('Có lỗi xảy ra khi tải chi tiết đơn hàng'));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode('Có lỗi xảy ra khi tải chi tiết đơn hàng'));
             exit;
         }
     }
@@ -772,7 +793,7 @@ class OrdersController extends BaseController
             // Get order details
             $order = $this->orderModel->find($id);
             if (!$order) {
-                header('Location: /5s-fashion/admin/orders?error=' . urlencode('Không tìm thấy đơn hàng'));
+                header('Location: /zone-fashion/admin/orders?error=' . urlencode('Không tìm thấy đơn hàng'));
                 exit;
             }
 
@@ -807,7 +828,7 @@ class OrdersController extends BaseController
             ]);
         } catch (Exception $e) {
             error_log('Error in OrdersController::edit: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/orders?error=' . urlencode('Có lỗi xảy ra khi tải trang chỉnh sửa đơn hàng'));
+            header('Location: /zone-fashion/admin/orders?error=' . urlencode('Có lỗi xảy ra khi tải trang chỉnh sửa đơn hàng'));
             exit;
         }
     }

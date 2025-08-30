@@ -18,7 +18,7 @@ class AnalyticsController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -33,7 +33,7 @@ class AnalyticsController extends BaseController
             $period = $_GET['period'] ?? '30'; // Default 30 days
 
             $data = [
-                'title' => 'Analytics Dashboard - 5S Fashion Admin',
+                'title' => 'Analytics Dashboard - zone Fashion Admin',
                 'overview' => $this->getOverviewStats(),
                 'reviews' => $this->getReviewStats($period),
                 'products' => $this->getProductStats($period),
@@ -43,7 +43,7 @@ class AnalyticsController extends BaseController
                 'trending' => $this->getTrendingData($period),
                 'period' => $period,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['name' => 'Analytics', 'url' => '']
                 ]
             ];
@@ -52,7 +52,7 @@ class AnalyticsController extends BaseController
         } catch (Exception $e) {
             error_log('Error in AnalyticsController::index: ' . $e->getMessage());
             $this->render('admin/analytics/index', [
-                'title' => 'Analytics Dashboard - 5S Fashion Admin',
+                'title' => 'Analytics Dashboard - zone Fashion Admin',
                 'error' => 'Có lỗi xảy ra khi tải dữ liệu analytics'
             ], 'admin/layouts/main-inline');
         }
@@ -65,13 +65,13 @@ class AnalyticsController extends BaseController
             $type = $_GET['type'] ?? 'overview';
 
             $data = [
-                'title' => 'Báo cáo chi tiết - 5S Fashion Admin',
+                'title' => 'Báo cáo chi tiết - zone Fashion Admin',
                 'type' => $type,
                 'period' => $period,
                 'data' => $this->getReportData($type, $period),
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['name' => 'Analytics', 'url' => '/5s-fashion/admin/analytics'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['name' => 'Analytics', 'url' => '/zone-fashion/admin/analytics'],
                     ['name' => 'Reports', 'url' => '']
                 ]
             ];
@@ -80,7 +80,7 @@ class AnalyticsController extends BaseController
         } catch (Exception $e) {
             error_log('Error in AnalyticsController::reports: ' . $e->getMessage());
             $this->render('admin/analytics/reports', [
-                'title' => 'Báo cáo chi tiết - 5S Fashion Admin',
+                'title' => 'Báo cáo chi tiết - zone Fashion Admin',
                 'error' => 'Có lỗi xảy ra khi tải báo cáo'
             ], 'admin/layouts/main-inline');
         }

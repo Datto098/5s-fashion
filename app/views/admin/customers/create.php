@@ -8,7 +8,7 @@
                     <p class="text-muted mb-0">Tạo tài khoản khách hàng mới</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/customers" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/customers" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -25,7 +25,7 @@
         </div>
     <?php endif; ?>
 
-    <form action="/5s-fashion/admin/customers/store" method="POST" enctype="multipart/form-data" id="customerForm">
+    <form action="/zone-fashion/admin/customers/store" method="POST" enctype="multipart/form-data" id="customerForm">
         <div class="row">
             <!-- Main Content -->
             <div class="col-lg-8">
@@ -230,7 +230,7 @@
                             <button type="button" class="btn btn-info" id="generatePassword">
                                 <i class="fas fa-key"></i> Tạo mật khẩu ngẫu nhiên
                             </button>
-                            <a href="/5s-fashion/admin/customers" class="btn btn-secondary">
+                            <a href="/zone-fashion/admin/customers" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Hủy bỏ
                             </a>
                         </div>

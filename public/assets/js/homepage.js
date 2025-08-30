@@ -1,6 +1,6 @@
 /**
  * Homepage JavaScript
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 document.addEventListener('DOMContentLoaded', function () {

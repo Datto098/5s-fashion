@@ -1,5 +1,5 @@
 /**
- * 5S Fashion Admin Panel JavaScript
+ * zone Fashion Admin Panel JavaScript
  * Main functionality for admin interface
  */
 

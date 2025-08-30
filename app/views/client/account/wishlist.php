@@ -114,7 +114,7 @@ ob_start();
                                                     } else {
                                                         $cleanPath = ltrim($imagePath, '/');
                                                     }
-                                                    $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                                    $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                                     ?>
                                                     <img src="<?= htmlspecialchars($imageUrl) ?>"
                                                          alt="<?= htmlspecialchars($item['name']) ?>"
@@ -194,7 +194,7 @@ ob_start();
                                                     } else {
                                                         $cleanPath = ltrim($imagePath, '/');
                                                     }
-                                                    $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                                    $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                                     ?>
                                                     <img src="<?= htmlspecialchars($imageUrl) ?>"
                                                          alt="<?= htmlspecialchars($item['name']) ?>"

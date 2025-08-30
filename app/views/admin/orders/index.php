@@ -58,7 +58,7 @@
             <option value="shipped">Đã gửi</option>
             <option value="delivered">Đã giao</option>
             <option value="cancelled">Đã hủy</option>
-            <option value="refunded">Đã hoàn tiền</option>
+            <!-- <option value="refunded">Đã hoàn tiền</option> -->
         </select>
     </div>
     <div class="filter-group">
@@ -112,7 +112,7 @@
                     </td>
                     <td>
                         <div class="order-code">
-                            <a href="/5s-fashion/admin/orders/show/<?= $order['id'] ?>" class="order-link">
+                            <a href="/zone-fashion/admin/orders/show/<?= $order['id'] ?>" class="order-link">
                                 #<?= htmlspecialchars($order['order_code']) ?>
                             </a>
                             <?php if (date('Y-m-d', strtotime($order['created_at'])) === date('Y-m-d')): ?>
@@ -192,6 +192,9 @@
                         </div>
                     </td>
                     <td>
+                        <?php if ($order['status'] === 'delivered'): ?>
+                            <b style="color: green;">Hoàn thành</b>
+                            <?php else: ?>
                         <select class="status-select" data-order-id="<?= $order['id'] ?>" onchange="updateOrderStatus(this)">
                             <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Chờ xử lý</option>
                             <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : '' ?>>Đang xử lý</option>
@@ -199,6 +202,7 @@
                             <option value="delivered" <?= $order['status'] === 'delivered' ? 'selected' : '' ?>>Đã giao</option>
                             <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
                         </select>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <select class="payment-status-select" data-order-id="<?= $order['id'] ?>" onchange="updatePaymentStatus(this)">
@@ -217,7 +221,7 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="/5s-fashion/admin/orders/show/<?= $order['id'] ?>" class="btn btn-sm btn-primary" title="Xem chi tiết">
+                            <a href="/zone-fashion/admin/orders/show/<?= $order['id'] ?>" class="btn btn-sm btn-primary" title="Xem chi tiết">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <button class="btn btn-sm btn-info" onclick="printOrder(<?= $order['id'] ?>)" title="In đơn hàng">
@@ -228,11 +232,13 @@
                                     <i class="fas fa-check"></i>
                                 </button>
                             <?php endif; ?>
-                            <?php if (in_array($order['status'], ['pending', 'processing'])): ?>
+                            
+                            <?php if ($order['status'] === 'pending'): ?>
                                 <button class="btn btn-sm btn-danger" onclick="cancelOrder(<?= $order['id'] ?>)" title="Hủy đơn">
                                     <i class="fas fa-times"></i>
                                 </button>
                             <?php endif; ?>
+                           
                         </div>
                     </td>
                 </tr>
@@ -738,7 +744,7 @@
         const originalValue = selectElement.dataset.originalValue || selectElement.querySelector('option[selected]')?.value;
 
         if (confirm(`Bạn có chắc chắn muốn thay đổi trạng thái đơn hàng này?`)) {
-            fetch(`/5s-fashion/admin/orders/update-status/${orderId}`, {
+            fetch(`/zone-fashion/admin/orders/update-status/${orderId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -778,7 +784,7 @@
         const originalValue = selectElement.dataset.originalValue || selectElement.querySelector('option[selected]')?.value;
 
         if (confirm(`Bạn có chắc chắn muốn thay đổi trạng thái thanh toán?`)) {
-            fetch(`/5s-fashion/admin/orders/update-payment-status/${orderId}`, {
+            fetch(`/zone-fashion/admin/orders/update-payment-status/${orderId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -806,6 +812,39 @@
         } else {
             selectElement.value = originalValue;
         }
+    }
+
+    // Shipper confirms delivery (button)
+    function markAsDelivered(orderId) {
+        if (!confirm('Xác nhận: đơn hàng đã được khách nhận?')) return;
+
+        fetch(`/zone-fashion/admin/orders/update-status/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ status: 'delivered' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update select UI and row styling
+                    const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+                    if (row) {
+                        const select = row.querySelector('.status-select');
+                        if (select) select.value = 'delivered';
+                        updateRowStatus(row, 'delivered');
+                    }
+                    showNotification('Đã chuyển trạng thái sang Đã giao', 'success');
+                } else {
+                    showNotification('Lỗi: ' + (data.message || 'Không thể cập nhật'), 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification('Có lỗi xảy ra!', 'error');
+            });
     }
 
     function updateRowStatus(row, status) {
@@ -855,7 +894,7 @@
         const data = Object.fromEntries(formData.entries());
         data.send_notification = formData.has('send_notification');
 
-        fetch(`/5s-fashion/admin/orders/quick-process/${currentOrderId}`, {
+        fetch(`/zone-fashion/admin/orders/quick-process/${currentOrderId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -887,12 +926,12 @@
 
     // Other actions
     function printOrder(orderId) {
-        window.open(`/5s-fashion/admin/orders/print/${orderId}`, '_blank', 'width=800,height=600');
+        window.open(`/zone-fashion/admin/orders/print/${orderId}`, '_blank', 'width=800,height=600');
     }
 
     function cancelOrder(orderId) {
         if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
-            fetch(`/5s-fashion/admin/orders/cancel/${orderId}`, {
+            fetch(`/zone-fashion/admin/orders/cancel/${orderId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -940,13 +979,13 @@
 
         if (selectedIds.length === 0) return;
 
-        window.open(`/5s-fashion/admin/orders/bulk-print?ids=${selectedIds.join(',')}`, '_blank');
+        window.open(`/zone-fashion/admin/orders/bulk-print?ids=${selectedIds.join(',')}`, '_blank');
     }
 
     function bulkExport() {
         const selectedIds = Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.value);
 
-        let url = '/5s-fashion/admin/orders/export';
+        let url = '/zone-fashion/admin/orders/export';
         if (selectedIds.length > 0) {
             url += '?ids=' + selectedIds.join(',');
         }
@@ -966,6 +1005,15 @@
     function showNotification(message, type = 'info') {
         // TODO: Implement notification system
         alert(message);
+    }
+
+    // Extract a user-friendly message from various AJAX response shapes
+    function getAjaxMessage(data) {
+        if (!data) return 'Có lỗi xảy ra!';
+        // If server returned string directly
+        if (typeof data === 'string') return data;
+        // Prefer message, then error, then any other known keys
+        return data.message || data.error || data.msg || data.message_text || 'Có lỗi xảy ra!';
     }
 
     // Close modal on outside click

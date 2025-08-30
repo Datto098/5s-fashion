@@ -1,7 +1,7 @@
 <?php
 /**
  * Base Controller Class
- * 5S Fashion E-commerce Platform
+ * Zone Fashion E-commerce Platform
  */
 
 class BaseController
@@ -127,6 +127,59 @@ class BaseController
     {
         $this->ensureSessionStarted();
         return $_SESSION['user'] ?? null;
+    }
+
+    /**
+     * Convenience loader for models.
+     * Usage: $this->model('User') returns an instance of User.
+     * It will attempt APP_PATH-based include first, then relative fallbacks.
+     * Instances are cached per-request.
+     *
+     * @param string $modelName
+     * @return object
+     * @throws Exception if model class cannot be loaded
+     */
+    protected function model($modelName)
+    {
+        static $models = [];
+
+        if (isset($models[$modelName])) {
+            return $models[$modelName];
+        }
+
+        $className = $modelName;
+
+        if (!class_exists($className)) {
+            // Try APP_PATH first, then relative fallbacks
+            if (defined('APP_PATH') && file_exists(APP_PATH . '/models/' . $modelName . '.php')) {
+                require_once APP_PATH . '/models/' . $modelName . '.php';
+            } elseif (file_exists(__DIR__ . '/../models/' . $modelName . '.php')) {
+                require_once __DIR__ . '/../models/' . $modelName . '.php';
+            } elseif (file_exists(__DIR__ . '/../../models/' . $modelName . '.php')) {
+                require_once __DIR__ . '/../../models/' . $modelName . '.php';
+            }
+        }
+
+        if (class_exists($className)) {
+            $models[$modelName] = new $className();
+            return $models[$modelName];
+        }
+
+        throw new Exception("Model class not found: {$modelName}");
+    }
+
+    /**
+     * Shortcut for rendering a client view. Keeps compatibility with existing
+     * controller code calling $this->view(...).
+     *
+     * @param string $view
+     * @param array $data
+     * @param string|null $layout
+     * @return void
+     */
+    protected function view($view, $data = [], $layout = 'client/layouts/app')
+    {
+        $this->render($view, $data, $layout);
     }
 }
 ?>

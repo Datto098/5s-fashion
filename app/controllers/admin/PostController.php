@@ -42,7 +42,7 @@ class PostController extends BaseController
             ];
             $post = new Post();
             $post->create($data);
-            header('Location: /5s-fashion/admin/post');
+            header('Location: /zone-fashion/admin/post');
             exit;
         }
         $this->render('admin/post/form', [], 'admin/layouts/main-inline');
@@ -53,7 +53,7 @@ class PostController extends BaseController
     {
         $post = (new Post())->find($id);
         if (!$post) {
-            header('Location: /5s-fashion/admin/post');
+            header('Location: /zone-fashion/admin/post');
             exit;
         }
 
@@ -85,7 +85,7 @@ class PostController extends BaseController
                 'thumbnail' => $thumbnailName,
             ];
             (new Post())->update($id, $data);
-            header('Location: /5s-fashion/admin/post');
+            header('Location: /zone-fashion/admin/post');
             exit;
         }
 
@@ -105,7 +105,7 @@ class PostController extends BaseController
             // Xóa bài viết trong DB
             (new Post())->delete($id);
         }
-        header('Location: /5s-fashion/admin/post');
+        header('Location: /zone-fashion/admin/post');
         exit;
     }
 
@@ -116,7 +116,7 @@ class PostController extends BaseController
             $newStatus = ($post['status'] == 1) ? 0 : 1;
             (new Post())->update($id, ['status' => $newStatus]);
         }
-        header('Location: /5s-fashion/admin/post');
+        header('Location: /zone-fashion/admin/post');
         exit;
     }
 }

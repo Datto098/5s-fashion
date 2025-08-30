@@ -1,7 +1,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0"><i class="fas fa-newspaper text-danger"></i> Quản lý bài viết</h2>
-        <a href="/5s-fashion/admin/post/create" class="btn btn-danger">
+        <a href="/zone-fashion/admin/post/create" class="btn btn-danger">
             <i class="fas fa-plus"></i> Thêm bài viết
         </a>
     </div>
@@ -33,7 +33,7 @@
                                         } else {
                                             $cleanPath = ltrim($imagePath, '/');
                                         }
-                                        $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                        $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                         ?>
                                         <img src="<?= htmlspecialchars($imageUrl) ?>"
                                              alt="<?= htmlspecialchars($post['title'] ?? '') ?>"
@@ -59,15 +59,15 @@
                                         ?>
                                     </td>
                                     <td>
-                                        <a href="/5s-fashion/admin/post/edit/<?= $post['id'] ?>" class="btn btn-sm btn-outline-primary">
+                                        <a href="/zone-fashion/admin/post/edit/<?= $post['id'] ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="/5s-fashion/admin/post/toggleStatus/<?= $post['id'] ?>"
+                                        <a href="/zone-fashion/admin/post/toggleStatus/<?= $post['id'] ?>"
                                            class="btn btn-sm btn-outline-warning"
                                            onclick="return confirm('Bạn có muốn đổi trạng thái bài viết này?');">
                                             <i class="fas fa-exchange-alt"></i>
                                         </a>
-                                        <a href="/5s-fashion/admin/post/delete/<?= $post['id'] ?>"
+                                        <a href="/zone-fashion/admin/post/delete/<?= $post['id'] ?>"
                                            class="btn btn-sm btn-outline-danger"
                                            onclick="return confirm('Bạn có chắc muốn xóa bài viết này?');">
                                             <i class="fas fa-trash"></i>

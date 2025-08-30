@@ -1,7 +1,7 @@
 <?php
 /**
  * Authentication Middleware
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class AuthMiddleware

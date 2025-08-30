@@ -1,7 +1,7 @@
 <?php
 /**
  * Application Core Class
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class App

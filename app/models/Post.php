@@ -2,7 +2,7 @@
 // app/models/Post.php
 /**
  * Post Model
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class Post extends BaseModel

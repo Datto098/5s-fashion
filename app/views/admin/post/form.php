@@ -26,7 +26,7 @@
                             } else {
                                 $cleanPath = ltrim($imagePath, '/');
                             }
-                            $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                            $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                         } else {
                             $imageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKFSgdhQvBlZO6I8s-jtKIYOED1NqEs4xEjA&s';
                         }
@@ -54,7 +54,7 @@
                 <button type="submit" class="btn btn-danger">
                     <i class="fas fa-save"></i> Lưu
                 </button>
-                <a href="/5s-fashion/admin/post" class="btn btn-secondary">Quay lại</a>
+                <a href="/zone-fashion/admin/post" class="btn btn-secondary">Quay lại</a>
             </form>
         </div>
     </div>

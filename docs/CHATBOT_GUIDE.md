@@ -1,8 +1,8 @@
-# Tài liệu hướng dẫn sử dụng Chatbot 5S Fashion
+# Tài liệu hướng dẫn sử dụng Chatbot Zone Fashion
 
 ## Giới thiệu
 
-Chatbot 5S Fashion là một trợ lý ảo được phát triển để giúp khách hàng của 5S Fashion tương tác và tìm kiếm thông tin về sản phẩm, khuyến mãi, đơn hàng và các thông tin khác một cách nhanh chóng, hiệu quả.
+Chatbot Zone Fashion là một trợ lý ảo được phát triển để giúp khách hàng của Zone Fashion tương tác và tìm kiếm thông tin về sản phẩm, khuyến mãi, đơn hàng và các thông tin khác một cách nhanh chóng, hiệu quả.
 
 ## Tính năng chính
 

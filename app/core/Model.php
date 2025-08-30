@@ -1,7 +1,7 @@
 <?php
 /**
  * Base Model Class
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 abstract class BaseModel

@@ -8,10 +8,10 @@
                     <p class="text-muted mb-0">Cập nhật thông tin: <?= htmlspecialchars($customer['full_name']) ?></p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/customers/show/<?= $customer['id'] ?>" class="btn btn-info">
+                    <a href="/zone-fashion/admin/customers/show/<?= $customer['id'] ?>" class="btn btn-info">
                         <i class="fas fa-eye"></i> Xem chi tiết
                     </a>
-                    <a href="/5s-fashion/admin/customers" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/customers" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -36,7 +36,7 @@
         </div>
     <?php endif; ?>
 
-    <form action="/5s-fashion/admin/customers/update/<?= $customer['id'] ?>" method="POST" enctype="multipart/form-data" id="customerForm">
+    <form action="/zone-fashion/admin/customers/update/<?= $customer['id'] ?>" method="POST" enctype="multipart/form-data" id="customerForm">
         <div class="row">
             <!-- Main Content -->
             <div class="col-lg-8">
@@ -143,7 +143,7 @@
                     <div class="card-body">
                         <?php if (!empty($customer['avatar'])): ?>
                             <div class="current-avatar mb-3">
-                                <img src="/5s-fashion/public<?= htmlspecialchars($customer['avatar']) ?>"
+                                <img src="/zone-fashion/public<?= htmlspecialchars($customer['avatar']) ?>"
                                      alt="Current avatar" class="img-thumbnail rounded-circle"
                                      style="width: 100px; height: 100px; object-fit: cover;">
                                 <p class="text-muted small mt-1">Ảnh hiện tại</p>
@@ -301,10 +301,10 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Cập nhật khách hàng
                             </button>
-                            <a href="/5s-fashion/admin/customers/show/<?= $customer['id'] ?>" class="btn btn-info">
+                            <a href="/zone-fashion/admin/customers/show/<?= $customer['id'] ?>" class="btn btn-info">
                                 <i class="fas fa-eye"></i> Xem chi tiết
                             </a>
-                            <a href="/5s-fashion/admin/customers" class="btn btn-secondary">
+                            <a href="/zone-fashion/admin/customers" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Hủy bỏ
                             </a>
                         </div>

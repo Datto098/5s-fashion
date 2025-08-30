@@ -9,9 +9,9 @@ function getPostImageUrl($thumbnail) {
         } else {
             $cleanPath = ltrim($thumbnail, '/');
         }
-        return '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+        return '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
     }
-    return '/5s-fashion/public/assets/images/default-post.jpg';
+    return '/zone-fashion/public/assets/images/default-post.jpg';
 }
 ?>
 <!-- Banner/Header -->
@@ -19,12 +19,12 @@ function getPostImageUrl($thumbnail) {
     <div class="container h-100 d-flex flex-column justify-content-center" style="min-height: 180px;">
         <nav aria-label="breadcrumb" class="pt-3">
             <ol class="breadcrumb bg-transparent px-0 mb-2">
-                <li class="breadcrumb-item"><a href="/5s-fashion" class="text-white-50">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="/zone-fashion" class="text-white-50">Trang chủ</a></li>
                 <li class="breadcrumb-item active text-white">Blog</li>
             </ol>
         </nav>
-        <h1 class="display-5 fw-bold text-white mb-2">Blog 5S Fashion</h1>
-        <p class="lead text-white-50 mb-0">Khám phá xu hướng, mẹo phối đồ và tin tức thời trang mới nhất từ 5S Fashion</p>
+        <h1 class="display-5 fw-bold text-white mb-2">Blog zone Fashion</h1>
+        <p class="lead text-white-50 mb-0">Khám phá xu hướng, mẹo phối đồ và tin tức thời trang mới nhất từ zone Fashion</p>
     </div>
 </div>
 
@@ -36,7 +36,7 @@ function getPostImageUrl($thumbnail) {
             <div class="list-group list-group-flush">
                 <?php if (!empty($latestPosts)): ?>
                     <?php foreach ($latestPosts as $post): ?>
-                        <a href="/5s-fashion/blog/<?= $post['id'] ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 shadow-sm rounded mb-3" style="background: #f8f9fa; border: none;">
+                        <a href="/zone-fashion/blog/<?= $post['id'] ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 shadow-sm rounded mb-3" style="background: #f8f9fa; border: none;">
                             <img src="<?= htmlspecialchars(getPostImageUrl($post['thumbnail'] ?? null)) ?>"
                                 alt="<?= htmlspecialchars($post['title']) ?>"
                                 class="rounded"
@@ -68,12 +68,12 @@ function getPostImageUrl($thumbnail) {
                     <?php foreach ($allPosts as $post): ?>
                         <div class="col-md-6 mb-4">
                             <div class="card h-100 shadow-sm border-0 post-card">
-                                <a href="/5s-fashion/blog/<?= $post['id'] ?>">
+                                <a href="/zone-fashion/blog/<?= $post['id'] ?>">
                                     <img src="<?= htmlspecialchars(getPostImageUrl($post['thumbnail'] ?? null)) ?>" class="card-img-top" alt="<?= htmlspecialchars($post['title']) ?>" style="height: 180px; object-fit: cover; border-radius: 12px 12px 0 0;">
                                 </a>
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title mb-2 text-dark" style="font-size: 1.1rem;">
-                                        <a href="/5s-fashion/post/<?= $post['id'] ?>" class="text-decoration-none text-dark">
+                                        <a href="/zone-fashion/post/<?= $post['id'] ?>" class="text-decoration-none text-dark">
                                             <?= htmlspecialchars($post['title']) ?>
                                         </a>
                                     </h5>
@@ -86,7 +86,7 @@ function getPostImageUrl($thumbnail) {
                                     <p class="card-text text-secondary" style="font-size: 0.97rem; flex-grow: 1;">
                                         <?= htmlspecialchars(mb_substr(strip_tags($post['content'] ?? ''), 0, 100)) ?>...
                                     </p>
-                                    <a href="/5s-fashion/post/<?= $post['id'] ?>" class="btn btn-outline-primary btn-sm mt-auto align-self-start">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
+                                    <a href="/zone-fashion/post/<?= $post['id'] ?>" class="btn btn-outline-primary btn-sm mt-auto align-self-start">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
                                 </div>
                             </div>
                         </div>

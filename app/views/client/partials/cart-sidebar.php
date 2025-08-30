@@ -453,7 +453,7 @@ function checkout() {
         return;
     }
 
-    window.location.href = '/5s-fashion/checkout';
+    window.location.href = '/zone-fashion/checkout';
 }
 
 function getCartItems() {

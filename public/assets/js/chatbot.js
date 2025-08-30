@@ -1,12 +1,12 @@
 /**
- * 5S Fashion Chatbot
+ * zone Fashion Chatbot
  * Client-side JavaScript for chatbot functionality
  * Cập nhật: Kết nối với API backend mới, hiển thị sản phẩm đẹp mắt hơn
  */
 
 class FSFashionChatbot {
 	constructor() {
-		this.baseUrl = window.location.origin + '/5s-fashion';
+		this.baseUrl = window.location.origin + '/zone-fashion';
 		this.apiUrl = this.baseUrl + '/public/chatbot-api.php'; // Đường dẫn tới API mới (đường dẫn trực tiếp)
 		this.isOpen = false;
 		this.isTyping = false;
@@ -31,7 +31,7 @@ class FSFashionChatbot {
 		this.injectCustomCSS();
 
 		// Kiểm tra hội thoại đã lưu trong local storage
-		const savedChat = localStorage.getItem('5s_fashion_chatbot_history');
+		const savedChat = localStorage.getItem('zone_fashion_chatbot_history');
 		if (savedChat) {
 			try {
 				const parsedChat = JSON.parse(savedChat);
@@ -49,12 +49,12 @@ class FSFashionChatbot {
 				}
 			} catch (e) {
 				console.error('Chatbot: Error loading saved conversation', e);
-				localStorage.removeItem('5s_fashion_chatbot_history');
+				localStorage.removeItem('zone_fashion_chatbot_history');
 			}
 		} else {
 			// Add welcome message
 			this.addMessage(
-				'Xin chào! Tôi là trợ lý ảo của 5S Fashion. Tôi có thể giúp bạn tìm sản phẩm bán chạy, khuyến mãi, hàng mới, hoặc hỗ trợ đơn hàng. Bạn cần hỗ trợ gì?',
+				'Xin chào! Tôi là trợ lý ảo của zone Fashion. Tôi có thể giúp bạn tìm sản phẩm bán chạy, khuyến mãi, hàng mới, hoặc hỗ trợ đơn hàng. Bạn cần hỗ trợ gì?',
 				'bot'
 			);
 		}
@@ -290,7 +290,7 @@ class FSFashionChatbot {
 				this.conversation = this.conversation.slice(-20);
 			}
 			localStorage.setItem(
-				'5s_fashion_chatbot_history',
+				'zone_fashion_chatbot_history',
 				JSON.stringify(this.conversation)
 			);
 		}
@@ -324,7 +324,7 @@ class FSFashionChatbot {
 					}" class="product-link" target="_blank">
                         <div class="product-image">
                             <img src="${product.image}" alt="${product.name}"
-                                onerror="this.src=window.location.origin + '/5s-fashion/public/assets/images/no-image.jpg'"
+                                onerror="this.src=window.location.origin + '/zone-fashion/public/assets/images/no-image.jpg'"
                                 class="product-image img-fluid">
                         </div>
                         <div class="product-info">

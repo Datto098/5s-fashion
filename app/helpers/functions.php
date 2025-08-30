@@ -1,7 +1,7 @@
 <?php
 /**
  * Global Helper Functions
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once __DIR__ . '/../models/Cart.php';

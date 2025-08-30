@@ -169,7 +169,7 @@ class CartPageManager {
 		// Show loading state
 		this.showLoadingState(true);
 
-		fetch('/5s-fashion/ajax/cart/update', {
+		fetch('/zone-fashion/ajax/cart/update', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ class CartPageManager {
 		// Show loading state
 		this.showLoadingState(true);
 
-		fetch('/5s-fashion/ajax/cart/remove', {
+		fetch('/zone-fashion/ajax/cart/remove', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -260,7 +260,7 @@ class CartPageManager {
 		// Add a small delay for better UX
 		setTimeout(() => {
 			// Redirect to checkout page
-			window.location.href = '/5s-fashion/checkout';
+			window.location.href = '/zone-fashion/checkout';
 		}, 500);
 	}
 
@@ -296,10 +296,10 @@ class CartPageManager {
 		// Get base URL
 		const baseUrl = window.location.pathname.includes('/public') ? 
 			window.location.origin + window.location.pathname.split('/public')[0] + '/public' : 
-			window.location.origin + '/5s-fashion';
+			window.location.origin + '/zone-fashion';
 		
 		// Call API to apply voucher (POST)
-		fetch('/5s-fashion/vouchers/apply', {
+		fetch('/zone-fashion/vouchers/apply', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',

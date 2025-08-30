@@ -16,7 +16,7 @@ class UsersController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -50,13 +50,13 @@ class UsersController extends BaseController
             $stats = $this->userModel->getAdminStatistics();
 
             $data = [
-                'title' => 'Quản lý Admin - 5S Fashion Admin',
+                'title' => 'Quản lý Admin - zone Fashion Admin',
                 'users' => $users,
                 'stats' => $stats,
                 'search' => $search,
                 'filters' => $filters,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['name' => 'Quản lý admin', 'url' => '']
                 ]
             ];
@@ -65,7 +65,7 @@ class UsersController extends BaseController
         } catch (Exception $e) {
             error_log('Error in UsersController::index: ' . $e->getMessage());
             $this->render('admin/users/index', [
-                'title' => 'Quản lý Admin - 5S Fashion Admin',
+                'title' => 'Quản lý Admin - zone Fashion Admin',
                 'users' => [],
                 'stats' => [],
                 'error' => 'Có lỗi xảy ra khi tải dữ liệu'
@@ -117,7 +117,7 @@ class UsersController extends BaseController
                 $result = $this->userModel->create($userData);
 
                 if ($result) {
-                    header('Location: /5s-fashion/admin/users?success=' . urlencode('Tạo tài khoản admin thành công'));
+                    header('Location: /zone-fashion/admin/users?success=' . urlencode('Tạo tài khoản admin thành công'));
                 } else {
                     throw new Exception('Không thể tạo tài khoản admin');
                 }
@@ -126,10 +126,10 @@ class UsersController extends BaseController
 
             // Show create form
             $data = [
-                'title' => 'Tạo tài khoản Admin - 5S Fashion Admin',
+                'title' => 'Tạo tài khoản Admin - zone Fashion Admin',
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['name' => 'Quản lý admin', 'url' => '/5s-fashion/admin/users'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['name' => 'Quản lý admin', 'url' => '/zone-fashion/admin/users'],
                     ['name' => 'Tạo mới', 'url' => '']
                 ]
             ];
@@ -138,7 +138,7 @@ class UsersController extends BaseController
 
         } catch (Exception $e) {
             error_log('Error in UsersController::create: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/users?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/users?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -148,16 +148,16 @@ class UsersController extends BaseController
         try {
             $user = $this->userModel->getAdminWithStats($id);
             if (!$user || $user['role'] !== 'admin') {
-                header('Location: /5s-fashion/admin/users?error=' . urlencode('Không tìm thấy tài khoản admin'));
+                header('Location: /zone-fashion/admin/users?error=' . urlencode('Không tìm thấy tài khoản admin'));
                 exit;
             }
 
             $data = [
-                'title' => 'Chi tiết Admin: ' . $user['full_name'] . ' - 5S Fashion Admin',
+                'title' => 'Chi tiết Admin: ' . $user['full_name'] . ' - zone Fashion Admin',
                 'user' => $user,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['name' => 'Quản lý admin', 'url' => '/5s-fashion/admin/users'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['name' => 'Quản lý admin', 'url' => '/zone-fashion/admin/users'],
                     ['name' => 'Chi tiết', 'url' => '']
                 ]
             ];
@@ -165,7 +165,7 @@ class UsersController extends BaseController
             $this->render('admin/users/show', $data, 'admin/layouts/main-inline');
         } catch (Exception $e) {
             error_log('Error in UsersController::show: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/users?error=' . urlencode('Có lỗi xảy ra'));
+            header('Location: /zone-fashion/admin/users?error=' . urlencode('Có lỗi xảy ra'));
             exit;
         }
     }
@@ -304,7 +304,7 @@ class UsersController extends BaseController
                 $result = $this->userModel->update($id, $updateData);
 
                 if ($result) {
-                    header('Location: /5s-fashion/admin/users?success=' . urlencode('Cập nhật tài khoản admin thành công'));
+                    header('Location: /zone-fashion/admin/users?success=' . urlencode('Cập nhật tài khoản admin thành công'));
                 } else {
                     throw new Exception('Không thể cập nhật tài khoản admin');
                 }
@@ -314,16 +314,16 @@ class UsersController extends BaseController
             // Show edit form
             $user = $this->userModel->getAdminWithStats($id);
             if (!$user || $user['role'] !== 'admin') {
-                header('Location: /5s-fashion/admin/users?error=' . urlencode('Không tìm thấy tài khoản admin'));
+                header('Location: /zone-fashion/admin/users?error=' . urlencode('Không tìm thấy tài khoản admin'));
                 exit;
             }
 
             $data = [
-                'title' => 'Chỉnh sửa Admin: ' . $user['full_name'] . ' - 5S Fashion Admin',
+                'title' => 'Chỉnh sửa Admin: ' . $user['full_name'] . ' - zone Fashion Admin',
                 'user' => $user,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['name' => 'Quản lý admin', 'url' => '/5s-fashion/admin/users'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['name' => 'Quản lý admin', 'url' => '/zone-fashion/admin/users'],
                     ['name' => 'Chỉnh sửa', 'url' => '']
                 ]
             ];
@@ -332,7 +332,7 @@ class UsersController extends BaseController
 
         } catch (Exception $e) {
             error_log('Error in UsersController::edit: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/users?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/users?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
