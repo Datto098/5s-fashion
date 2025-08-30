@@ -929,7 +929,6 @@ const customCSS = `
 }
 
 #quickViewModal .product-actions .btn {
-    min-width: 160px !important;
     width: auto !important;
     height: 45px !important;
     padding: 0.75rem 1.5rem !important;
