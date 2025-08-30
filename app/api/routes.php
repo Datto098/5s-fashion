@@ -18,9 +18,9 @@ $router->get('/health', function() {
 // API Info endpoint
 $router->get('/', function() {
     ApiResponse::success([
-        'name' => '5S Fashion API',
+        'name' => 'zone Fashion API',
         'version' => '1.0.0',
-        'description' => 'REST API for 5S Fashion e-commerce platform',
+        'description' => 'REST API for zone Fashion e-commerce platform',
         'endpoints' => [
             'GET /api/health' => 'Health check',
             'GET /api/products' => 'Get all products',
@@ -30,7 +30,7 @@ $router->get('/', function() {
             'POST /api/auth/register' => 'User registration'
         ],
         'documentation' => 'https://your-domain.com/api/docs'
-    ], 'Welcome to 5S Fashion API');
+    ], 'Welcome to zone Fashion API');
 });
 
 // Products API routes

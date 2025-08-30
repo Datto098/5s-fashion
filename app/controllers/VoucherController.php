@@ -1,7 +1,7 @@
 <?php
 /**
  * Client Voucher Controller
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once __DIR__ . '/BaseController.php';
@@ -69,7 +69,7 @@ class VoucherController extends BaseController
     public function myVouchers()
     {
         if (!isset($_SESSION['user']['id'] )) {
-            header('Location: /5s-fashion/login?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+            header('Location: /zone-fashion/login?redirect=' . urlencode($_SERVER['REQUEST_URI']));
             exit;
         }
 
@@ -320,11 +320,11 @@ class VoucherController extends BaseController
         $coupon = $this->couponModel->find($couponId);
 
         if (!$coupon || $coupon['status'] !== 'active') {
-            header('Location: /5s-fashion/vouchers?error=' . urlencode('Voucher không tồn tại'));
+            header('Location: /zone-fashion/vouchers?error=' . urlencode('Voucher không tồn tại'));
             exit;
         }
 
-        $shareUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/5s-fashion/vouchers';
+        $shareUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/zone-fashion/vouchers';
         $shareText = "Nhận ngay voucher {$coupon['name']} - Mã: {$coupon['code']}";
 
         if ($coupon['type'] === 'percentage') {
@@ -333,7 +333,7 @@ class VoucherController extends BaseController
             $shareText .= " giảm " . number_format($coupon['value']) . "đ";
         }
 
-        $shareText .= " tại 5S Fashion!";
+        $shareText .= " tại zone Fashion!";
 
         $this->render('client/vouchers/share', [
             'coupon' => $coupon,

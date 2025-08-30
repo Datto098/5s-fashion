@@ -16,7 +16,7 @@ class SettingsController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -30,10 +30,10 @@ class SettingsController extends BaseController
             $settings = $this->settingModel->getAllGrouped();
 
             $data = [
-                'title' => 'Cài đặt hệ thống - 5S Fashion Admin',
+                'title' => 'Cài đặt hệ thống - zone Fashion Admin',
                 'settings' => $settings,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['name' => 'Cài đặt', 'url' => '']
                 ]
             ];
@@ -42,7 +42,7 @@ class SettingsController extends BaseController
         } catch (Exception $e) {
             error_log('Error in SettingsController::index: ' . $e->getMessage());
             $this->render('admin/settings/index', [
-                'title' => 'Cài đặt hệ thống - 5S Fashion Admin',
+                'title' => 'Cài đặt hệ thống - zone Fashion Admin',
                 'settings' => [],
                 'error' => 'Có lỗi xảy ra khi tải dữ liệu'
             ], 'admin/layouts/main-inline');
@@ -78,15 +78,15 @@ class SettingsController extends BaseController
             }
 
             if ($updated > 0) {
-                header('Location: /5s-fashion/admin/settings?success=' . urlencode("Đã cập nhật $updated cài đặt"));
+                header('Location: /zone-fashion/admin/settings?success=' . urlencode("Đã cập nhật $updated cài đặt"));
             } else {
-                header('Location: /5s-fashion/admin/settings?error=' . urlencode('Không có thay đổi nào được lưu'));
+                header('Location: /zone-fashion/admin/settings?error=' . urlencode('Không có thay đổi nào được lưu'));
             }
             exit;
 
         } catch (Exception $e) {
             error_log('Error in SettingsController::update: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/settings?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/settings?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -106,15 +106,15 @@ class SettingsController extends BaseController
             $result = $this->settingModel->resetCategory($group);
 
             if ($result) {
-                header('Location: /5s-fashion/admin/settings?success=' . urlencode('Đã khôi phục cài đặt mặc định'));
+                header('Location: /zone-fashion/admin/settings?success=' . urlencode('Đã khôi phục cài đặt mặc định'));
             } else {
-                header('Location: /5s-fashion/admin/settings?error=' . urlencode('Không thể khôi phục cài đặt'));
+                header('Location: /zone-fashion/admin/settings?error=' . urlencode('Không thể khôi phục cài đặt'));
             }
             exit;
 
         } catch (Exception $e) {
             error_log('Error in SettingsController::reset: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/settings?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/settings?error=' . urlencode($e->getMessage()));
             exit;
         }
     }

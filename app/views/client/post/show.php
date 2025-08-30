@@ -8,9 +8,9 @@ function getPostImageUrl($thumbnail) {
         } else {
             $cleanPath = ltrim($thumbnail, '/');
         }
-        return '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+        return '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
     }
-    return '/5s-fashion/public/assets/images/default-post.jpg';
+    return '/zone-fashion/public/assets/images/default-post.jpg';
 }
 ?>
 <!-- Banner/Header -->
@@ -18,8 +18,8 @@ function getPostImageUrl($thumbnail) {
     <div class="container h-100 d-flex flex-column justify-content-center" style="min-height: 180px;">
         <nav aria-label="breadcrumb" class="pt-3">
             <ol class="breadcrumb bg-transparent px-0 mb-2">
-                <li class="breadcrumb-item"><a href="/5s-fashion" class="text-white-50">Trang chủ</a></li>
-                <li class="breadcrumb-item"><a href="/5s-fashion/blog" class="text-white-50">Blog</a></li>
+                <li class="breadcrumb-item"><a href="/zone-fashion" class="text-white-50">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="/zone-fashion/blog" class="text-white-50">Blog</a></li>
                 <li class="breadcrumb-item active text-white"><?= htmlspecialchars($post['title']) ?></li>
             </ol>
         </nav>
@@ -45,7 +45,7 @@ function getPostImageUrl($thumbnail) {
                     </div>
                 </div>
             </div>
-            <a href="/5s-fashion/blog" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Quay lại Blog</a>
+            <a href="/zone-fashion/blog" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Quay lại Blog</a>
         </div>
     </div>
 </div>

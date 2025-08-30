@@ -1,5 +1,5 @@
 <?php
-$title = $title ?? 'Chi tiết Đánh giá - 5S Fashion Admin';
+$title = $title ?? 'Chi tiết Đánh giá - zone Fashion Admin';
 $review = $review ?? null;
 ?>
 
@@ -9,7 +9,7 @@ $review = $review ?? null;
             <i class="fas fa-exclamation-circle me-2"></i>
             Không tìm thấy đánh giá
         </div>
-        <a href="/5s-fashion/admin/reviews" class="btn btn-secondary">
+        <a href="/zone-fashion/admin/reviews" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
         </a>
     <?php else: ?>
@@ -32,7 +32,7 @@ $review = $review ?? null;
                 </nav>
             </div>
             <div>
-                <a href="/5s-fashion/admin/reviews" class="btn btn-outline-secondary">
+                <a href="/zone-fashion/admin/reviews" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
                 </a>
             </div>
@@ -141,7 +141,7 @@ $review = $review ?? null;
                             } else {
                                 $cleanPath = ltrim($imagePath, '/');
                             }
-                            $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                            $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                             ?>
                             <img src="<?= htmlspecialchars($imageUrl) ?>"
                                  alt="<?= htmlspecialchars($review['product_name']) ?>"
@@ -161,7 +161,7 @@ $review = $review ?? null;
 
                         <?php if (!empty($review['product_slug'])): ?>
                         <div class="mt-2">
-                            <a href="/5s-fashion/products/<?= htmlspecialchars($review['product_slug']) ?>"
+                            <a href="/zone-fashion/products/<?= htmlspecialchars($review['product_slug']) ?>"
                                class="btn btn-sm btn-outline-primary" target="_blank">
                                 <i class="fas fa-external-link-alt me-1"></i>Xem sản phẩm
                             </a>
@@ -178,7 +178,7 @@ $review = $review ?? null;
                     <div class="card-body">
                         <?php if (!empty($review['customer_avatar'])): ?>
                         <div class="text-center mb-3">
-                            <img src="/5s-fashion/<?= htmlspecialchars($review['customer_avatar']) ?>"
+                            <img src="/zone-fashion/<?= htmlspecialchars($review['customer_avatar']) ?>"
                                  alt="<?= htmlspecialchars($review['customer_name']) ?>"
                                  class="rounded-circle" width="80" height="80">
                         </div>
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateReviewStatus(reviewId, status) {
-        fetch('/5s-fashion/admin/reviews/update-status', {
+        fetch('/zone-fashion/admin/reviews/update-status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function deleteReview(reviewId) {
-        fetch('/5s-fashion/admin/reviews/delete', {
+        fetch('/zone-fashion/admin/reviews/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.success) {
                 // Redirect to reviews list after successful deletion
-                window.location.href = '/5s-fashion/admin/reviews?success=' + encodeURIComponent('Xóa đánh giá thành công');
+                window.location.href = '/zone-fashion/admin/reviews?success=' + encodeURIComponent('Xóa đánh giá thành công');
             } else {
                 alert('Lỗi: ' + (data.message || 'Không thể xóa đánh giá'));
             }

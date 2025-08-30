@@ -92,7 +92,7 @@ class Setting extends BaseModel
         return [
             'general' => [
                 'site_name' => [
-                    'default' => '5S Fashion',
+                    'default' => 'zone Fashion',
                     'type' => 'string'
                 ],
                 'site_description' => [
@@ -122,7 +122,7 @@ class Setting extends BaseModel
                     'type' => 'string'
                 ],
                 'contact_email' => [
-                    'default' => 'info@5sfashion.com',
+                    'default' => 'info@zonefashion.com',
                     'type' => 'string'
                 ],
                 'working_hours' => [

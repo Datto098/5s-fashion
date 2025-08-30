@@ -1,12 +1,12 @@
 /**
  * Client Website JavaScript
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 // Get base URL dynamically
 const BASE_URL = (() => {
   const pathParts = window.location.pathname.split("/").filter((part) => part);
-  // If we're in a subdirectory like /5s-fashion/, use it as base
+  // If we're in a subdirectory like /zone-fashion/, use it as base
   if (pathParts.length > 0 && !pathParts[0].includes(".")) {
     return "/" + pathParts[0];
   }
@@ -23,7 +23,7 @@ let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 /**
  * Client Website JavaScript
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 // Helper function to get proper image URL
@@ -1076,7 +1076,7 @@ const customCSS = `
 
 /* Ensure modal backdrop is properly handled */
 .modal-backdrop {
-    transition: opacity 0.15s linear;
+    transition: opacity 0.1zone linear;
 }
 
 .modal-backdrop.fade {

@@ -23,7 +23,7 @@ function getStatusLabel($status) {
                     <p class="text-muted mb-0">Xem thông tin chi tiết đơn hàng</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/orders" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/orders" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -147,7 +147,7 @@ function getStatusLabel($status) {
                                                         } else {
                                                             $cleanPath = ltrim($imagePath, '/');
                                                         }
-                                                        $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                                        $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                                         ?>
                                                         <img src="<?= htmlspecialchars($imageUrl) ?>"
                                                              class="me-2 rounded" width="50" height="50" alt="Product">
@@ -367,7 +367,7 @@ function updateOrderStatus(status) {
     if (confirm(`Bạn có chắc chắn muốn cập nhật trạng thái đơn hàng thành "${status}"?`)) {
         console.log('Sending order status update request:', status);
 
-        fetch(`/5s-fashion/admin/orders/update-status/<?= $order['id'] ?>`, {
+        fetch(`/zone-fashion/admin/orders/update-status/<?= $order['id'] ?>`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -415,7 +415,7 @@ function updatePaymentStatus(status) {
     if (confirm(`Bạn có chắc chắn muốn cập nhật trạng thái thanh toán thành "${status}"?`)) {
         console.log('Sending payment status update request:', status);
 
-        fetch(`/5s-fashion/admin/orders/update-payment-status/<?= $order['id'] ?>`, {
+        fetch(`/zone-fashion/admin/orders/update-payment-status/<?= $order['id'] ?>`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
 <?php
-$title = $title ?? 'Chi tiết Admin - 5S Fashion Admin';
+$title = $title ?? 'Chi tiết Admin - zone Fashion Admin';
 $user = $user ?? [];
 ?>
 
@@ -23,10 +23,10 @@ $user = $user ?? [];
             </nav>
         </div>
         <div>
-            <a href="/5s-fashion/admin/users/<?= $user['id'] ?>/edit" class="btn btn-primary me-2">
+            <a href="/zone-fashion/admin/users/<?= $user['id'] ?>/edit" class="btn btn-primary me-2">
                 <i class="fas fa-edit me-2"></i>Chỉnh sửa
             </a>
-            <a href="/5s-fashion/admin/users" class="btn btn-outline-secondary">
+            <a href="/zone-fashion/admin/users" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Quay lại
             </a>
         </div>
@@ -40,7 +40,7 @@ $user = $user ?? [];
                     <!-- Avatar -->
                     <div class="mb-3">
                         <?php if (!empty($user['avatar']) && file_exists($user['avatar'])): ?>
-                            <img src="/5s-fashion/<?= htmlspecialchars($user['avatar']) ?>"
+                            <img src="/zone-fashion/<?= htmlspecialchars($user['avatar']) ?>"
                                  alt="<?= htmlspecialchars($user['full_name']) ?>"
                                  class="rounded-circle" width="120" height="120" style="object-fit: cover;">
                         <?php else: ?>
@@ -99,7 +99,7 @@ $user = $user ?? [];
 
                     <!-- Action Buttons -->
                     <div class="d-grid gap-2 mt-3">
-                        <a href="/5s-fashion/admin/users/<?= $user['id'] ?>/edit" class="btn btn-primary">
+                        <a href="/zone-fashion/admin/users/<?= $user['id'] ?>/edit" class="btn btn-primary">
                             <i class="fas fa-edit me-2"></i>Chỉnh sửa thông tin
                         </a>
 
@@ -278,7 +278,7 @@ $user = $user ?? [];
                                 <i class="fas fa-lock me-2"></i>
                                 Mật khẩu được mã hóa an toàn
                             </p>
-                            <a href="/5s-fashion/admin/users/<?= $user['id'] ?>/edit" class="btn btn-sm btn-outline-primary">
+                            <a href="/zone-fashion/admin/users/<?= $user['id'] ?>/edit" class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-key me-2"></i>Đổi mật khẩu
                             </a>
                         </div>
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateUserStatus(userId, status) {
-        fetch('/5s-fashion/admin/users/update-status', {
+        fetch('/zone-fashion/admin/users/update-status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function deleteUser(userId) {
-        fetch('/5s-fashion/admin/users/delete', {
+        fetch('/zone-fashion/admin/users/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -407,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteModal.hide();
 
             if (data.success) {
-                window.location.href = '/5s-fashion/admin/users?success=' + encodeURIComponent(data.message);
+                window.location.href = '/zone-fashion/admin/users?success=' + encodeURIComponent(data.message);
             } else {
                 alert('Lỗi: ' + (data.message || 'Không thể xóa admin'));
             }

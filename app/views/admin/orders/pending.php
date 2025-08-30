@@ -11,7 +11,7 @@
                     <p class="text-muted mb-0">Quản lý và xử lý các đơn hàng đang chờ</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/orders" class="btn btn-outline-secondary">
+                    <a href="/zone-fashion/admin/orders" class="btn btn-outline-secondary">
                         <i class="fas fa-list"></i> Tất cả đơn hàng
                     </a>
                 </div>
@@ -212,7 +212,7 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="/5s-fashion/admin/orders/show/<?= $order['id'] ?>"
+                                            <a href="/zone-fashion/admin/orders/show/<?= $order['id'] ?>"
                                                class="btn btn-sm btn-outline-primary"
                                                title="Xem chi tiết">
                                                 <i class="fas fa-eye"></i>
@@ -234,7 +234,7 @@
                     <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
                     <h4>Tuyệt vời!</h4>
                     <p class="text-muted">Hiện tại không có đơn hàng nào chờ xử lý.</p>
-                    <a href="/5s-fashion/admin/orders" class="btn btn-primary">
+                    <a href="/zone-fashion/admin/orders" class="btn btn-primary">
                         <i class="fas fa-list"></i> Xem tất cả đơn hàng
                     </a>
                 </div>
@@ -251,7 +251,7 @@ function processOrder(orderId) {
 }
 
 function updateOrderStatus(orderId, status) {
-    fetch('/5s-fashion/admin/orders/update-status', {
+    fetch('/zone-fashion/admin/orders/update-status', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -2,7 +2,7 @@
 
 /**
  * Account Controller (Client)
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class AccountController extends BaseController
@@ -31,7 +31,7 @@ class AccountController extends BaseController
         // $recentOrders = $this->model('Order')->getUserOrders($user['id'], 5);
 
         $data = [
-            'title' => 'Tài Khoản - 5S Fashion',
+            'title' => 'Tài Khoản - Zone Fashion',
             'user' => $user,
             'recent_orders' => $recentOrders
         ];
@@ -47,7 +47,7 @@ class AccountController extends BaseController
         $user = getUser();
 
         $data = [
-            'title' => 'Thông Tin Cá Nhân - 5S Fashion',
+            'title' => 'Thông Tin Cá Nhân - Zone Fashion',
             'user' => $user
         ];
 
@@ -122,7 +122,7 @@ class AccountController extends BaseController
     public function passwordForm()
     {
         $data = [
-            'title' => 'Đổi Mật Khẩu - 5S Fashion'
+            'title' => 'Đổi Mật Khẩu - Zone Fashion'
         ];
 
         $this->render('client/account/password', $data,'client/layouts/app');
@@ -193,7 +193,7 @@ class AccountController extends BaseController
         $orders = $orderModel->getByUserWithItems($user['id']);
 
         $data = [
-            'title' => 'Đơn Hàng - 5S Fashion',
+            'title' => 'Đơn Hàng - Zone Fashion',
             'orders' => $orders
         ];
 
@@ -219,7 +219,7 @@ class AccountController extends BaseController
         }
 
         $data = [
-            'title' => 'Chi Tiết Đơn Hàng #' . $order['order_code'] . ' - 5S Fashion',
+            'title' => 'Chi Tiết Đơn Hàng #' . $order['order_code'] . ' - Zone Fashion',
             'order' => $order
         ];
 
@@ -237,7 +237,7 @@ class AccountController extends BaseController
         $addresses = $this->model('Customer')->getCustomerAddresses($user['id']);
 
         $data = [
-            'title' => 'Địa Chỉ - 5S Fashion',
+            'title' => 'Địa Chỉ - Zone Fashion',
             'addresses' => $addresses
         ];
 
@@ -479,7 +479,7 @@ class AccountController extends BaseController
         }
 
         $data = [
-            'title' => 'Sản Phẩm Yêu Thích - 5S Fashion',
+            'title' => 'Sản Phẩm Yêu Thích - Zone Fashion',
             'user' => $user,
             'wishlist' => $wishlist
         ];

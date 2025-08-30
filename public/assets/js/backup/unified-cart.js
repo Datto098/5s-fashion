@@ -1,5 +1,5 @@
 /**
- * Unified Cart System - 5S Fashion
+ * Unified Cart System - zone Fashion
  * Handles cart operations consistently across all pages
  */
 
@@ -112,7 +112,7 @@ class UnifiedCartManager {
 
 			console.log('Sending request data:', requestData);
 
-			const response = await fetch('/5s-fashion/ajax/cart/add', {
+			const response = await fetch('/zone-fashion/ajax/cart/add', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ class UnifiedCartManager {
 	 */
 	async updateCartItem(productId, quantity, variant = null) {
 		try {
-			const response = await fetch('/5s-fashion/ajax/cart/update', {
+			const response = await fetch('/zone-fashion/ajax/cart/update', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -217,7 +217,7 @@ class UnifiedCartManager {
 	 */
 	async removeFromCart(productId, variant = null) {
 		try {
-			const response = await fetch('/5s-fashion/ajax/cart/remove', {
+			const response = await fetch('/zone-fashion/ajax/cart/remove', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -250,7 +250,7 @@ class UnifiedCartManager {
 	 */
 	async getCartItems() {
 		try {
-			const response = await fetch('/5s-fashion/ajax/cart/items', {
+			const response = await fetch('/zone-fashion/ajax/cart/items', {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
@@ -446,7 +446,7 @@ class UnifiedCartManager {
 				</div>
 				<div class="cart-actions">
 					<a href="/?route=cart" class="btn btn-outline-secondary">Xem giỏ hàng</a>
-					<a href="/5s-fashion/checkout" class="btn btn-primary">Thanh toán</a>
+					<a href="/zone-fashion/checkout" class="btn btn-primary">Thanh toán</a>
 				</div>
 			`;
 		}
@@ -805,7 +805,7 @@ class UnifiedCartManager {
 							</p>
 						</div>
 						<div class="modal-footer border-0 justify-content-center">
-							<a href="/5s-fashion/login" class="btn btn-primary px-4">
+							<a href="/zone-fashion/login" class="btn btn-primary px-4">
 								<i class="fas fa-sign-in-alt me-2"></i>
 								Đăng nhập ngay
 							</a>

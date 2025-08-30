@@ -1,7 +1,7 @@
 <?php
 // Checkout Page for Phase 3.3
-$title = 'Thanh toán - 5S Fashion';
-$meta_description = 'Hoàn tất đơn hàng tại 5S Fashion - Thanh toán an toàn và bảo mật';
+$title = 'Thanh toán - zone Fashion';
+$meta_description = 'Hoàn tất đơn hàng tại zone Fashion - Thanh toán an toàn và bảo mật';
 
 // Custom CSS for checkout page
 $custom_css = [

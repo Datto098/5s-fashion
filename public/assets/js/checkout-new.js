@@ -23,7 +23,7 @@
 //     }
 // }	async loadOrder() {
 // 		try {
-// 			const response = await fetch('/5s-fashion/ajax/cart/items');
+// 			const response = await fetch('/zone-fashion/ajax/cart/items');
 // 			if (response.ok) {
 // 				const data = await response.json();
 // 				if (
@@ -59,10 +59,10 @@
 // 			let templateContent = template.innerHTML;
 
 // 			// Process image URL
-// 			let imageUrl = '/5s-fashion/public/assets/images/placeholder.jpg';
+// 			let imageUrl = '/zone-fashion/public/assets/images/placeholder.jpg';
 // 			if (item.image) {
 // 				const encodedImage = encodeURIComponent(item.image);
-// 				imageUrl = `/5s-fashion/serve-file.php?file=products%2F${encodedImage}`;
+// 				imageUrl = `/zone-fashion/serve-file.php?file=products%2F${encodedImage}`;
 // 			}
 
 // 			// Build variant info
@@ -182,7 +182,7 @@
 
 // 	async loadAddresses() {
 // 		try {
-// 			const response = await fetch('/5s-fashion/order/addresses');
+// 			const response = await fetch('/zone-fashion/order/addresses');
 // 			if (response.ok) {
 // 				const data = await response.json();
 // 				if (data.success) {
@@ -393,7 +393,7 @@
 // 		};
 
 // 		try {
-// 			const response = await fetch('/5s-fashion/order/place', {
+// 			const response = await fetch('/zone-fashion/order/place', {
 // 				method: 'POST',
 // 				headers: {
 // 					'Content-Type': 'application/json',
@@ -406,7 +406,7 @@
 // 				if (result.success) {
 // 					// Redirect to success page
 // 					window.location.href =
-// 						'/5s-fashion/order/success/' + result.order_id;
+// 						'/zone-fashion/order/success/' + result.order_id;
 // 				} else {
 // 					this.showError(result.message || 'Không thể tạo đơn hàng');
 // 				}
@@ -589,7 +589,7 @@
 // 		};
 
 // 		try {
-// 			const response = await fetch('/5s-fashion/order/addAddress', {
+// 			const response = await fetch('/zone-fashion/order/addAddress', {
 // 				method: 'POST',
 // 				headers: {
 // 					'Content-Type': 'application/json',
@@ -628,7 +628,7 @@
 
 // 		try {
 // 			const response = await fetch(
-// 				`/5s-fashion/order/deleteAddress/${addressId}`,
+// 				`/zone-fashion/order/deleteAddress/${addressId}`,
 // 				{
 // 					method: 'DELETE',
 // 				}
@@ -654,7 +654,7 @@
 // 	async setDefaultAddress(id) {
 // 		try {
 // 			const response = await fetch(
-// 				`/5s-fashion/order/setDefaultAddress/${id}`,
+// 				`/zone-fashion/order/setDefaultAddress/${id}`,
 // 				{
 // 					method: 'PUT',
 // 					headers: {

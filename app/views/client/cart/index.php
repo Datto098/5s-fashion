@@ -1,5 +1,5 @@
 <?php
-$title = 'Giỏ hàng - 5S Fashion';
+$title = 'Giỏ hàng - zone Fashion';
 // Start output buffering for content
 ob_start();
 ?>
@@ -47,7 +47,7 @@ ob_start();
                                             // Remove uploads/products/ prefix if present
                                             $imagePath = preg_replace('#^uploads/products/#', '', $imagePath);
                                             ?>
-                                            <img src="/5s-fashion/serve-file.php?file=<?= urlencode('products/' . $imagePath) ?>"
+                                            <img src="/zone-fashion/serve-file.php?file=<?= urlencode('products/' . $imagePath) ?>"
                                                 alt="<?= htmlspecialchars($item['product_name']) ?>"
                                                 class="product-image img-fluid">
                                         </div>
@@ -313,8 +313,8 @@ ob_start();
     $content = ob_get_clean();
 
     // Set page variables for layout
-    $title = 'Giỏ hàng - 5S Fashion';
-    $meta_description = 'Giỏ hàng mua sắm tại 5S Fashion';
+    $title = 'Giỏ hàng - zone Fashion';
+    $meta_description = 'Giỏ hàng mua sắm tại zone Fashion';
 
     // Custom CSS following UI guidelines
     $custom_css = ['css/cart.css'];

@@ -1,5 +1,5 @@
 /**
- * Unified Wishlist System - 5S Fashion
+ * Unified Wishlist System - zone Fashion
  * Handles wishlist operations consistently across all pages
  */
 
@@ -96,7 +96,7 @@ class UnifiedWishlistManager {
 				'Vui lòng đăng nhập để sử dụng danh sách yêu thích!',
 				'warning'
 			);
-			window.location.href = '/5s-fashion/login';
+			window.location.href = '/zone-fashion/login';
 			return;
 		}
 
@@ -120,7 +120,7 @@ class UnifiedWishlistManager {
 				icon.className = 'fas fa-spinner fa-spin';
 			}
 
-			const response = await fetch('/5s-fashion/ajax/wishlist/toggle', {
+			const response = await fetch('/zone-fashion/ajax/wishlist/toggle', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
@@ -203,7 +203,7 @@ class UnifiedWishlistManager {
 		}
 
 		try {
-			const response = await fetch('/5s-fashion/ajax/wishlist/toggle', {
+			const response = await fetch('/zone-fashion/ajax/wishlist/toggle', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
@@ -242,7 +242,7 @@ class UnifiedWishlistManager {
 		}
 
 		try {
-			const response = await fetch('/5s-fashion/ajax/wishlist/toggle', {
+			const response = await fetch('/zone-fashion/ajax/wishlist/toggle', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/x-www-form-urlencoded',
@@ -282,7 +282,7 @@ class UnifiedWishlistManager {
 
 		try {
 			// Try API endpoint first
-			const response = await fetch('/5s-fashion/ajax/wishlist/list', {
+			const response = await fetch('/zone-fashion/ajax/wishlist/list', {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
@@ -452,7 +452,7 @@ class UnifiedWishlistManager {
 	updateWishlistCounter(count = null) {
 		if (count === null && this.isLoggedIn) {
 			// Fetch count from server
-			fetch('/5s-fashion/wishlist/count')
+			fetch('/zone-fashion/wishlist/count')
 				.then((response) => {
 					if (!response.ok) {
 						throw new Error(

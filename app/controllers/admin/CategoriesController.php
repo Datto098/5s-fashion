@@ -15,7 +15,7 @@ class CategoriesController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
     }
@@ -38,7 +38,7 @@ class CategoriesController extends BaseController
             $categories = $db->fetchAll($sql);
 
             $data = [
-                'title' => 'Quản lý danh mục - 5S Fashion Admin',
+                'title' => 'Quản lý danh mục - zone Fashion Admin',
                 'pageTitle' => 'Quản lý danh mục',
                 'categories' => $categories,
                 'breadcrumb' => ['Danh mục']
@@ -51,7 +51,7 @@ class CategoriesController extends BaseController
 
             // Fallback to empty data if database error
             $data = [
-                'title' => 'Quản lý danh mục - 5S Fashion Admin',
+                'title' => 'Quản lý danh mục - zone Fashion Admin',
                 'pageTitle' => 'Quản lý danh mục',
                 'categories' => [],
                 'breadcrumb' => ['Danh mục'],
@@ -71,7 +71,7 @@ class CategoriesController extends BaseController
             $parentCategories = $db->fetchAll("SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name ASC");
 
             $data = [
-                'title' => 'Thêm danh mục mới - 5S Fashion Admin',
+                'title' => 'Thêm danh mục mới - zone Fashion Admin',
                 'pageTitle' => 'Thêm danh mục mới',
                 'parentCategories' => $parentCategories,
                 'breadcrumb' => ['Danh mục', 'Thêm mới']
@@ -81,7 +81,7 @@ class CategoriesController extends BaseController
 
         } catch (Exception $e) {
             error_log("Error in CategoriesController::create - " . $e->getMessage());
-            header('Location: /5s-fashion/admin/categories?error=' . urlencode('Lỗi khi tải form tạo danh mục'));
+            header('Location: /zone-fashion/admin/categories?error=' . urlencode('Lỗi khi tải form tạo danh mục'));
             exit;
         }
     }
@@ -91,7 +91,7 @@ class CategoriesController extends BaseController
         $this->ensureSessionStarted();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/5s-fashion/admin/categories');
+            $this->redirect('/zone-fashion/admin/categories');
             return;
         }
 
@@ -130,7 +130,7 @@ class CategoriesController extends BaseController
             if (!empty($errors)) {
                 $_SESSION['errors'] = $errors;
                 $_SESSION['old_data'] = $data;
-                $this->redirect('/5s-fashion/admin/categories');
+                $this->redirect('/zone-fashion/admin/categories');
                 return;
             }
 
@@ -142,7 +142,7 @@ class CategoriesController extends BaseController
                 } else {
                     $_SESSION['errors'] = [$uploadResult['error']];
                     $_SESSION['old_data'] = $data;
-                    $this->redirect('/5s-fashion/admin/categories');
+                    $this->redirect('/zone-fashion/admin/categories');
                     return;
                 }
             }
@@ -174,7 +174,7 @@ class CategoriesController extends BaseController
             $_SESSION['error_message'] = 'Có lỗi xảy ra: ' . $e->getMessage();
         }
 
-        $this->redirect('/5s-fashion/admin/categories');
+        $this->redirect('/zone-fashion/admin/categories');
     }
 
     public function show($id)
@@ -200,7 +200,7 @@ class CategoriesController extends BaseController
             $products = $db->fetchAll("SELECT * FROM products WHERE category_id = ? ORDER BY name ASC LIMIT 10", [$id]);
 
             $data = [
-                'title' => 'Chi tiết danh mục: ' . $category['name'] . ' - 5S Fashion Admin',
+                'title' => 'Chi tiết danh mục: ' . $category['name'] . ' - zone Fashion Admin',
                 'pageTitle' => 'Chi tiết danh mục',
                 'category' => $category,
                 'subcategories' => $subcategories,
@@ -212,7 +212,7 @@ class CategoriesController extends BaseController
 
         } catch (Exception $e) {
             error_log("Error in CategoriesController::show - " . $e->getMessage());
-            header('Location: /5s-fashion/admin/categories?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/categories?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -233,7 +233,7 @@ class CategoriesController extends BaseController
             $parentCategories = $db->fetchAll("SELECT * FROM categories WHERE parent_id IS NULL AND id != ? ORDER BY name ASC", [$id]);
 
             $data = [
-                'title' => 'Chỉnh sửa danh mục: ' . $category['name'] . ' - 5S Fashion Admin',
+                'title' => 'Chỉnh sửa danh mục: ' . $category['name'] . ' - zone Fashion Admin',
                 'pageTitle' => 'Chỉnh sửa danh mục',
                 'category' => $category,
                 'parentCategories' => $parentCategories,
@@ -244,7 +244,7 @@ class CategoriesController extends BaseController
 
         } catch (Exception $e) {
             error_log("Error in CategoriesController::edit - " . $e->getMessage());
-            header('Location: /5s-fashion/admin/categories?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/categories?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -254,7 +254,7 @@ class CategoriesController extends BaseController
         $this->ensureSessionStarted();
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/5s-fashion/admin/categories');
+            $this->redirect('/zone-fashion/admin/categories');
             return;
         }
 
@@ -265,7 +265,7 @@ class CategoriesController extends BaseController
             $category = $db->fetchOne("SELECT * FROM categories WHERE id = ?", [$id]);
             if (!$category) {
                 $_SESSION['error_message'] = 'Danh mục không tồn tại!';
-                $this->redirect('/5s-fashion/admin/categories');
+                $this->redirect('/zone-fashion/admin/categories');
                 return;
             }
 
@@ -306,7 +306,7 @@ class CategoriesController extends BaseController
             if (!empty($errors)) {
                 $_SESSION['errors'] = $errors;
                 $_SESSION['old_data'] = $data;
-                $this->redirect('/5s-fashion/admin/categories');
+                $this->redirect('/zone-fashion/admin/categories');
                 return;
             }
 
@@ -334,7 +334,7 @@ class CategoriesController extends BaseController
                 } else {
                     $_SESSION['errors'] = [$uploadResult['error']];
                     $_SESSION['old_data'] = $data;
-                    $this->redirect('/5s-fashion/admin/categories');
+                    $this->redirect('/zone-fashion/admin/categories');
                     return;
                 }
             }
@@ -370,7 +370,7 @@ class CategoriesController extends BaseController
             $_SESSION['error_message'] = 'Có lỗi xảy ra: ' . $e->getMessage();
         }
 
-        $this->redirect('/5s-fashion/admin/categories');
+        $this->redirect('/zone-fashion/admin/categories');
     }
 
     public function delete($id)
@@ -510,7 +510,7 @@ class CategoriesController extends BaseController
         }
 
         // Create upload directory
-        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/5s-fashion/public/uploads/' . $folder . '/';
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/zone-fashion/public/uploads/' . $folder . '/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }

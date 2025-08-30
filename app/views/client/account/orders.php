@@ -153,7 +153,7 @@ ob_start();
                                                     <div class="order-item d-flex align-items-center mb-2 p-2 border-bottom">
                                                         <div class="item-image me-3">
                                                             <?php if (!empty($item['featured_image'])): ?>
-                                                                <img src="/5s-fashion/serve-file.php?file=<?php echo rawurlencode($item['featured_image']); ?>"
+                                                                <img src="/zone-fashion/serve-file.php?file=<?php echo rawurlencode($item['featured_image']); ?>"
                                                                      alt="<?php echo htmlspecialchars($item['product_name']); ?>"
                                                                      class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
                                                             <?php else: ?>

@@ -22,7 +22,7 @@ $trending = $trending ?? [];$period = $period ?? '30';
                 <option value="90" <?= $period == '90' ? 'selected' : '' ?>>3 tháng qua</option>
                 <option value="365" <?= $period == '365' ? 'selected' : '' ?>>1 năm qua</option>
             </select>
-            <a href="/5s-fashion/admin/analytics/reports" class="btn btn-primary btn-sm">
+            <a href="/zone-fashion/admin/analytics/reports" class="btn btn-primary btn-sm">
                 <i class="fas fa-chart-line me-1"></i>Chi tiết
             </a>
             <button class="btn btn-success btn-sm" onclick="exportData()">
@@ -308,7 +308,7 @@ $trending = $trending ?? [];$period = $period ?? '30';
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-history me-2"></i>Hoạt động gần đây
                     </h6>
-                    <a href="/5s-fashion/admin/reviews" class="btn btn-outline-primary btn-sm">
+                    <a href="/zone-fashion/admin/reviews" class="btn btn-outline-primary btn-sm">
                         Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -505,7 +505,7 @@ function exportData() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `5s-fashion-analytics-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `zone-fashion-analytics-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

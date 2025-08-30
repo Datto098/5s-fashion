@@ -1,12 +1,12 @@
 /**
- * 5S Fashion Cart Manager - Unified System
+ * zone Fashion Cart Manager - Unified System
  * Handles all cart operations consistently across pages
  * Following UI Guidelines and RULE.md standards
  */
 
 class CartManager {
 	constructor() {
-		this.baseUrl = '/5s-fashion/ajax';
+		this.baseUrl = '/zone-fashion/ajax';
 		this.syncInProgress = false;
 		this.init();
 	}
@@ -443,7 +443,7 @@ class CartManager {
                     <div class="col-3">
                         <img src="${
 							item.image ||
-							'/5s-fashion/public/assets/images/placeholder.jpg'
+							'/zone-fashion/public/assets/images/placeholder.jpg'
 						}"
                              alt="${item.name}" class="img-fluid rounded">
                     </div>
@@ -486,8 +486,8 @@ class CartManager {
 					)}</strong>
                 </div>
                 <div class="d-grid">
-                    <a href="/5s-fashion/cart" class="btn btn-outline-primary btn-sm mb-2">Xem giỏ hàng</a>
-                    <a href="/5s-fashion/checkout" class="btn btn-primary btn-sm">Thanh toán</a>
+                    <a href="/zone-fashion/cart" class="btn btn-outline-primary btn-sm mb-2">Xem giỏ hàng</a>
+                    <a href="/zone-fashion/checkout" class="btn btn-primary btn-sm">Thanh toán</a>
                 </div>
             `;
 		}

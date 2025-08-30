@@ -1,7 +1,7 @@
 <?php
 /**
  * Category Model
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class Category extends BaseModel

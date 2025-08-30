@@ -6,8 +6,8 @@
             <!-- Company Info -->
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="footer-section">
-                    <h4 class="mb-3 fw-bold text-primary">5S Fashion</h4>
-                    <p class="mb-3">5S Fashion - Thương hiệu thời trang cao cấp hàng đầu Việt Nam. Chúng tôi mang đến những sản phẩm thời trang chất lượng với phong cách hiện đại và xu hướng mới nhất.</p>
+                    <h4 class="mb-3 fw-bold text-primary">Zone Fashion</h4>
+                    <p class="mb-3">Zone Fashion - Thương hiệu thời trang cao cấp hàng đầu Việt Nam. Chúng tôi mang đến những sản phẩm thời trang chất lượng với phong cách hiện đại và xu hướng mới nhất.</p>
 
                     <div class="contact-info">
                         <div class="contact-item mb-2">
@@ -20,7 +20,7 @@
                         </div>
                         <div class="contact-item mb-2">
                             <i class="fas fa-envelope me-2"></i>
-                            <a href="mailto:info@5sfashion.com" class="text-white text-decoration-none">info@5sfashion.com</a>
+                            <a href="mailto:info@zonefashion.com" class="text-white text-decoration-none">info@zonefashion.com</a>
                         </div>
                     </div>
                 </div>
@@ -137,7 +137,7 @@
         <!-- Copyright -->
         <div class="row py-3 border-top border-secondary">
             <div class="col-md-6">
-                <p class="mb-0">&copy; <?= date('Y') ?> 5S Fashion. All rights reserved.</p>
+                <p class="mb-0">&copy; <?= date('Y') ?> zone Fashion. All rights reserved.</p>
             </div>
             <div class="col-md-6 text-md-end">
                 <p class="mb-0">

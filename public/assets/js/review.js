@@ -116,7 +116,7 @@ function likeReview(reviewId, button) {
     // Vô hiệu hóa nút trong khi đang xử lý
     button.disabled = true;
     
-    fetch(`/5s-fashion/ajax/review/like/${reviewId}`, {
+    fetch(`/zone-fashion/ajax/review/like/${reviewId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ function deleteReview(reviewId, button) {
     // Vô hiệu hóa nút trong khi đang xử lý
     button.disabled = true;
     
-    fetch(`/5s-fashion/ajax/review/delete/${reviewId}`, {
+    fetch(`/zone-fashion/ajax/review/delete/${reviewId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

@@ -18,7 +18,7 @@ ob_start();
                         </svg>
                     </div>
                     <h1 class="success-title">Đặt hàng thành công!</h1>
-                    <p class="success-subtitle">Cảm ơn bạn đã tin tưởng và mua sắm tại 5S Fashion</p>
+                    <p class="success-subtitle">Cảm ơn bạn đã tin tưởng và mua sắm tại zone Fashion</p>
                 </div>
 
                 <!-- Order Details -->
@@ -114,7 +114,7 @@ ob_start();
                                                         } else {
                                                             $cleanPath = ltrim($imagePath, '/');
                                                         }
-                                                        $serveUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                                        $serveUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                                         ?>
                                                         <img src="<?php echo $serveUrl; ?>"
                                                              alt="<?php echo htmlspecialchars($item['product_name']); ?>"
@@ -432,7 +432,7 @@ ob_start();
                                         </div>
                                         <div class="info-item">
                                             <span class="label">Chủ tài khoản:</span>
-                                            <span class="value">CONG TY 5S FASHION</span>
+                                            <span class="value">CONG TY zone FASHION</span>
                                         </div>
                                     </div>
                                 </div>
@@ -447,7 +447,7 @@ ob_start();
                                         <div class="info-item">
                                             <span class="label">Nội dung:</span>
                                             <span class="value" id="bankContent">
-                                                5SFASHION <?php echo isset($data['order']['order_code']) ? $data['order']['order_code'] : 'ORD' . ($data['orderId'] ?? '000001'); ?>
+                                                zoneFASHION <?php echo isset($data['order']['order_code']) ? $data['order']['order_code'] : 'ORD' . ($data['orderId'] ?? '000001'); ?>
                                             </span>
                                         </div>
                                     </div>
@@ -461,7 +461,7 @@ ob_start();
                 <div class="action-buttons text-center">
                     <div class="row g-3">
                         <div class="col-md-3 col-6">
-                            <a href="/5s-fashion/order/tracking" class="btn-primary-action w-100">
+                            <a href="/zone-fashion/order/tracking" class="btn-primary-action w-100">
                                 <i class="fas fa-search me-2"></i>
                                 Theo dõi đơn hàng
                             </a>
@@ -473,13 +473,13 @@ ob_start();
                             </button>
                         </div>
                         <div class="col-md-3 col-6">
-                            <a href="/5s-fashion" class="btn-outline-primary-action w-100">
+                            <a href="/zone-fashion" class="btn-outline-primary-action w-100">
                                 <i class="fas fa-shopping-bag me-2"></i>
                                 Tiếp tục mua sắm
                             </a>
                         </div>
                         <div class="col-md-3 col-6">
-                            <a href="/5s-fashion" class="btn-outline-secondary-action w-100">
+                            <a href="/zone-fashion" class="btn-outline-secondary-action w-100">
                                 <i class="fas fa-home me-2"></i>
                                 Về trang chủ
                             </a>
@@ -497,8 +497,8 @@ ob_start();
 $content = ob_get_clean();
 
 // Set page variables for layout
-$title = 'Đặt hàng thành công - 5S Fashion';
-$meta_description = 'Cảm ơn bạn đã đặt hàng tại 5S Fashion';
+$title = 'Đặt hàng thành công - zone Fashion';
+$meta_description = 'Cảm ơn bạn đã đặt hàng tại zone Fashion';
 
 // Custom CSS for this page
 $custom_css = [

@@ -65,8 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $content = ob_get_clean();
 
 // Set page variables for layout
-$title = 'Liên hệ - 5S Fashion';
-$meta_description = 'Liên hệ tại 5S Fashion';
+$title = 'Liên hệ - zone Fashion';
+$meta_description = 'Liên hệ tại zone Fashion';
 
 
 // Include main layout

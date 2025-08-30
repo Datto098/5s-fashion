@@ -1,5 +1,5 @@
 <?php
-$title = $title ?? 'Quản lý Admin - 5S Fashion Admin';
+$title = $title ?? 'Quản lý Admin - zone Fashion Admin';
 $users = $users ?? [];
 $stats = $stats ?? [];
 $search = $search ?? '';
@@ -27,7 +27,7 @@ $error = $error ?? '';
             </nav>
         </div>
         <div>
-            <a href="/5s-fashion/admin/users/create" class="btn btn-primary">
+            <a href="/zone-fashion/admin/users/create" class="btn btn-primary">
                 <i class="fas fa-plus me-2"></i>Tạo Admin mới
             </a>
         </div>
@@ -120,7 +120,7 @@ $error = $error ?? '';
     <!-- Search and Filter Section -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="/5s-fashion/admin/users" class="row g-4">
+            <form method="GET" action="/zone-fashion/admin/users" class="row g-4">
                 <div class="col-lg-4 col-md-6 mb-2">
                     <label for="search" class="form-label">Tìm kiếm</label>
                     <input type="text" class="form-control" id="search" name="search"
@@ -157,7 +157,7 @@ $error = $error ?? '';
                         <button type="submit" class="btn btn-primary flex-fill">
                             <i class="fas fa-search me-1"></i>Tìm kiếm
                         </button>
-                        <a href="/5s-fashion/admin/users" class="btn btn-outline-secondary" title="Đặt lại">
+                        <a href="/zone-fashion/admin/users" class="btn btn-outline-secondary" title="Đặt lại">
                             <i class="fas fa-redo"></i>
                         </a>
                     </div>
@@ -177,7 +177,7 @@ $error = $error ?? '';
                     <i class="fas fa-users fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">Không có admin nào</h5>
                     <p class="text-muted">Hãy tạo tài khoản admin đầu tiên</p>
-                    <a href="/5s-fashion/admin/users/create" class="btn btn-primary">
+                    <a href="/zone-fashion/admin/users/create" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Tạo Admin mới
                     </a>
                 </div>
@@ -200,7 +200,7 @@ $error = $error ?? '';
                                     <td>
                                         <div class="avatar-sm">
                                             <?php if (!empty($user['avatar']) && file_exists($user['avatar'])): ?>
-                                                <img src="/5s-fashion/<?= htmlspecialchars($user['avatar']) ?>"
+                                                <img src="/zone-fashion/<?= htmlspecialchars($user['avatar']) ?>"
                                                      alt="<?= htmlspecialchars($user['full_name']) ?>"
                                                      class="rounded-circle" width="40" height="40">
                                             <?php else: ?>
@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data[key] = value;
         });
 
-        fetch(`/5s-fashion/admin/users/${userId}/edit`, {
+        fetch(`/zone-fashion/admin/users/${userId}/edit`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -566,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateUserStatus(userId, status) {
-        fetch('/5s-fashion/admin/users/update-status', {
+        fetch('/zone-fashion/admin/users/update-status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function deleteUser(userId) {
-        fetch('/5s-fashion/admin/users/delete', {
+        fetch('/zone-fashion/admin/users/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

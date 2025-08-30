@@ -2,7 +2,7 @@
 /**
  * VNPay Helper
  * Handle VNPay payment processing
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class VNPayHelper
@@ -20,7 +20,7 @@ class VNPayHelper
     public function createPaymentUrl($orderInfo)
     {
         $vnp_TxnRef = $orderInfo['order_code']; // Mã đơn hàng
-        $vnp_OrderInfo = 'Thanh toán đơn hàng ' . $orderInfo['order_code'] . ' tại 5S Fashion';
+        $vnp_OrderInfo = 'Thanh toán đơn hàng ' . $orderInfo['order_code'] . ' tại zone Fashion';
         $vnp_OrderType = 'other';
         $vnp_Amount = $orderInfo['total_amount'] * 100; // VNPay yêu cầu số tiền * 100
         $vnp_Locale = 'vn';
@@ -29,7 +29,7 @@ class VNPayHelper
 
         // URL return - sẽ được config trong routes
         $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
-        $vnp_Returnurl = $baseUrl . "/5s-fashion/payment/vnpay/return";
+        $vnp_Returnurl = $baseUrl . "/zone-fashion/payment/vnpay/return";
 
         $inputData = array(
             "vnp_Version" => "2.1.0",

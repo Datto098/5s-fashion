@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const productId = <?= (int)$product['id'] ?>;
     // store the initial product price text so we can revert when no variant selected
     try { window._initialProductPrice = document.querySelector('.current-price')?.textContent?.trim() || null; } catch(e) {}
-    fetch(`/5s-fashion/ajax/product/quickview?id=${productId}`)
+    fetch(`/zone-fashion/ajax/product/quickview?id=${productId}`)
         .then(res => res.json())
         .then(data => {
             try {
@@ -218,7 +218,7 @@ function handleAddToCart(productId) {
         window.addToCart(productId, quantity, fullVariant);
     } else {
         // Fallback ajax, truyền đủ thông tin variant
-        fetch('/5s-fashion/ajax/cart/add', {
+        fetch('/zone-fashion/ajax/cart/add', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -329,7 +329,7 @@ if (!isset($product) || empty($product)) {
 }
 
 // Prepare image URL
-$imageUrl = '/5s-fashion/public/assets/images/default-product.jpg';
+$imageUrl = '/zone-fashion/public/assets/images/default-product.jpg';
 if (!empty($product['featured_image'])) {
     $imagePath = $product['featured_image'];
     if (strpos($imagePath, '/uploads/') === 0) {
@@ -339,7 +339,7 @@ if (!empty($product['featured_image'])) {
     } else {
         $cleanPath = ltrim($imagePath, '/');
     }
-    $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+    $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
 }
 
 // Start content capture
@@ -386,7 +386,7 @@ ob_start();
                                 if (!empty($galleryImg)) {
                                     $cleanPath = ltrim($galleryImg, '/');
                                     $allImages[] = [
-                                        'url' => '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath),
+                                        'url' => '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath),
                                         'alt' => htmlspecialchars($product['name']),
                                         'type' => 'gallery'
                                     ];
@@ -401,7 +401,7 @@ ob_start();
                             if (!empty($variant['image'])) {
                                 $cleanPath = ltrim($variant['image'], '/');
                                 $allImages[] = [
-                                    'url' => '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath),
+                                    'url' => '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath),
                                     'alt' => htmlspecialchars($variant['variant_name']),
                                     'type' => 'variant'
                                 ];
@@ -412,7 +412,7 @@ ob_start();
                     // Fallback to default image if no images
                     if (empty($allImages)) {
                         $allImages[] = [
-                            'url' => '/5s-fashion/public/assets/images/default-product.jpg',
+                            'url' => '/zone-fashion/public/assets/images/default-product.jpg',
                             'alt' => htmlspecialchars($product['name']),
                             'type' => 'default'
                         ];
@@ -731,7 +731,7 @@ ob_start();
                                 </div>
                                 <div class="col-md-6">
                                     <ul class="list-unstyled">
-                                        <li><strong>Thương hiệu:</strong> 5S Fashion</li>
+                                        <li><strong>Thương hiệu:</strong> zone Fashion</li>
                                         <li><strong>Xuất xứ:</strong> Việt Nam</li>
                                         <li><strong>Bảo hành:</strong> 12 tháng</li>
                                     </ul>
@@ -1161,7 +1161,7 @@ ob_start();
             payload.variant = selected.full ? selected.full : { id: selected.id, price: selected.price, size: selected.size, color: selected.color };
         }
 
-        fetch('/5s-fashion/ajax/cart/add', {
+        fetch('/zone-fashion/ajax/cart/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1193,14 +1193,14 @@ ob_start();
             window.cartManager.addToCart(productId, quantity, selectedVariant).then((result) => {
                 if (result && result.success) {
                     setTimeout(() => {
-                        window.location.href = '/5s-fashion/checkout';
+                        window.location.href = '/zone-fashion/checkout';
                     }, 1000);
                 }
             });
         } else {
             addToCartFallback(productId, quantity);
             setTimeout(() => {
-                window.location.href = '/5s-fashion/checkout';
+                window.location.href = '/zone-fashion/checkout';
             }, 1000);
         }
     }
@@ -1288,7 +1288,7 @@ ob_start();
                 }
 
                 // Submit review
-                fetch('http://localhost/5s-fashion/api/reviews', {
+                fetch('http://localhost/zone-fashion/api/reviews', {
                         method: 'POST',
                         body: formData,
                         headers: {
@@ -1321,7 +1321,7 @@ ob_start();
             const reviewItem = button.closest('.review-item');
 
             // Fetch review data and populate the form
-            fetch(`http://localhost/5s-fashion/api/reviews/${reviewId}`)
+            fetch(`http://localhost/zone-fashion/api/reviews/${reviewId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.review) {
@@ -1363,9 +1363,9 @@ ob_start();
 $content = ob_get_clean();
 
 // Set layout variables following UI guidelines
-$title = htmlspecialchars($product['name']) . ' - 5S Fashion';
-$meta_description = htmlspecialchars($product['description'] ?? 'Sản phẩm chất lượng cao tại 5S Fashion');
-$meta_keywords = htmlspecialchars($product['name']) . ', thời trang, 5s fashion';
+$title = htmlspecialchars($product['name']) . ' - zone Fashion';
+$meta_description = htmlspecialchars($product['description'] ?? 'Sản phẩm chất lượng cao tại zone Fashion');
+$meta_keywords = htmlspecialchars($product['name']) . ', thời trang, zone fashion';
 
 // Custom CSS following UI guidelines
 $custom_css = ['css/product-detail.css'];

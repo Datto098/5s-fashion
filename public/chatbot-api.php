@@ -23,7 +23,7 @@ safe_require_once(ROOT_PATH . "/app/controllers/api/ChatbotApiController.php");
 
 // Define BASE_URL manually to avoid including constants.php
 if (!defined("BASE_URL")) {
-    define("BASE_URL", "http://localhost/5s-fashion");
+    define("BASE_URL", "http://localhost/zone-fashion");
 }
 
 // Start session if not started

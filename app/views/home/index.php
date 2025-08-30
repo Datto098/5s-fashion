@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5S Fashion - Trang Chủ</title>
+    <title>zone Fashion - Trang Chủ</title>
 
     <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -130,7 +130,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🛍️ 5S Fashion</h1>
+        <h1>🛍️ zone Fashion</h1>
         <p class="subtitle">Hệ thống quản lý thời trang hiện đại</p>
 
         <div class="status">
@@ -175,7 +175,7 @@
 
         <div class="login-info">
             <h3>🔑 Thông tin đăng nhập Admin</h3>
-            <p><strong>Email:</strong> admin@5sfashion.com</p>
+            <p><strong>Email:</strong> admin@zonefashion.com</p>
             <p><strong>Password:</strong> admin123</p>
             <p><strong>Role:</strong> Super Administrator</p>
         </div>
@@ -190,12 +190,12 @@
         <div style="background: #e3f2fd; border: 1px solid #1976d2; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #1976d2; margin-top: 0;">🌐 Cách truy cập hệ thống:</h3>
             <p><strong>Cách 1 (PHP Built-in Server):</strong> <code>http://localhost:8080</code></p>
-            <p><strong>Cách 2 (Apache/XAMPP/WAMP):</strong> <code>http://localhost/5s-fashion</code></p>
+            <p><strong>Cách 2 (Apache/XAMPP/WAMP):</strong> <code>http://localhost/zone-fashion</code></p>
             <p><em>Cả hai cách đều hoạt động với cùng một codebase!</em></p>
         </div>
 
         <div class="footer">
-            <p>&copy; 2025 5S Fashion. </p>
+            <p>&copy; 2025 zone Fashion. </p>
             <p>Framework: PHP MVC | Database: MySQL | Theme: Red-White-Gray</p>
         </div>
     </div>

@@ -59,7 +59,7 @@ class CheckoutManager {
 
 	async loadOrder() {
 		try {
-			const response = await fetch('/5s-fashion/ajax/cart/items');
+			const response = await fetch('/zone-fashion/ajax/cart/items');
 			if (response.ok) {
 				const data = await response.json();
 				console.log('Cart API Response:', data);
@@ -124,7 +124,7 @@ class CheckoutManager {
 					imageUrl = imagePath;
 				} else {
 					// Always use serve-file.php for relative paths
-					imageUrl = `/5s-fashion/serve-file.php?file=${encodeURIComponent(
+					imageUrl = `/zone-fashion/serve-file.php?file=${encodeURIComponent(
 						'products/' + cleanPath
 					)}`;
 				}
@@ -229,7 +229,7 @@ class CheckoutManager {
 			const replacements = [
 				[
 					'{image}',
-					imageUrl || '/5s-fashion/public/assets/images/no-image.jpg',
+					imageUrl || '/zone-fashion/public/assets/images/no-image.jpg',
 				],
 				['{name}', displayName],
 				['{variant_info}', variantInfo],
@@ -301,7 +301,7 @@ class CheckoutManager {
 					// Only set fallback once to prevent loops
 					if (!this.src.includes('no-image.jpg')) {
 						this.src =
-							'/5s-fashion/public/assets/images/no-image.jpg';
+							'/zone-fashion/public/assets/images/no-image.jpg';
 						this.style.objectFit = 'contain';
 						this.style.padding = '10px';
 					}
@@ -408,7 +408,7 @@ class CheckoutManager {
 
 	async loadAddresses() {
 		try {
-			const response = await fetch('/5s-fashion/order/addresses');
+			const response = await fetch('/zone-fashion/order/addresses');
 			console.log('Address API response status:', response.status);
 
 			if (response.ok) {
@@ -436,7 +436,7 @@ class CheckoutManager {
 				console.warn('User not authenticated, redirecting to login...');
 				// Redirect to login if not authenticated
 				window.location.href =
-					'/5s-fashion/login?redirect=' +
+					'/zone-fashion/login?redirect=' +
 					encodeURIComponent(window.location.pathname);
 				return;
 			} else {
@@ -720,11 +720,12 @@ class CheckoutManager {
 			totals: this.orderSummary,
 			// Thêm discount_amount rõ ràng cho backend
 			discount_amount: this.orderSummary.discount || 0,
+			
 		};
 
 		try {
 			// Create order first
-			const response = await fetch('/5s-fashion/order/place', {
+			const response = await fetch('/zone-fashion/order/place', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -782,7 +783,7 @@ class CheckoutManager {
 				bank_code: bankCode,
 			};
 
-			const response = await fetch('/5s-fashion/payment/vnpay', {
+			const response = await fetch('/zone-fashion/payment/vnpay', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -825,7 +826,7 @@ class CheckoutManager {
 
 			console.log('[COD JS] Sending payment data:', paymentData);
 
-			const response = await fetch('/5s-fashion/payment/cod', {
+			const response = await fetch('/zone-fashion/payment/cod', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -1052,7 +1053,7 @@ class CheckoutAddressManager {
 		       is_default: formData.get('is_default') ? 1 : 0,
 	       };
 	       try {
-		       const url = addressId ? '/5s-fashion/order/editAddress/' + addressId : '/5s-fashion/order/addAddress';
+		       const url = addressId ? '/zone-fashion/order/editAddress/' + addressId : '/zone-fashion/order/addAddress';
 		       const method = addressId ? 'PUT' : 'POST';
 		       const response = await fetch(url, {
 			       method: method,
@@ -1082,7 +1083,7 @@ class CheckoutAddressManager {
        async editAddress(addressId) {
 	       // Ưu tiên lấy dữ liệu từ API nếu có route getAddress
 	       try {
-		       const res = await fetch(`/5s-fashion/order/getAddress/${addressId}`);
+		       const res = await fetch(`/zone-fashion/order/getAddress/${addressId}`);
 		       if (res.ok) {
 			       const data = await res.json();
 			       if (data.success && data.address) {
@@ -1112,7 +1113,7 @@ class CheckoutAddressManager {
 
 		try {
 			const response = await fetch(
-				`/5s-fashion/order/deleteAddress/${addressId}`,
+				`/zone-fashion/order/deleteAddress/${addressId}`,
 				{
 					method: 'DELETE',
 				}
@@ -1138,7 +1139,7 @@ class CheckoutAddressManager {
 	async setDefaultAddress(id) {
 		try {
 			const response = await fetch(
-				`/5s-fashion/order/setDefaultAddress/${id}`,
+				`/zone-fashion/order/setDefaultAddress/${id}`,
 				{
 					method: 'PUT',
 					headers: {

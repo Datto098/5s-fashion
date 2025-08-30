@@ -14,7 +14,7 @@
         </div>
     </div>
     <div class="admin-header-actions">
-        <a href="/5s-fashion/admin/categories/create" class="btn btn-primary">
+        <a href="/zone-fashion/admin/categories/create" class="btn btn-primary">
             <i class="fas fa-plus"></i>
             Thêm danh mục
         </a>
@@ -99,7 +99,7 @@
                                 } else {
                                     $cleanPath = ltrim($imagePath, '/');
                                 }
-                                $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                 ?>
                                 <img src="<?= htmlspecialchars($imageUrl) ?>" alt="<?= htmlspecialchars($category['name']) ?>" class="category-thumb">
                             <?php else: ?>
@@ -152,10 +152,10 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="/5s-fashion/admin/categories/edit/<?= $category['id'] ?>" class="btn btn-sm btn-primary" title="Chỉnh sửa">
+                            <a href="/zone-fashion/admin/categories/edit/<?= $category['id'] ?>" class="btn btn-sm btn-primary" title="Chỉnh sửa">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="/5s-fashion/admin/categories/show/<?= $category['id'] ?>" class="btn btn-sm btn-info" title="Xem chi tiết">
+                            <a href="/zone-fashion/admin/categories/show/<?= $category['id'] ?>" class="btn btn-sm btn-info" title="Xem chi tiết">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <?php if ($category['products_count'] == 0): ?>
@@ -522,7 +522,7 @@
     function openCreateModal() {
         document.getElementById('modalTitle').textContent = 'Thêm danh mục mới';
         document.getElementById('categoryForm').reset();
-        document.getElementById('categoryForm').action = '/5s-fashion/admin/categories/store';
+        document.getElementById('categoryForm').action = '/zone-fashion/admin/categories/store';
         document.getElementById('categoryForm').method = 'POST';
         document.getElementById('submitBtn').textContent = 'Lưu danh mục';
 
@@ -568,11 +568,11 @@
     function editCategory(id) {
         // Set modal title and form action
         document.getElementById('modalTitle').textContent = 'Chỉnh sửa danh mục';
-        document.getElementById('categoryForm').action = '/5s-fashion/admin/categories/update/' + id;
+        document.getElementById('categoryForm').action = '/zone-fashion/admin/categories/update/' + id;
         document.getElementById('submitBtn').textContent = 'Cập nhật';
 
         // Load category data via AJAX
-        fetch(`/5s-fashion/admin/categories/api/${id}`)
+        fetch(`/zone-fashion/admin/categories/api/${id}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -616,13 +616,13 @@
                         let imageUrl = category.image;
                         if (category.image.indexOf('/uploads/') === 0) {
                             const cleanPath = category.image.substring(9);
-                            imageUrl = '/5s-fashion/serve-file.php?file=' + encodeURIComponent(cleanPath);
+                            imageUrl = '/zone-fashion/serve-file.php?file=' + encodeURIComponent(cleanPath);
                         } else if (category.image.indexOf('uploads/') === 0) {
                             const cleanPath = category.image.substring(8);
-                            imageUrl = '/5s-fashion/serve-file.php?file=' + encodeURIComponent(cleanPath);
+                            imageUrl = '/zone-fashion/serve-file.php?file=' + encodeURIComponent(cleanPath);
                         } else {
                             const cleanPath = category.image.replace(/^\/+/, '');
-                            imageUrl = '/5s-fashion/serve-file.php?file=' + encodeURIComponent(cleanPath);
+                            imageUrl = '/zone-fashion/serve-file.php?file=' + encodeURIComponent(cleanPath);
                         }
 
                         document.getElementById('currentImage').src = imageUrl;
@@ -647,12 +647,12 @@
     }
 
     function viewCategory(id) {
-        window.location.href = '/5s-fashion/admin/categories/show/' + id;
+        window.location.href = '/zone-fashion/admin/categories/show/' + id;
     }
 
     function deleteCategory(id, name) {
         if (confirm(`Bạn có chắc chắn muốn xóa danh mục "${name}"?\n\nLưu ý: Chỉ có thể xóa danh mục không có sản phẩm.`)) {
-            fetch(`/5s-fashion/admin/categories/delete/${id}`, {
+            fetch(`/zone-fashion/admin/categories/delete/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -927,7 +927,7 @@
     }
 
     .notification-hidden {
-        animation: slideOut 0.5s ease forwards;
+        animation: slideOut 0.zone ease forwards;
     }
 
     .notification-success {

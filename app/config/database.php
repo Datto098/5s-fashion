@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Configuration
- * 5S Fashion E-commerce Platform
+ * Zone Fashion E-commerce Platform
  */
 
 return [
@@ -12,7 +12,7 @@ return [
             'driver' => 'mysql',
             'host' => $_ENV['DB_HOST'] ?? 'localhost',
             'port' => $_ENV['DB_PORT'] ?? '3306',
-            'database' => $_ENV['DB_NAME'] ?? '5s_fashion',
+            'database' => $_ENV['DB_NAME'] ?? 'zone_fashion',
             'username' => $_ENV['DB_USER'] ?? 'root',
             'password' => $_ENV['DB_PASS'] ?? '',
             'charset' => 'utf8',

@@ -7,7 +7,7 @@
             <h1 class="h3 mb-0">Cập nhật trạng thái đơn hàng</h1>
             <p class="text-muted">Đơn hàng #<?= htmlspecialchars($order['order_code'] ?? $order['id']) ?></p>
         </div>
-        <a href="/5s-fashion/admin/orders" class="btn btn-secondary">
+        <a href="/zone-fashion/admin/orders" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-2"></i>Quay lại
         </a>
     </div>
@@ -52,7 +52,7 @@
     <div class="card">
         <div class="card-body">
             <h6 class="mb-3">Cập nhật trạng thái</h6>
-            <form action="/5s-fashion/admin/orders/update-status/<?= $order['id'] ?>" method="POST">
+            <form action="/zone-fashion/admin/orders/update-status/<?= $order['id'] ?>" method="POST">
                 <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
 
                 <div class="mb-3">
@@ -79,7 +79,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save me-2"></i>Cập nhật trạng thái
                     </button>
-                    <a href="/5s-fashion/admin/orders" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/orders" class="btn btn-secondary">
                         Hủy bỏ
                     </a>
                 </div>

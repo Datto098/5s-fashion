@@ -89,7 +89,7 @@
 // 					'error'
 // 				);
 // 				setTimeout(() => {
-// 					window.location.href = '/5s-fashion/cart';
+// 					window.location.href = '/zone-fashion/cart';
 // 				}, 2000);
 // 				return;
 // 			}
@@ -122,13 +122,13 @@
 
 // 		this.cart.forEach((item) => {
 // 			// Format image URL using serve-file.php
-// 			let imageUrl = '/5s-fashion/public/assets/images/placeholder.jpg';
+// 			let imageUrl = '/zone-fashion/public/assets/images/placeholder.jpg';
 // 			if (item.image) {
 // 				// Remove leading slash and uploads/products/ prefix if present
 // 				let imagePath = item.image
 // 					.replace(/^\/+/, '')
 // 					.replace(/^uploads\/products\//, '');
-// 				imageUrl = `/5s-fashion/serve-file.php?file=${encodeURIComponent(
+// 				imageUrl = `/zone-fashion/serve-file.php?file=${encodeURIComponent(
 // 					'products/' + imagePath
 // 				)}`;
 // 			}
@@ -523,7 +523,7 @@
 // 			);
 
 // 			console.log('Step 5: Submitting order to server');
-// 			console.log('API endpoint: /5s-fashion/public/order/place');
+// 			console.log('API endpoint: /zone-fashion/public/order/place');
 // 			console.log('Order data being sent:', this.orderData);
 // 			console.log(
 // 				'Order data JSON:',
@@ -531,7 +531,7 @@
 // 			);
 
 // 			// Submit order to server
-// 			const response = await fetch('/5s-fashion/public/order/place', {
+// 			const response = await fetch('/zone-fashion/public/order/place', {
 // 				method: 'POST',
 // 				headers: {
 // 					'Content-Type': 'application/json',
@@ -624,7 +624,7 @@
 // 					setTimeout(() => {
 // 						window.location.href =
 // 							result.redirect_url ||
-// 							`/5s-fashion/public/order/success?id=${result.order_id}`;
+// 							`/zone-fashion/public/order/success?id=${result.order_id}`;
 // 					}, 2000);
 // 				}
 // 			} else {
@@ -943,7 +943,7 @@
 
 // 		if (status === 'success' && orderId) {
 // 			// Payment successful - redirect to success page
-// 			window.location.href = `/5s-fashion/app/views/client/order/success.php?orderId=${orderId}`;
+// 			window.location.href = `/zone-fashion/app/views/client/order/success.php?orderId=${orderId}`;
 // 		} else if (status === 'failed' || error) {
 // 			// Payment failed
 // 			this.handlePaymentFailure(error || 'payment_failed');
@@ -1171,7 +1171,7 @@
 //         };
 
 //         try {
-//             const response = await fetch('/5s-fashion/order/addAddress', {
+//             const response = await fetch('/zone-fashion/order/addAddress', {
 //                 method: 'POST',
 //                 headers: {
 //                     'Content-Type': 'application/json'
@@ -1207,7 +1207,7 @@
 //         if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
 
 //         try {
-//             const response = await fetch(`/5s-fashion/order/deleteAddress/${addressId}`, {
+//             const response = await fetch(`/zone-fashion/order/deleteAddress/${addressId}`, {
 //                 method: 'DELETE'
 //             });
 
@@ -1230,7 +1230,7 @@
 
 //     async setDefaultAddress(id) {
 //         try {
-//             const response = await fetch(`/5s-fashion/order/setDefaultAddress/${id}`, {
+//             const response = await fetch(`/zone-fashion/order/setDefaultAddress/${id}`, {
 //                 method: 'PUT',
 //                 headers: {
 //                     'Content-Type': 'application/json'

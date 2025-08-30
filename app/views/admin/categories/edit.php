@@ -8,7 +8,7 @@
                     <p class="text-muted mb-0">Cập nhật thông tin danh mục: <?= htmlspecialchars($category['name']) ?></p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/categories" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/categories" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -33,7 +33,7 @@
         </div>
     <?php endif; ?>
 
-    <form action="/5s-fashion/admin/categories/update/<?= $category['id'] ?>" method="POST" enctype="multipart/form-data" id="categoryForm">
+    <form action="/zone-fashion/admin/categories/update/<?= $category['id'] ?>" method="POST" enctype="multipart/form-data" id="categoryForm">
         <div class="row">
             <!-- Main Content -->
             <div class="col-lg-8">
@@ -75,7 +75,7 @@
                     <div class="card-body">
                         <?php if (!empty($category['image'])): ?>
                             <div class="current-image mb-3">
-                                <img src="/5s-fashion/public<?= htmlspecialchars($category['image']) ?>"
+                                <img src="/zone-fashion/public<?= htmlspecialchars($category['image']) ?>"
                                      alt="Current image" class="img-thumbnail" style="max-height: 200px;">
                                 <p class="text-muted small mt-1">Ảnh hiện tại</p>
                             </div>
@@ -163,10 +163,10 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Cập nhật danh mục
                             </button>
-                            <a href="/5s-fashion/admin/categories/show/<?= $category['id'] ?>" class="btn btn-info">
+                            <a href="/zone-fashion/admin/categories/show/<?= $category['id'] ?>" class="btn btn-info">
                                 <i class="fas fa-eye"></i> Xem chi tiết
                             </a>
-                            <a href="/5s-fashion/admin/categories" class="btn btn-secondary">
+                            <a href="/zone-fashion/admin/categories" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Hủy bỏ
                             </a>
                         </div>

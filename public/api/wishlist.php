@@ -1,7 +1,7 @@
 <?php
 /**
  * Wishlist API Endpoint
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 // Set headers for API response

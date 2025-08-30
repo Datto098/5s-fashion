@@ -5,8 +5,8 @@
         <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/5s-fashion">Trang chủ</a></li>
-                    <li class="breadcrumb-item"><a href="/5s-fashion/vouchers">Voucher</a></li>
+                    <li class="breadcrumb-item"><a href="/zone-fashion">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="/zone-fashion/vouchers">Voucher</a></li>
                     <li class="breadcrumb-item active">Voucher của tôi</li>
                 </ol>
             </nav>
@@ -17,7 +17,7 @@
                     <p class="text-muted">Quản lý và sử dụng voucher đã lưu</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/vouchers" class="btn btn-primary">
+                    <a href="/zone-fashion/vouchers" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Thu thập voucher mới
                     </a>
                 </div>
@@ -96,7 +96,7 @@
                             <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
                             <h4 class="text-muted">Chưa có voucher nào</h4>
                             <p class="text-muted mb-4">Bạn chưa lưu voucher nào. Hãy thu thập voucher để được giảm giá!</p>
-                            <a href="/5s-fashion/vouchers" class="btn btn-primary">
+                            <a href="/zone-fashion/vouchers" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Thu thập voucher ngay
                             </a>
                         </div>
@@ -156,7 +156,7 @@
                                                         data-coupon-id="<?= $coupon['coupon_id'] ?>">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                                <a href="/5s-fashion/shop" class="btn btn-success btn-sm">
+                                                <a href="/zone-fashion/shop" class="btn btn-success btn-sm">
                                                     <i class="fas fa-shopping-cart"></i>
                                                 </a>
                                             </div>
@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = true;
             this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-            fetch('/5s-fashion/vouchers/remove', {
+            fetch('/zone-fashion/vouchers/remove', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -526,7 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
                                 <h4 class="text-muted">Chưa có voucher nào</h4>
                                 <p class="text-muted mb-4">Bạn chưa lưu voucher nào. Hãy thu thập voucher để được giảm giá!</p>
-                                <a href="/5s-fashion/vouchers" class="btn btn-primary">
+                                <a href="/zone-fashion/vouchers" class="btn btn-primary">
                                     <i class="fas fa-plus"></i> Thu thập voucher ngay
                                 </a>
                             </div>

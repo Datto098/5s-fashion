@@ -7,7 +7,7 @@
                     <i class="fas fa-phone me-2"></i>
                     <span class="me-3">Hotline: 1900-xxxx</span>
                     <i class="fas fa-envelope me-2"></i>
-                    <span>Email: info@5sfashion.com</span>
+                    <span>Email: info@zonefashion.com</span>
                 </div>
             </div>
             <div class="col-md-6 text-end">
@@ -61,7 +61,7 @@
             <!-- Logo -->
             <div class="col-6 col-md-3">
                 <a href="<?= url() ?>" class="logo text-decoration-none">
-                    <h2 class="mb-0 fw-bold text-primary">5S Fashion</h2>
+                    <h2 class="mb-0 fw-bold text-primary">Zone Fashion</h2>
                 </a>
             </div>
 
@@ -253,7 +253,7 @@ if ($useSimpleMenu) {
 <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="mobileMenu">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title">
-            <span class="fw-bold text-primary">5S Fashion</span>
+            <span class="fw-bold text-primary">zone Fashion</span>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>

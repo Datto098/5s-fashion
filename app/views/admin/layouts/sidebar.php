@@ -10,8 +10,8 @@ function isMenuActive($menuPath, $currentPath) {
     $currentPath = rtrim($currentPath, '/');
 
     // Special case for dashboard - exact match only
-    if ($menuPath === '/5s-fashion/admin') {
-        return $currentPath === '/5s-fashion/admin';
+    if ($menuPath === '/zone-fashion/admin') {
+        return $currentPath === '/zone-fashion/admin';
     }
 
     // For other menus, check if current path starts with menu path
@@ -27,9 +27,9 @@ function getActiveClass($menuPath, $currentPath) {
 <nav class="admin-sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-brand">
-            <div class="sidebar-logo">5S</div>
+            <div class="sidebar-logo">Zone</div>
             <div>
-                <h1 class="sidebar-title">5S Fashion</h1>
+                <h1 class="sidebar-title">Zone Fashion</h1>
                 <p class="sidebar-subtitle">Admin Panel</p>
             </div>
         </div>
@@ -39,13 +39,13 @@ function getActiveClass($menuPath, $currentPath) {
         <div class="nav-section">
             <div class="nav-section-title">Tổng quan</div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin" class="nav-link <?= getActiveClass('/5s-fashion/admin', $currentPath) ?>">
+                <a href="/zone-fashion/admin" class="nav-link <?= getActiveClass('/zone-fashion/admin', $currentPath) ?>">
                     <i class="fas fa-tachometer-alt nav-icon"></i>
                     <span class="nav-text">Dashboard</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/analytics" class="nav-link <?= getActiveClass('/5s-fashion/admin/analytics', $currentPath) ?>">
+                <a href="/zone-fashion/admin/analytics" class="nav-link <?= getActiveClass('/zone-fashion/admin/analytics', $currentPath) ?>">
                     <i class="fas fa-chart-line nav-icon"></i>
                     <span class="nav-text">Thống kê</span>
                 </a>
@@ -55,19 +55,19 @@ function getActiveClass($menuPath, $currentPath) {
         <div class="nav-section">
             <div class="nav-section-title">Sản phẩm</div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/products" class="nav-link <?= getActiveClass('/5s-fashion/admin/products', $currentPath) ?>">
+                <a href="/zone-fashion/admin/products" class="nav-link <?= getActiveClass('/zone-fashion/admin/products', $currentPath) ?>">
                     <i class="fas fa-box nav-icon"></i>
                     <span class="nav-text">Danh sách sản phẩm</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/products/create" class="nav-link <?= getActiveClass('/5s-fashion/admin/products/create', $currentPath) ?>">
+                <a href="/zone-fashion/admin/products/create" class="nav-link <?= getActiveClass('/zone-fashion/admin/products/create', $currentPath) ?>">
                     <i class="fas fa-plus nav-icon"></i>
                     <span class="nav-text">Thêm sản phẩm</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/categories" class="nav-link <?= getActiveClass('/5s-fashion/admin/categories', $currentPath) ?>">
+                <a href="/zone-fashion/admin/categories" class="nav-link <?= getActiveClass('/zone-fashion/admin/categories', $currentPath) ?>">
                     <i class="fas fa-tags nav-icon"></i>
                     <span class="nav-text">Danh mục</span>
                 </a>
@@ -77,13 +77,13 @@ function getActiveClass($menuPath, $currentPath) {
         <div class="nav-section">
             <div class="nav-section-title">Đơn hàng</div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/orders" class="nav-link <?= getActiveClass('/5s-fashion/admin/orders', $currentPath) ?>">
+                <a href="/zone-fashion/admin/orders" class="nav-link <?= getActiveClass('/zone-fashion/admin/orders', $currentPath) ?>">
                     <i class="fas fa-shopping-cart nav-icon"></i>
                     <span class="nav-text">Danh sách đơn hàng</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/orders/pending" class="nav-link <?= getActiveClass('/5s-fashion/admin/orders/pending', $currentPath) ?>">
+                <a href="/zone-fashion/admin/orders/pending" class="nav-link <?= getActiveClass('/zone-fashion/admin/orders/pending', $currentPath) ?>">
                     <i class="fas fa-clock nav-icon"></i>
                     <span class="nav-text">Chờ xử lý</span>
                 </a>
@@ -93,13 +93,13 @@ function getActiveClass($menuPath, $currentPath) {
         <div class="nav-section">
             <div class="nav-section-title">Khách hàng</div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/customers" class="nav-link <?= getActiveClass('/5s-fashion/admin/customers', $currentPath) ?>">
+                <a href="/zone-fashion/admin/customers" class="nav-link <?= getActiveClass('/zone-fashion/admin/customers', $currentPath) ?>">
                     <i class="fas fa-users nav-icon"></i>
                     <span class="nav-text">Danh sách khách hàng</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/reviews" class="nav-link <?= getActiveClass('/5s-fashion/admin/reviews', $currentPath) ?>">
+                <a href="/zone-fashion/admin/reviews" class="nav-link <?= getActiveClass('/zone-fashion/admin/reviews', $currentPath) ?>">
                     <i class="fas fa-star nav-icon"></i>
                     <span class="nav-text">Đánh giá</span>
                 </a>
@@ -109,19 +109,19 @@ function getActiveClass($menuPath, $currentPath) {
         <div class="nav-section">
             <div class="nav-section-title">Marketing</div>
              <div class="nav-item">
-                <a href="/5s-fashion/admin/post" class="nav-link <?= getActiveClass('/5s-fashion/admin/post', $currentPath) ?>">
+                <a href="/zone-fashion/admin/post" class="nav-link <?= getActiveClass('/zone-fashion/admin/post', $currentPath) ?>">
                     <i class="fas fa-newspaper nav-icon"></i>
                     <span class="nav-text">Quản lý Post</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/coupons" class="nav-link <?= getActiveClass('/5s-fashion/admin/coupons', $currentPath) ?>">
+                <a href="/zone-fashion/admin/coupons" class="nav-link <?= getActiveClass('/zone-fashion/admin/coupons', $currentPath) ?>">
                     <i class="fas fa-ticket-alt nav-icon"></i>
                     <span class="nav-text">Quản lý Voucher</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/coupons/create" class="nav-link <?= getActiveClass('/5s-fashion/admin/coupons/create', $currentPath) ?>">
+                <a href="/zone-fashion/admin/coupons/create" class="nav-link <?= getActiveClass('/zone-fashion/admin/coupons/create', $currentPath) ?>">
                     <i class="fas fa-plus-circle nav-icon"></i>
                     <span class="nav-text">Tạo Voucher</span>
                 </a>
@@ -131,19 +131,19 @@ function getActiveClass($menuPath, $currentPath) {
         <div class="nav-section">
             <div class="nav-section-title">Hệ thống</div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/settings" class="nav-link <?= getActiveClass('/5s-fashion/admin/settings', $currentPath) ?>">
+                <a href="/zone-fashion/admin/settings" class="nav-link <?= getActiveClass('/zone-fashion/admin/settings', $currentPath) ?>">
                     <i class="fas fa-cog nav-icon"></i>
                     <span class="nav-text">Cài đặt</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/settings/menu" class="nav-link <?= getActiveClass('/5s-fashion/admin/settings/menu', $currentPath) ?>">
+                <a href="/zone-fashion/admin/settings/menu" class="nav-link <?= getActiveClass('/zone-fashion/admin/settings/menu', $currentPath) ?>">
                     <i class="fas fa-bars nav-icon"></i>
                     <span class="nav-text">Cài đặt Menu</span>
                 </a>
             </div>
             <div class="nav-item">
-                <a href="/5s-fashion/admin/users" class="nav-link <?= getActiveClass('/5s-fashion/admin/users', $currentPath) ?>">
+                <a href="/zone-fashion/admin/users" class="nav-link <?= getActiveClass('/zone-fashion/admin/users', $currentPath) ?>">
                     <i class="fas fa-user-shield nav-icon"></i>
                     <span class="nav-text">Quản lý admin</span>
                 </a>
@@ -330,7 +330,7 @@ function getActiveClass($menuPath, $currentPath) {
 .nav-item:nth-child(2) { animation-delay: 0.2s; }
 .nav-item:nth-child(3) { animation-delay: 0.3s; }
 .nav-item:nth-child(4) { animation-delay: 0.4s; }
-.nav-item:nth-child(5) { animation-delay: 0.5s; }
+.nav-item:nth-child(5) { animation-delay: 0.zone; }
 
 @keyframes slideIn {
     from {

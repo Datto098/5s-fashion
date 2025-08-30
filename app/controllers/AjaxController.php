@@ -2,7 +2,7 @@
 /**
  * AJAX Controller
  * Handle AJAX requests for cart operations
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once APP_PATH . '/core/Controller.php';
@@ -78,7 +78,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
                         'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
-                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                        'redirect_url' => '/zone-fashion/admin/dashboard'
                     ]);
                 } else {
                     http_response_code(401);
@@ -86,7 +86,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng',
                         'error_code' => 'AUTHENTICATION_REQUIRED',
-                        'redirect_url' => '/5s-fashion/login'
+                        'redirect_url' => '/zone-fashion/login'
                     ]);
                 }
                 return;
@@ -271,7 +271,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
                         'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
-                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                        'redirect_url' => '/zone-fashion/admin/dashboard'
                     ]);
                 } else {
                     http_response_code(401);
@@ -279,7 +279,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Bạn cần đăng nhập để cập nhật giỏ hàng',
                         'error_code' => 'AUTHENTICATION_REQUIRED',
-                        'redirect_url' => '/5s-fashion/login'
+                        'redirect_url' => '/zone-fashion/login'
                     ]);
                 }
                 return;
@@ -385,7 +385,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Tài khoản admin không thể sử dụng giỏ hàng khách hàng',
                         'error_code' => 'ADMIN_ACCOUNT_RESTRICTION',
-                        'redirect_url' => '/5s-fashion/admin/dashboard'
+                        'redirect_url' => '/zone-fashion/admin/dashboard'
                     ]);
                 } else {
                     http_response_code(401);
@@ -393,7 +393,7 @@ class AjaxController extends Controller
                         'success' => false,
                         'message' => 'Bạn cần đăng nhập để xóa sản phẩm khỏi giỏ hàng',
                         'error_code' => 'AUTHENTICATION_REQUIRED',
-                        'redirect_url' => '/5s-fashion/login'
+                        'redirect_url' => '/zone-fashion/login'
                     ]);
                 }
                 return;

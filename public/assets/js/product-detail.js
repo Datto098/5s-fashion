@@ -1,6 +1,6 @@
 /**
  * Product Detail JavaScript
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class ProductDetailManager {
@@ -508,7 +508,7 @@ class ProductDetailManager {
 		}
 
 		// Submit form using AJAX
-		fetch('/5s-fashion/ajax/review/add', {
+		fetch('/zone-fashion/ajax/review/add', {
 			method: 'POST',
 			body: formData
 		})
@@ -795,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				}
 				
 				// Submit the form using fetch
-				fetch('/5s-fashion/ajax/review/add', {
+				fetch('/zone-fashion/ajax/review/add', {
 					method: 'POST',
 					body: formData
 				})

@@ -131,7 +131,7 @@
                                    onclick="editVariant(<?= $variant['id'] ?>, '<?= htmlspecialchars(addslashes($variant['variant_name'])) ?>', '<?= htmlspecialchars($variant['sku']) ?>', <?= $variant['price'] ?: 'null' ?>, <?= $variant['sale_price'] ?: 'null' ?>, <?= $variant['stock_quantity'] ?>, '<?= $variant['status'] ?>')">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form method="POST" action="/5s-fashion/admin/products/<?= $product['id'] ?>/variants/<?= $variant['id'] ?>/delete"
+                                <form method="POST" action="/zone-fashion/admin/products/<?= $product['id'] ?>/variants/<?= $variant['id'] ?>/delete"
                                       onsubmit="return confirm('Bạn có chắc muốn xóa biến thể này?');" class="d-inline">
                                     <input type="hidden" name="_method" value="DELETE">
                                     <button type="submit" class="btn btn-sm btn-danger">
@@ -149,7 +149,7 @@
     <?php if ($hasDuplicates ?? false): ?>
     <div class="alert alert-info mt-3">
         <i class="fas fa-info-circle me-2"></i>
-        Phát hiện biến thể có nhiều giá trị cùng loại thuộc tính (được đánh dấu màu vàng). <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants/fix-duplicates" class="alert-link">Bấm vào đây</a> để sửa chữa.
+        Phát hiện biến thể có nhiều giá trị cùng loại thuộc tính (được đánh dấu màu vàng). <a href="/zone-fashion/admin/products/<?= $product['id'] ?>/variants/fix-duplicates" class="alert-link">Bấm vào đây</a> để sửa chữa.
     </div>
     <?php endif; ?>
 <?php endif; ?>

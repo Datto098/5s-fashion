@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?? 'Đăng nhập Admin' ?> - 5S Fashion</title>
+    <title><?= $pageTitle ?? 'Đăng nhập Admin' ?> - zone Fashion</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= ASSET_URL ?>/images/favicon.ico">
@@ -19,7 +19,7 @@
         <div class="auth-card">
             <!-- Logo -->
             <div class="auth-logo">
-                <h1><span class="text-primary">5S</span> Fashion</h1>
+                <h1><span class="text-primary">zone</span> Fashion</h1>
                 <p>Quản trị hệ thống</p>
             </div>
 
@@ -101,7 +101,7 @@
 
         <!-- Footer -->
         <div class="auth-footer">
-            <p>&copy; <?= date('Y') ?> 5S Fashion. All rights reserved.</p>
+            <p>&copy; <?= date('Y') ?> zone Fashion. All rights reserved.</p>
         </div>
     </div>
 

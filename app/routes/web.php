@@ -1,7 +1,7 @@
 <?php
 /**
  * Client Website Routes
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 // Include helpers

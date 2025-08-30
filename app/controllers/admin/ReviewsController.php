@@ -16,7 +16,7 @@ class ReviewsController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -46,13 +46,13 @@ class ReviewsController extends BaseController
             $stats = $this->reviewModel->getStatistics();
 
             $data = [
-                'title' => 'Quản lý đánh giá - 5S Fashion Admin',
+                'title' => 'Quản lý đánh giá - zone Fashion Admin',
                 'reviews' => $reviews,
                 'stats' => $stats,
                 'search' => $search,
                 'filters' => $filters,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['name' => 'Đánh giá', 'url' => '']
                 ]
             ];
@@ -61,7 +61,7 @@ class ReviewsController extends BaseController
         } catch (Exception $e) {
             error_log('Error in ReviewsController::index: ' . $e->getMessage());
             $this->render('admin/reviews/index', [
-                'title' => 'Quản lý đánh giá - 5S Fashion Admin',
+                'title' => 'Quản lý đánh giá - zone Fashion Admin',
                 'reviews' => [],
                 'stats' => [],
                 'error' => 'Có lỗi xảy ra khi tải dữ liệu'
@@ -74,16 +74,16 @@ class ReviewsController extends BaseController
         try {
             $review = $this->getReviewWithDetails($id);
             if (!$review) {
-                header('Location: /5s-fashion/admin/reviews?error=' . urlencode('Không tìm thấy đánh giá'));
+                header('Location: /zone-fashion/admin/reviews?error=' . urlencode('Không tìm thấy đánh giá'));
                 exit;
             }
 
             $data = [
-                'title' => 'Chi tiết đánh giá - 5S Fashion Admin',
+                'title' => 'Chi tiết đánh giá - zone Fashion Admin',
                 'review' => $review,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['name' => 'Đánh giá', 'url' => '/5s-fashion/admin/reviews'],
+                    ['name' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['name' => 'Đánh giá', 'url' => '/zone-fashion/admin/reviews'],
                     ['name' => 'Chi tiết', 'url' => '']
                 ]
             ];
@@ -91,7 +91,7 @@ class ReviewsController extends BaseController
             $this->render('admin/reviews/show', $data, 'admin/layouts/main-inline');
         } catch (Exception $e) {
             error_log('Error in ReviewsController::show: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/reviews?error=' . urlencode('Có lỗi xảy ra'));
+            header('Location: /zone-fashion/admin/reviews?error=' . urlencode('Có lỗi xảy ra'));
             exit;
         }
     }

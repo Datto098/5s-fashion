@@ -1,7 +1,7 @@
 <?php
 /**
  * Order Model
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class Order extends BaseModel
@@ -203,6 +203,7 @@ class Order extends BaseModel
             if (isset($orderData['billing_address']) && is_array($orderData['billing_address'])) {
                 $orderData['billing_address'] = json_encode($orderData['billing_address']);
             }
+            $orderData['status'] = 'pending';
 
             // Insert order
             error_log('[ORDER CREATE] Order data before create: ' . print_r($orderData, true));
@@ -325,7 +326,8 @@ class Order extends BaseModel
             $itemData['variant_info'] ?? null,
             $itemData['quantity'],
             $itemData['price'],
-            $itemData['total']
+            $itemData['total'],
+
         ]);
     }
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * Web Router Class
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class Router
@@ -91,8 +91,8 @@ class Router
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        // Remove the /5s-fashion prefix if it exists
-        $requestUri = preg_replace('/^\/5s-fashion/', '', $requestUri);
+        // Remove the /zone-fashion prefix if it exists
+        $requestUri = preg_replace('/^\/zone-fashion/', '', $requestUri);
 
         // Remove leading slash and normalize
         $requestUri = rtrim($requestUri, '/');

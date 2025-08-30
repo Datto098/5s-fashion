@@ -4,7 +4,7 @@ use phpseclib3\Crypt\EC\BaseCurves\Base;
 
 /**
  * Wishlist Controller (Client)
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class WishlistController extends BaseController

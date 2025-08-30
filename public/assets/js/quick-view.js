@@ -169,7 +169,7 @@ class QuickViewModal {
 		try {
 			// Fetch product data
 			const response = await fetch(
-				`/5s-fashion/ajax/getProductForQuickView?id=${productId}`
+				`/zone-fashion/ajax/getProductForQuickView?id=${productId}`
 			);
 			const data = await response.json();
 			console.log('API Response:', data);
@@ -313,7 +313,7 @@ class QuickViewModal {
 			: 0;
 
 		// Format image URL
-		let imageUrl = '/5s-fashion/public/assets/images/no-image.jpg';
+		let imageUrl = '/zone-fashion/public/assets/images/no-image.jpg';
 		if (product.featured_image) {
 			let imagePath = product.featured_image;
 			if (imagePath.startsWith('/uploads/')) {
@@ -323,7 +323,7 @@ class QuickViewModal {
 			} else {
 				imagePath = imagePath.replace(/^\/+/, '');
 			}
-			imageUrl = `/5s-fashion/serve-file.php?file=${encodeURIComponent(
+			imageUrl = `/zone-fashion/serve-file.php?file=${encodeURIComponent(
 				imagePath
 			)}`;
 		}
@@ -455,7 +455,7 @@ class QuickViewModal {
 										</button>
 									</div>
 									<div class="col-6">
-										<a href="/5s-fashion/product/${product.id}" class="btn-outline-secondary-action w-100 text-decoration-none">
+										<a href="/zone-fashion/product/${product.id}" class="btn-outline-secondary-action w-100 text-decoration-none">
 											<i class="fas fa-eye me-2"></i>
 											Xem chi tiết
 										</a>

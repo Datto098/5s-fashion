@@ -1,7 +1,7 @@
 <?php
 /**
  * Auth Controller (Client)
- * 5S Fashion E-commerce Platform
+ * Zone Fashion E-commerce Platform
  */
 
 class AuthController extends BaseController
@@ -34,7 +34,7 @@ class AuthController extends BaseController
         }
 
         $data = [
-            'title' => 'Đăng Nhập - 5S Fashion'
+            'title' => 'Đăng Nhập - Zone Fashion'
         ];
 
         $this->render('client/auth/login', $data, 'client/layouts/app');
@@ -178,7 +178,7 @@ class AuthController extends BaseController
         }
 
         $data = [
-            'title' => 'Đăng Ký - 5S Fashion'
+            'title' => 'Đăng Ký - Zone Fashion'
         ];
 
         $this->render('client/auth/register', $data, 'client/layouts/app');
@@ -301,7 +301,7 @@ class AuthController extends BaseController
     public function forgotPasswordForm()
     {
         $data = [
-            'title' => 'Quên Mật Khẩu - 5S Fashion'
+            'title' => 'Quên Mật Khẩu - Zone Fashion'
         ];
 
         $this->render('client/auth/forgot-password', $data, 'client/layouts/app');
@@ -408,7 +408,7 @@ class AuthController extends BaseController
         }
 
         $data = [
-            'title' => 'Đặt Lại Mật Khẩu - 5S Fashion',
+            'title' => 'Đặt Lại Mật Khẩu - Zone Fashion',
             'token' => $token
         ];
 

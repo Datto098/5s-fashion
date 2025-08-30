@@ -18,7 +18,7 @@
             <i class="fas fa-download"></i>
             Xuất Excel
         </button>
-        <a href="/5s-fashion/admin/products/create" class="btn btn-primary">
+        <a href="/zone-fashion/admin/products/create" class="btn btn-primary">
             <i class="fas fa-plus"></i>
             Thêm sản phẩm
         </a>
@@ -120,7 +120,7 @@
                                     } else {
                                         $cleanPath = ltrim($imagePath, '/');
                                     }
-                                    $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                    $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                     ?>
                                     <img src="<?= htmlspecialchars($imageUrl) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                                 <?php else: ?>
@@ -131,7 +131,7 @@
                             </div>
                             <div class="product-details">
                                 <div class="product-name">
-                                    <a href="/5s-fashion/admin/products/show/<?= $product['id'] ?>"><?= htmlspecialchars($product['name']) ?></a>
+                                    <a href="/zone-fashion/admin/products/show/<?= $product['id'] ?>"><?= htmlspecialchars($product['name']) ?></a>
                                     <?php if ($product['featured']): ?>
                                         <span class="featured-badge" title="Sản phẩm nổi bật">
                                             <i class="fas fa-star"></i>
@@ -198,10 +198,10 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="/5s-fashion/admin/products/edit/<?= $product['id'] ?>" class="btn btn-sm btn-primary" title="Chỉnh sửa">
+                            <a href="/zone-fashion/admin/products/edit/<?= $product['id'] ?>" class="btn btn-sm btn-primary" title="Chỉnh sửa">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="/5s-fashion/admin/products/show/<?= $product['id'] ?>" class="btn btn-sm btn-info" title="Xem chi tiết">
+                            <a href="/zone-fashion/admin/products/show/<?= $product['id'] ?>" class="btn btn-sm btn-info" title="Xem chi tiết">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <button class="btn btn-sm btn-success" onclick="duplicateProduct(<?= $product['id'] ?>)" title="Nhân bản">
@@ -411,7 +411,7 @@
 
         if (confirm(`Bạn có chắc chắn muốn ${statusText} ${selectedIds.length} sản phẩm đã chọn?`)) {
             // TODO: Implement bulk status update
-            fetch('/5s-fashion/admin/products/bulk-status', {
+            fetch('/zone-fashion/admin/products/bulk-status', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -462,7 +462,7 @@
     // Product actions
     function deleteProduct(id, name) {
         if (confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${name}"?\n\nHành động này không thể hoàn tác!`)) {
-            fetch(`/5s-fashion/admin/products/delete/${id}`, {
+            fetch(`/zone-fashion/admin/products/delete/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -487,7 +487,7 @@
 
     function duplicateProduct(id) {
         if (confirm('Bạn có muốn tạo bản sao của sản phẩm này?')) {
-            fetch(`/5s-fashion/admin/products/duplicate/${id}`, {
+            fetch(`/zone-fashion/admin/products/duplicate/${id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -513,7 +513,7 @@
     function exportProducts() {
         const selectedIds = Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.value);
 
-        let url = '/5s-fashion/admin/products/export';
+        let url = '/zone-fashion/admin/products/export';
         if (selectedIds.length > 0) {
             url += '?ids=' + selectedIds.join(',');
         }

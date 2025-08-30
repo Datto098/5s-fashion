@@ -8,10 +8,10 @@
                     <p class="text-muted mb-0"><?= htmlspecialchars($customer['full_name']) ?></p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/customers/edit/<?= $customer['id'] ?>" class="btn btn-warning">
+                    <a href="/zone-fashion/admin/customers/edit/<?= $customer['id'] ?>" class="btn btn-warning">
                         <i class="fas fa-edit"></i> Chỉnh sửa
                     </a>
-                    <a href="/5s-fashion/admin/customers" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/customers" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -66,7 +66,7 @@
                     <h5 class="card-title mb-0">
                         <i class="fas fa-shopping-cart"></i> Đơn hàng gần đây
                     </h5>
-                    <a href="/5s-fashion/admin/orders?customer_id=<?= $customer['id'] ?>" class="btn btn-sm btn-outline-primary">
+                    <a href="/zone-fashion/admin/orders?customer_id=<?= $customer['id'] ?>" class="btn btn-sm btn-outline-primary">
                         Xem tất cả
                     </a>
                 </div>
@@ -88,7 +88,7 @@
                                     <?php foreach ($orders as $order): ?>
                                         <tr>
                                             <td>
-                                                <a href="/5s-fashion/admin/orders/show/<?= $order['id'] ?>" class="text-decoration-none">
+                                                <a href="/zone-fashion/admin/orders/show/<?= $order['id'] ?>" class="text-decoration-none">
                                                     #<?= $order['id'] ?>
                                                 </a>
                                             </td>
@@ -138,11 +138,11 @@
                                             <td class="text-center"><?= date('d/m/Y', strtotime($order['created_at'])) ?></td>
                                             <td class="text-center">
                                                 <div class="btn-group btn-group-sm" role="group">
-                                                    <a href="/5s-fashion/admin/orders/show/<?= $order['id'] ?>"
+                                                    <a href="/zone-fashion/admin/orders/show/<?= $order['id'] ?>"
                                                        class="btn btn-outline-primary" title="Xem chi tiết">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a href="/5s-fashion/admin/orders/edit/<?= $order['id'] ?>"
+                                                    <a href="/zone-fashion/admin/orders/edit/<?= $order['id'] ?>"
                                                        class="btn btn-outline-warning" title="Chỉnh sửa">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
@@ -157,7 +157,7 @@
                         <div class="text-center text-muted py-4">
                             <i class="fas fa-shopping-cart fa-3x mb-3"></i>
                             <p>Khách hàng chưa có đơn hàng nào</p>
-                            <a href="/5s-fashion/admin/orders/create?customer_id=<?= $customer['id'] ?>"
+                            <a href="/zone-fashion/admin/orders/create?customer_id=<?= $customer['id'] ?>"
                                class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Tạo đơn hàng mới
                             </a>
@@ -228,7 +228,7 @@
                 <div class="card-body">
                     <div class="text-center mb-3">
                         <?php if (!empty($customer['avatar'])): ?>
-                            <img src="/5s-fashion/public<?= htmlspecialchars($customer['avatar']) ?>"
+                            <img src="/zone-fashion/public<?= htmlspecialchars($customer['avatar']) ?>"
                                  class="rounded-circle mb-2" width="80" height="80" alt="Avatar">
                         <?php else: ?>
                             <div class="bg-primary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center text-white"
@@ -284,7 +284,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="/5s-fashion/admin/orders/create?customer_id=<?= $customer['id'] ?>"
+                        <a href="/zone-fashion/admin/orders/create?customer_id=<?= $customer['id'] ?>"
                            class="btn btn-primary">
                             <i class="fas fa-plus"></i> Tạo đơn hàng mới
                         </a>
@@ -332,7 +332,7 @@ function toggleCustomerStatus(customerId, currentStatus) {
     const action = newStatus === 'active' ? 'kích hoạt' : 'vô hiệu hóa';
 
     if (confirm(`Bạn có chắc chắn muốn ${action} khách hàng này?`)) {
-        fetch(`/5s-fashion/admin/customers/toggle-status/${customerId}`, {
+        fetch(`/zone-fashion/admin/customers/toggle-status/${customerId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -357,7 +357,7 @@ function toggleCustomerStatus(customerId, currentStatus) {
 function deleteCustomer(customerId) {
     if (confirm('Bạn có chắc chắn muốn xóa khách hàng này? Hành động này không thể hoàn tác.')) {
         if (confirm('Việc xóa khách hàng sẽ ảnh hưởng đến các đơn hàng liên quan. Bạn có chắc chắn muốn tiếp tục?')) {
-            fetch(`/5s-fashion/admin/customers/delete/${customerId}`, {
+            fetch(`/zone-fashion/admin/customers/delete/${customerId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -366,7 +366,7 @@ function deleteCustomer(customerId) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = '/5s-fashion/admin/customers';
+                    window.location.href = '/zone-fashion/admin/customers';
                 } else {
                     alert('Có lỗi xảy ra: ' + data.message);
                 }

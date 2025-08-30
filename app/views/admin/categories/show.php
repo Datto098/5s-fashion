@@ -8,10 +8,10 @@
                     <p class="text-muted mb-0">Chi tiết danh mục sản phẩm</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/categories/edit/<?= $category['id'] ?>" class="btn btn-primary me-2">
+                    <a href="/zone-fashion/admin/categories/edit/<?= $category['id'] ?>" class="btn btn-primary me-2">
                         <i class="fas fa-edit"></i> Chỉnh sửa
                     </a>
-                    <a href="/5s-fashion/admin/categories" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/categories" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -111,7 +111,7 @@
                                 <?php foreach ($subcategories as $sub): ?>
                                 <tr>
                                     <td>
-                                        <a href="/5s-fashion/admin/categories/show/<?= $sub['id'] ?>" class="text-decoration-none">
+                                        <a href="/zone-fashion/admin/categories/show/<?= $sub['id'] ?>" class="text-decoration-none">
                                             <?= htmlspecialchars($sub['name']) ?>
                                         </a>
                                     </td>
@@ -123,7 +123,7 @@
                                     </td>
                                     <td><?= $sub['sort_order'] ?? 0 ?></td>
                                     <td>
-                                        <a href="/5s-fashion/admin/categories/edit/<?= $sub['id'] ?>" class="btn btn-sm btn-primary" title="Chỉnh sửa">
+                                        <a href="/zone-fashion/admin/categories/edit/<?= $sub['id'] ?>" class="btn btn-sm btn-primary" title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     </td>
@@ -160,7 +160,7 @@
                                     } else {
                                         $cleanPath = ltrim($imagePath, '/');
                                     }
-                                    $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                    $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                     ?>
                                     <img src="<?= htmlspecialchars($imageUrl) ?>"
                                          class="card-img-top" alt="<?= htmlspecialchars($product['name']) ?>"
@@ -172,7 +172,7 @@
                                 <?php endif; ?>
                                 <div class="card-body">
                                     <h6 class="card-title">
-                                        <a href="/5s-fashion/admin/products/show/<?= $product['id'] ?>" class="text-decoration-none">
+                                        <a href="/zone-fashion/admin/products/show/<?= $product['id'] ?>" class="text-decoration-none">
                                             <?= htmlspecialchars($product['name']) ?>
                                         </a>
                                     </h6>
@@ -186,7 +186,7 @@
                         <?php endforeach; ?>
                     </div>
                     <div class="text-center mt-3">
-                        <a href="/5s-fashion/admin/products?category_id=<?= $category['id'] ?>" class="btn btn-outline-primary">
+                        <a href="/zone-fashion/admin/products?category_id=<?= $category['id'] ?>" class="btn btn-outline-primary">
                             Xem tất cả sản phẩm
                         </a>
                     </div>
@@ -232,7 +232,7 @@
                     </h5>
                 </div>
                 <div class="card-body text-center">
-                    <img src="/5s-fashion/public<?= htmlspecialchars($category['image']) ?>"
+                    <img src="/zone-fashion/public<?= htmlspecialchars($category['image']) ?>"
                          alt="<?= htmlspecialchars($category['name']) ?>"
                          class="img-fluid rounded" style="max-height: 300px;">
                 </div>
@@ -262,10 +262,10 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="/5s-fashion/admin/categories/edit/<?= $category['id'] ?>" class="btn btn-primary">
+                        <a href="/zone-fashion/admin/categories/edit/<?= $category['id'] ?>" class="btn btn-primary">
                             <i class="fas fa-edit"></i> Chỉnh sửa
                         </a>
-                        <a href="/5s-fashion/admin/products?category_id=<?= $category['id'] ?>" class="btn btn-info">
+                        <a href="/zone-fashion/admin/products?category_id=<?= $category['id'] ?>" class="btn btn-info">
                             <i class="fas fa-box"></i> Xem sản phẩm
                         </a>
                         <button type="button" class="btn btn-danger" onclick="deleteCategory(<?= $category['id'] ?>, '<?= htmlspecialchars($category['name']) ?>')">
@@ -281,7 +281,7 @@
 <script>
 function deleteCategory(id, name) {
     if (confirm(`Bạn có chắc chắn muốn xóa danh mục "${name}"?\n\nTất cả sản phẩm trong danh mục này sẽ chuyển về "Chưa phân loại".\n\nHành động này không thể hoàn tác!`)) {
-        fetch(`/5s-fashion/admin/categories/delete/${id}`, {
+        fetch(`/zone-fashion/admin/categories/delete/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -292,7 +292,7 @@ function deleteCategory(id, name) {
             .then(data => {
                 if (data.success) {
                     alert('Đã xóa danh mục thành công!');
-                    window.location.href = '/5s-fashion/admin/categories';
+                    window.location.href = '/zone-fashion/admin/categories';
                 } else {
                     alert('Lỗi: ' + data.message);
                 }

@@ -1,6 +1,6 @@
 /**
  * Shop Page Styles
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 /* Shop Header */
@@ -810,7 +810,7 @@ input[type="number"] {
 }
 
 .product-item:nth-child(5) {
-    animation-delay: 0.5s;
+    animation-delay: 0.zone;
 }
 
 .product-item:nth-child(6) {

@@ -6,8 +6,8 @@ $currentPath = parse_url($currentUri, PHP_URL_PATH);
 // Helper function to check if menu is active
 function isMenuActive($menuPath, $currentPath) {
     // Special case for dashboard - exact match only
-    if ($menuPath === '/5s-fashion/admin' || $menuPath === '/5s-fashion/admin/') {
-        return $currentPath === '/5s-fashion/admin' || $currentPath === '/5s-fashion/admin/' || $currentPath === '/5s-fashion/admin/index';
+    if ($menuPath === '/zone-fashion/admin' || $menuPath === '/zone-fashion/admin/') {
+        return $currentPath === '/zone-fashion/admin' || $currentPath === '/zone-fashion/admin/' || $currentPath === '/zone-fashion/admin/index';
     }
 
     // For other menus, check if current path starts with menu path
@@ -22,52 +22,52 @@ function getActiveClass($menuPath, $currentPath) {
 
 <nav class="admin-sidebar-simple" id="sidebarSimple">
     <div class="sidebar-brand">
-        <a href="/5s-fashion/admin" class="brand-link">
-            <div class="brand-logo">5S</div>
-            <span class="brand-text">5S Fashion</span>
+        <a href="/zone-fashion/admin" class="brand-link">
+            <div class="brand-logo">zone</div>
+            <span class="brand-text">zone Fashion</span>
         </a>
     </div>
 
     <div class="sidebar-menu">
         <ul class="nav-list">
             <li class="nav-item">
-                <a href="/5s-fashion/admin" class="nav-link <?= getActiveClass('/5s-fashion/admin', $currentPath) ?>">
+                <a href="/zone-fashion/admin" class="nav-link <?= getActiveClass('/zone-fashion/admin', $currentPath) ?>">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/5s-fashion/admin/products" class="nav-link <?= getActiveClass('/5s-fashion/admin/products', $currentPath) ?>">
+                <a href="/zone-fashion/admin/products" class="nav-link <?= getActiveClass('/zone-fashion/admin/products', $currentPath) ?>">
                     <i class="fas fa-box"></i>
                     <span>Sản phẩm</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/5s-fashion/admin/categories" class="nav-link <?= getActiveClass('/5s-fashion/admin/categories', $currentPath) ?>">
+                <a href="/zone-fashion/admin/categories" class="nav-link <?= getActiveClass('/zone-fashion/admin/categories', $currentPath) ?>">
                     <i class="fas fa-tags"></i>
                     <span>Danh mục</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/5s-fashion/admin/orders" class="nav-link <?= getActiveClass('/5s-fashion/admin/orders', $currentPath) ?>">
+                <a href="/zone-fashion/admin/orders" class="nav-link <?= getActiveClass('/zone-fashion/admin/orders', $currentPath) ?>">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Đơn hàng</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/5s-fashion/admin/customers" class="nav-link <?= getActiveClass('/5s-fashion/admin/customers', $currentPath) ?>">
+                <a href="/zone-fashion/admin/customers" class="nav-link <?= getActiveClass('/zone-fashion/admin/customers', $currentPath) ?>">
                     <i class="fas fa-users"></i>
                     <span>Khách hàng</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/5s-fashion/admin/coupons" class="nav-link <?= getActiveClass('/5s-fashion/admin/coupons', $currentPath) ?>">
+                <a href="/zone-fashion/admin/coupons" class="nav-link <?= getActiveClass('/zone-fashion/admin/coupons', $currentPath) ?>">
                     <i class="fas fa-ticket-alt"></i>
                     <span>Voucher</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/5s-fashion/admin/settings" class="nav-link <?= getActiveClass('/5s-fashion/admin/settings', $currentPath) ?>">
+                <a href="/zone-fashion/admin/settings" class="nav-link <?= getActiveClass('/zone-fashion/admin/settings', $currentPath) ?>">
                     <i class="fas fa-cog"></i>
                     <span>Cài đặt</span>
                 </a>

@@ -1,7 +1,7 @@
 <?php
 /**
  * Base Controller Class
- * 5S Fashion E-commerce Platform
+ * Zone Fashion E-commerce Platform
  */
 
 class BaseController

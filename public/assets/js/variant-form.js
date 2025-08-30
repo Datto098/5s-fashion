@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			const productId = pathParts[productIdIndex];
 
 			// Tải lại danh sách biến thể
-			fetch(`/5s-fashion/admin/products/${productId}/variants?format=json`, {
+			fetch(`/zone-fashion/admin/products/${productId}/variants?format=json`, {
 				headers: {
 					'X-Requested-With': 'XMLHttpRequest'
 				}

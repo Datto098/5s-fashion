@@ -2,7 +2,7 @@
 /**
  * Payment Controller
  * Handle payment processing for different payment methods
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once dirname(__DIR__) . '/core/Controller.php';
@@ -90,7 +90,7 @@ class PaymentController extends Controller
             $inputData = $_GET;
 
             if (empty($inputData)) {
-                $this->redirectWithMessage('/5s-fashion/checkout', 'error', 'Không nhận được thông tin thanh toán');
+                $this->redirectWithMessage('/zone-fashion/checkout', 'error', 'Không nhận được thông tin thanh toán');
                 return;
             }
 
@@ -99,7 +99,7 @@ class PaymentController extends Controller
             $isValid = true; // Temporary bypass for testing
 
             if (!$isValid) {
-                $this->redirectWithMessage('/5s-fashion/checkout', 'error', 'Thông tin thanh toán không hợp lệ');
+                $this->redirectWithMessage('/zone-fashion/checkout', 'error', 'Thông tin thanh toán không hợp lệ');
                 return;
             }
 
@@ -112,7 +112,7 @@ class PaymentController extends Controller
             $order = $this->orderModel->findByOrderCode($vnp_TxnRef);
 
             if (!$order) {
-                $this->redirectWithMessage('/5s-fashion/checkout', 'error', 'Không tìm thấy đơn hàng: ' . $vnp_TxnRef);
+                $this->redirectWithMessage('/zone-fashion/checkout', 'error', 'Không tìm thấy đơn hàng: ' . $vnp_TxnRef);
                 return;
             }
 
@@ -132,7 +132,7 @@ class PaymentController extends Controller
                 // Clear cart after successful payment
                 $this->clearUserCart($order['user_id']);
 
-                $this->redirectWithMessage('/5s-fashion/order/success/' . $vnp_TxnRef, 'success', 'Thanh toán thành công!');
+                $this->redirectWithMessage('/zone-fashion/order/success/' . $vnp_TxnRef, 'success', 'Thanh toán thành công!');
             } else {
                 // Payment failed
                 $errorMessage = $this->vnpayHelper->getTransactionStatusText($vnp_ResponseCode);
@@ -145,12 +145,12 @@ class PaymentController extends Controller
                     error_log('Error releasing reserved stock for order ' . $order['id'] . ': ' . $e->getMessage());
                 }
 
-                $this->redirectWithMessage('/5s-fashion/checkout', 'error', 'Thanh toán không thành công: ' . $errorMessage);
+                $this->redirectWithMessage('/zone-fashion/checkout', 'error', 'Thanh toán không thành công: ' . $errorMessage);
             }
 
         } catch (Exception $e) {
             error_log('VNPay return callback error: ' . $e->getMessage());
-            $this->redirectWithMessage('/5s-fashion/checkout', 'error', 'Có lỗi xảy ra khi xử lý thanh toán');
+            $this->redirectWithMessage('/zone-fashion/checkout', 'error', 'Có lỗi xảy ra khi xử lý thanh toán');
         }
     }
 
@@ -202,7 +202,7 @@ class PaymentController extends Controller
 
                 echo json_encode([
                     'success' => true,
-                    'redirect_url' => '/5s-fashion/order/success/' . $orderCode,
+                    'redirect_url' => '/zone-fashion/order/success/' . $orderCode,
                     'message' => 'Đơn hàng đã được tạo thành công!'
                 ]);
 

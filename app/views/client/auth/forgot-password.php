@@ -109,7 +109,7 @@ ob_start();
                 <a href="tel:19001900" class="btn btn-outline-primary btn-sm me-2">
                     <i class="fas fa-phone me-1"></i>1900 1900
                 </a>
-                <a href="mailto:support@5sfashion.com" class="btn btn-outline-info btn-sm">
+                <a href="mailto:support@zonefashion.com" class="btn btn-outline-info btn-sm">
                     <i class="fas fa-envelope me-1"></i>Email hỗ trợ
                 </a>
             </div>
@@ -132,8 +132,8 @@ ob_start();
     $clientVer = file_exists($clientJs) ? filemtime($clientJs) : time();
     $authVer = file_exists($authJs) ? filemtime($authJs) : time();
 ?>
-<script src="/5s-fashion/public/assets/js/client.js?v=<?= $clientVer ?>"></script>
-<script src="/5s-fashion/public/assets/js/auth.js?v=<?= $authVer ?>"></script>
+<script src="/zone-fashion/public/assets/js/client.js?v=<?= $clientVer ?>"></script>
+<script src="/zone-fashion/public/assets/js/auth.js?v=<?= $authVer ?>"></script>
 
 <!-- Initialize Forgot Password -->
 <script>

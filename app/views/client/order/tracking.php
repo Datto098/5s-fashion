@@ -253,7 +253,7 @@ ob_start();
                                 <i class="fas fa-envelope fa-2x text-success"></i>
                             </div>
                             <h6>Email hỗ trợ</h6>
-                            <p class="text-muted">support@5sfashion.com</p>
+                            <p class="text-muted">support@zonefashion.com</p>
                         </div>
                     </div>
                     <div class="col-md-4 mb-3">
@@ -276,8 +276,8 @@ ob_start();
 $content = ob_get_clean();
 
 // Set page variables for layout
-$title = 'Theo dõi đơn hàng - 5S Fashion';
-$meta_description = 'Theo dõi tình trạng đơn hàng tại 5S Fashion';
+$title = 'Theo dõi đơn hàng - zone Fashion';
+$meta_description = 'Theo dõi tình trạng đơn hàng tại zone Fashion';
 
 // Custom CSS for this page
 $custom_css = [

@@ -1,18 +1,18 @@
 <?php
 /**
  * Application Configuration
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 return [
     'app' => [
-        'name' => '5S Fashion',
-        'url' => $_ENV['APP_URL'] ?? 'http://localhost/5s-fashion',
+        'name' => 'zone Fashion',
+        'url' => $_ENV['APP_URL'] ?? 'http://localhost/zone-fashion',
         'environment' => $_ENV['APP_ENV'] ?? 'development',
         'debug' => $_ENV['APP_DEBUG'] ?? true,
         'timezone' => 'Asia/Ho_Chi_Minh',
         'locale' => 'vi',
-        'key' => $_ENV['APP_KEY'] ?? 'base64:5s-fashion-secret-key-here',
+        'key' => $_ENV['APP_KEY'] ?? 'base64:zone-fashion-secret-key-here',
     ],
 
     'session' => [
@@ -63,8 +63,8 @@ return [
         'password' => $_ENV['MAIL_PASSWORD'] ?? '',
         'encryption' => $_ENV['MAIL_ENCRYPTION'] ?? 'tls',
         'from' => [
-            'address' => $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@5sfashion.com',
-            'name' => $_ENV['MAIL_FROM_NAME'] ?? '5S Fashion',
+            'address' => $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@zone-fashion.com',
+            'name' => $_ENV['MAIL_FROM_NAME'] ?? 'zone Fashion',
         ],
     ],
 ];

@@ -1,8 +1,8 @@
-# 5S Fashion - E-commerce Website Plan
+# Zone Fashion - E-commerce Website Plan
 
 ## 📋 Tổng quan dự án
 
-**5S Fashion** là một trang web bán quần áo trực tuyến được xây dựng bằng PHP thuần với kiến trúc MVC, tập trung vào UI/UX đẹp mắt và chuyên nghiệp.
+**Zone Fashion** là một trang web bán quần áo trực tuyến được xây dựng bằng PHP thuần với kiến trúc MVC, tập trung vào UI/UX đẹp mắt và chuyên nghiệp.
 
 ## 🎯 Mục tiêu dự án
 
@@ -17,7 +17,7 @@
 ### Mô hình MVC (Model-View-Controller)
 
 ```
-📁 5s-fashion/
+📁 zone-fashion/
 ├── 📁 app/
 │   ├── 📁 controllers/
 │   ├── 📁 models/
@@ -288,7 +288,7 @@
 ## 📁 Cấu trúc thư mục chi tiết
 
 ```
-📁 5s-fashion/
+📁 zone-fashion/
 ├── 📁 app/
 │   ├── 📁 config/
 │   │   ├── database.php
@@ -383,7 +383,7 @@
 - [ ] Setup .htaccess cho URL rewriting
 
 #### Ngày 2: Database Schema
-- [ ] Tạo database `5s_fashion`
+- [ ] Tạo database `zone_fashion`
 - [ ] Design và tạo toàn bộ tables:
   - `users` (admin/customer)
   - `categories` (danh mục có parent_id)
@@ -859,8 +859,8 @@
 
 1. **Clone repository**
 ```bash
-git clone https://github.com/your-username/5s-fashion.git
-cd 5s-fashion
+git clone https://github.com/your-username/zone-fashion.git
+cd zone-fashion
 ```
 
 2. **Install dependencies**

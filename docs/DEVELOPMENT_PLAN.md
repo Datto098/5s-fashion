@@ -1,4 +1,4 @@
-# 🚀 5S FASHION - DEVELOPMENT PLAN CHI TIẾT
+# 🚀 ZONE FASHION - DEVELOPMENT PLAN CHI TIẾT
 
 ## 📋 CHIẾN LƯỢC PHÁT TRIỂN
 **Mục tiêu**: Xây dựng từ Admin → API → Client để có dữ liệu thật từ đầu

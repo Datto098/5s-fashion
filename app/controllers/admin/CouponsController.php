@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Coupons Controller
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 require_once dirname(__DIR__) . '/BaseController.php';
@@ -97,7 +97,7 @@ class CouponsController extends BaseController
 
             // Create coupon
             if ($this->couponModel->create($data)) {
-                header('Location: /5s-fashion/admin/coupons?success=' . urlencode('Tạo voucher thành công'));
+                header('Location: /zone-fashion/admin/coupons?success=' . urlencode('Tạo voucher thành công'));
                 exit;
             } else {
                 throw new Exception('Có lỗi xảy ra khi tạo voucher');
@@ -119,7 +119,7 @@ class CouponsController extends BaseController
         $coupon = $this->couponModel->find($id);
 
         if (!$coupon) {
-            header('Location: /5s-fashion/admin/coupons?error=' . urlencode('Không tìm thấy voucher'));
+            header('Location: /zone-fashion/admin/coupons?error=' . urlencode('Không tìm thấy voucher'));
             exit;
         }
 
@@ -140,7 +140,7 @@ class CouponsController extends BaseController
         $coupon = $this->couponModel->find($id);
 
         if (!$coupon) {
-            header('Location: /5s-fashion/admin/coupons?error=' . urlencode('Không tìm thấy voucher'));
+            header('Location: /zone-fashion/admin/coupons?error=' . urlencode('Không tìm thấy voucher'));
             exit;
         }
 
@@ -193,7 +193,7 @@ class CouponsController extends BaseController
 
             // Update coupon
             if ($this->couponModel->update($id, $data)) {
-                header('Location: /5s-fashion/admin/coupons?success=' . urlencode('Cập nhật voucher thành công'));
+                header('Location: /zone-fashion/admin/coupons?success=' . urlencode('Cập nhật voucher thành công'));
                 exit;
             } else {
                 throw new Exception('Có lỗi xảy ra khi cập nhật voucher');
@@ -226,14 +226,14 @@ class CouponsController extends BaseController
             }
 
             if ($this->couponModel->delete($id)) {
-                header('Location: /5s-fashion/admin/coupons?success=' . urlencode('Xóa voucher thành công'));
+                header('Location: /zone-fashion/admin/coupons?success=' . urlencode('Xóa voucher thành công'));
                 exit;
             } else {
                 throw new Exception('Có lỗi xảy ra khi xóa voucher');
             }
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/coupons?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/coupons?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -286,11 +286,11 @@ class CouponsController extends BaseController
                     break;
             }
 
-            header('Location: /5s-fashion/admin/coupons?success=' . urlencode($message));
+            header('Location: /zone-fashion/admin/coupons?success=' . urlencode($message));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/coupons?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/coupons?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -316,7 +316,7 @@ class CouponsController extends BaseController
             }
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/coupons?error=' . urlencode('Lỗi khi xuất dữ liệu: ' . $e->getMessage()));
+            header('Location: /zone-fashion/admin/coupons?error=' . urlencode('Lỗi khi xuất dữ liệu: ' . $e->getMessage()));
             exit;
         }
     }
@@ -367,10 +367,10 @@ class CouponsController extends BaseController
     {
         try {
             $count = $this->couponModel->markExpiredCoupons();
-            header('Location: /5s-fashion/admin/coupons?success=' . urlencode("Đã đánh dấu {$count} voucher hết hạn"));
+            header('Location: /zone-fashion/admin/coupons?success=' . urlencode("Đã đánh dấu {$count} voucher hết hạn"));
             exit;
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/coupons?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/coupons?error=' . urlencode($e->getMessage()));
             exit;
         }
     }

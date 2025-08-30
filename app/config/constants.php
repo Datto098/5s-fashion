@@ -1,7 +1,7 @@
 <?php
 /**
  * Application Constants
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 // Application Paths
@@ -17,7 +17,7 @@ define('UPLOAD_PATH', PUBLIC_PATH . '/uploads');
 $isPublicDir = (basename($_SERVER['SCRIPT_NAME']) === 'index.php' && strpos($_SERVER['SCRIPT_NAME'], '/public/') !== false);
 $defaultUrl = (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '8080')
     ? 'http://localhost:8080'
-    : 'http://localhost/5s-fashion';
+    : 'http://localhost/zone-fashion';
 define('BASE_URL', rtrim($_ENV['APP_URL'] ?? $defaultUrl, '/'));
 
 // Asset URLs - always use /public/ prefix for development environment

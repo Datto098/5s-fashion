@@ -207,7 +207,7 @@ ob_start();
             <?php endforeach; ?>
         </div>
         <div class="text-center mt-4">
-            <a href="/5s-fashion/vouchers" class="btn btn-outline-primary">
+            <a href="/zone-fashion/vouchers" class="btn btn-outline-primary">
                 <i class="fas fa-ticket-alt me-2"></i>
                 Xem tất cả voucher
             </a>
@@ -245,7 +245,7 @@ ob_start();
                                     } else {
                                         $cleanPath = ltrim($imagePath, '/');
                                     }
-                                    $imageUrl = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                    $imageUrl = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
                                     ?>
                                     <img src="<?= htmlspecialchars($imageUrl) ?>"
                                          alt="<?= htmlspecialchars($category['name']) ?>" class="img-fluid">
@@ -433,7 +433,7 @@ $inline_css = "
 //     font-size: 20px;
 //     box-shadow: 0 3px 10px rgba(0,0,0,0.2);
 //     transform: scale(0);
-//     animation: popIn 0.5s forwards;
+//     animation: popIn 0.zone forwards;
 //     z-index: 2;
 // }
 
@@ -461,7 +461,7 @@ $inline_css = "
 //     font-size: 20px;
 //     box-shadow: 0 3px 10px rgba(0,0,0,0.2);
 //     transform: scale(0);
-//     animation: popIn 0.5s forwards;
+//     animation: popIn 0.zone forwards;
 //     z-index: 2;
 // }
 
@@ -751,7 +751,7 @@ document.querySelectorAll('.btn-save-voucher').forEach(button => {
                 showToast('Mã voucher không hợp lệ', 'error');
                 return;
             }
-            fetch('/5s-fashion/api/auth/check')
+            fetch('/zone-fashion/api/auth/check')
                 .then(response => response.json())
                 .then(data => {
                     if (!data.data.authenticated) {
@@ -760,7 +760,7 @@ document.querySelectorAll('.btn-save-voucher').forEach(button => {
                     }
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
                     btn.disabled = true;
-                    return fetch('/5s-fashion/api/voucher/save', {
+                    return fetch('/zone-fashion/api/voucher/save', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1031,7 +1031,7 @@ $content .= '
             <i class="fas fa-robot"></i>
         </div>
         <div class="chatbot-info">
-            <h4>5S Fashion Assistant</h4>
+            <h4>zone Fashion Assistant</h4>
             <span class="status online">Trực tuyến</span>
         </div>
         <button class="chatbot-close" id="chatbot-close">
@@ -1046,7 +1046,7 @@ $content .= '
             </div>
             <div class="message-content">
                 <div class="message-text">
-                    Xin chào! Tôi là trợ lý ảo của 5S Fashion. Tôi có thể giúp bạn tìm sản phẩm, tư vấn thời trang, hoặc hỗ trợ mua hàng. Bạn cần hỗ trợ gì?
+                    Xin chào! Tôi là trợ lý ảo của zone Fashion. Tôi có thể giúp bạn tìm sản phẩm, tư vấn thời trang, hoặc hỗ trợ mua hàng. Bạn cần hỗ trợ gì?
                 </div>
                 <div class="message-time">' . date('H:i') . '</div>
             </div>

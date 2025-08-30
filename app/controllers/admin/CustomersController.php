@@ -18,7 +18,7 @@ class CustomersController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -51,14 +51,14 @@ class CustomersController extends BaseController
             $birthdayCustomers = $this->customerModel->getBirthdayCustomers();
 
             $data = [
-                'title' => 'Quản lý khách hàng - 5S Fashion Admin',
+                'title' => 'Quản lý khách hàng - zone Fashion Admin',
                 'customers' => $customers,
                 'stats' => $stats,
                 'birthdayCustomers' => $birthdayCustomers,
                 'search' => $search,
                 'filters' => $filters,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['title' => 'Khách hàng']
                 ]
             ];
@@ -67,13 +67,13 @@ class CustomersController extends BaseController
 
         } catch (Exception $e) {
             $data = [
-                'title' => 'Quản lý khách hàng - 5S Fashion Admin',
+                'title' => 'Quản lý khách hàng - zone Fashion Admin',
                 'error' => 'Lỗi khi tải danh sách khách hàng: ' . $e->getMessage(),
                 'customers' => [],
                 'stats' => [],
                 'birthdayCustomers' => [],
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['title' => 'Khách hàng']
                 ]
             ];
@@ -82,46 +82,52 @@ class CustomersController extends BaseController
         }
     }
 
-    public function view($id)
+    public function view($view, $data = [], $layout = 'client/layouts/app')
     {
         try {
-            // Get customer details with statistics
-            $customer = $this->customerModel->getCustomerWithStats($id);
+            // If $view is numeric, treat as customer ID for backward compatibility
+            if (is_numeric($view)) {
+                $id = $view;
+                // Get customer details with statistics
+                $customer = $this->customerModel->getCustomerWithStats($id);
 
-            if (!$customer) {
-                throw new Exception('Không tìm thấy khách hàng');
+                if (!$customer) {
+                    throw new Exception('Không tìm thấy khách hàng');
+                }
+
+                // Get customer addresses
+                $addresses = $this->customerModel->getCustomerAddresses($id);
+
+                // Get customer orders
+                $orders = $this->customerModel->getCustomerOrders($id, 10);
+
+                // Get customer tier
+                $tier = $this->customerModel->getCustomerTier($customer['total_spent']);
+
+                // Get loyalty points if implemented
+                $loyaltyPoints = $this->customerModel->getCustomerPoints($id);
+
+                $data = [
+                    'title' => 'Chi tiết khách hàng: ' . $customer['full_name'] . ' - zone Fashion Admin',
+                    'customer' => $customer,
+                    'addresses' => $addresses,
+                    'orders' => $orders,
+                    'tier' => $tier,
+                    'loyaltyPoints' => $loyaltyPoints,
+                    'breadcrumbs' => [
+                        ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                        ['title' => 'Khách hàng', 'url' => '/zone-fashion/admin/customers'],
+                        ['title' => $customer['full_name']]
+                    ]
+                ];
+
+                $this->render('admin/customers/view', $data, 'admin/layouts/main-inline');
+            } else {
+                // Default to parent behavior if not numeric
+                parent::view($view, $data, $layout);
             }
-
-            // Get customer addresses
-            $addresses = $this->customerModel->getCustomerAddresses($id);
-
-            // Get customer orders
-            $orders = $this->customerModel->getCustomerOrders($id, 10);
-
-            // Get customer tier
-            $tier = $this->customerModel->getCustomerTier($customer['total_spent']);
-
-            // Get loyalty points if implemented
-            $loyaltyPoints = $this->customerModel->getCustomerPoints($id);
-
-            $data = [
-                'title' => 'Chi tiết khách hàng: ' . $customer['full_name'] . ' - 5S Fashion Admin',
-                'customer' => $customer,
-                'addresses' => $addresses,
-                'orders' => $orders,
-                'tier' => $tier,
-                'loyaltyPoints' => $loyaltyPoints,
-                'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['title' => 'Khách hàng', 'url' => '/5s-fashion/admin/customers'],
-                    ['title' => $customer['full_name']]
-                ]
-            ];
-
-            $this->render('admin/customers/view', $data, 'admin/layouts/main-inline');
-
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/customers?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -130,10 +136,10 @@ class CustomersController extends BaseController
     {
         try {
             $data = [
-                'title' => 'Thêm khách hàng mới - 5S Fashion Admin',
+                'title' => 'Thêm khách hàng mới - zone Fashion Admin',
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['title' => 'Khách hàng', 'url' => '/5s-fashion/admin/customers'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['title' => 'Khách hàng', 'url' => '/zone-fashion/admin/customers'],
                     ['title' => 'Thêm mới']
                 ]
             ];
@@ -141,7 +147,7 @@ class CustomersController extends BaseController
             $this->render('admin/customers/create', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers?error=' . urlencode('Lỗi khi tải form tạo khách hàng'));
+            header('Location: /zone-fashion/admin/customers?error=' . urlencode('Lỗi khi tải form tạo khách hàng'));
             exit;
         }
     }
@@ -150,7 +156,7 @@ class CustomersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/customers');
+                header('Location: /zone-fashion/admin/customers');
                 exit;
             }
 
@@ -203,11 +209,11 @@ class CustomersController extends BaseController
                 $this->sendWelcomeEmail($customerData);
             }
 
-            header('Location: /5s-fashion/admin/customers?success=' . urlencode('Tạo khách hàng thành công'));
+            header('Location: /zone-fashion/admin/customers?success=' . urlencode('Tạo khách hàng thành công'));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers/create?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/customers/create?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -218,7 +224,7 @@ class CustomersController extends BaseController
             // Get customer details
             $customer = $this->customerModel->getCustomerWithStats($id);
             if (!$customer) {
-                header('Location: /5s-fashion/admin/customers?error=' . urlencode('Không tìm thấy khách hàng'));
+                header('Location: /zone-fashion/admin/customers?error=' . urlencode('Không tìm thấy khách hàng'));
                 exit;
             }
 
@@ -250,7 +256,7 @@ class CustomersController extends BaseController
             ]);
         } catch (Exception $e) {
             error_log('Error in CustomersController::show: ' . $e->getMessage());
-            header('Location: /5s-fashion/admin/customers?error=' . urlencode('Có lỗi xảy ra khi tải chi tiết khách hàng'));
+            header('Location: /zone-fashion/admin/customers?error=' . urlencode('Có lỗi xảy ra khi tải chi tiết khách hàng'));
             exit;
         }
     }
@@ -266,11 +272,11 @@ class CustomersController extends BaseController
             }
 
             $data = [
-                'title' => 'Chỉnh sửa khách hàng: ' . $customer['full_name'] . ' - 5S Fashion Admin',
+                'title' => 'Chỉnh sửa khách hàng: ' . $customer['full_name'] . ' - zone Fashion Admin',
                 'customer' => $customer,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['title' => 'Khách hàng', 'url' => '/5s-fashion/admin/customers'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['title' => 'Khách hàng', 'url' => '/zone-fashion/admin/customers'],
                     ['title' => 'Chỉnh sửa']
                 ]
             ];
@@ -278,7 +284,7 @@ class CustomersController extends BaseController
             $this->render('admin/customers/edit', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/customers?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -287,7 +293,7 @@ class CustomersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/customers');
+                header('Location: /zone-fashion/admin/customers');
                 exit;
             }
 
@@ -338,11 +344,11 @@ class CustomersController extends BaseController
                 throw new Exception('Không thể cập nhật khách hàng');
             }
 
-            header('Location: /5s-fashion/admin/customers?success=' . urlencode('Cập nhật khách hàng thành công'));
+            header('Location: /zone-fashion/admin/customers?success=' . urlencode('Cập nhật khách hàng thành công'));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers/edit/' . $id . '?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/customers/edit/' . $id . '?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -351,7 +357,7 @@ class CustomersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/customers');
+                header('Location: /zone-fashion/admin/customers');
                 exit;
             }
 
@@ -376,7 +382,7 @@ class CustomersController extends BaseController
                     'message' => 'Cập nhật trạng thái khách hàng thành công'
                 ]);
             } else {
-                header('Location: /5s-fashion/admin/customers?success=' . urlencode('Cập nhật trạng thái khách hàng thành công'));
+                header('Location: /zone-fashion/admin/customers?success=' . urlencode('Cập nhật trạng thái khách hàng thành công'));
             }
 
         } catch (Exception $e) {
@@ -387,7 +393,7 @@ class CustomersController extends BaseController
                     'error' => $e->getMessage()
                 ]);
             } else {
-                header('Location: /5s-fashion/admin/customers?error=' . urlencode($e->getMessage()));
+                header('Location: /zone-fashion/admin/customers?error=' . urlencode($e->getMessage()));
             }
         }
     }
@@ -396,7 +402,7 @@ class CustomersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/customers');
+                header('Location: /zone-fashion/admin/customers');
                 exit;
             }
 
@@ -413,11 +419,11 @@ class CustomersController extends BaseController
                 throw new Exception('Không thể xác thực email');
             }
 
-            header('Location: /5s-fashion/admin/customers?success=' . urlencode('Xác thực email thành công'));
+            header('Location: /zone-fashion/admin/customers?success=' . urlencode('Xác thực email thành công'));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/customers?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -426,7 +432,7 @@ class CustomersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/customers');
+                header('Location: /zone-fashion/admin/customers');
                 exit;
             }
 
@@ -443,11 +449,11 @@ class CustomersController extends BaseController
                 throw new Exception('Không thể xóa khách hàng');
             }
 
-            header('Location: /5s-fashion/admin/customers?success=' . urlencode('Xóa khách hàng thành công'));
+            header('Location: /zone-fashion/admin/customers?success=' . urlencode('Xóa khách hàng thành công'));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/customers?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -476,7 +482,7 @@ class CustomersController extends BaseController
             }
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers?error=' . urlencode('Lỗi khi xuất dữ liệu: ' . $e->getMessage()));
+            header('Location: /zone-fashion/admin/customers?error=' . urlencode('Lỗi khi xuất dữ liệu: ' . $e->getMessage()));
             exit;
         }
     }
@@ -488,7 +494,7 @@ class CustomersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/customers');
+                header('Location: /zone-fashion/admin/customers');
                 exit;
             }
 
@@ -507,12 +513,12 @@ class CustomersController extends BaseController
                 throw new Exception('Không thể trao điểm thưởng');
             }
 
-            header('Location: /5s-fashion/admin/customers/view/' . $customerId . '?success=' . urlencode('Trao điểm thưởng thành công'));
+            header('Location: /zone-fashion/admin/customers/view/' . $customerId . '?success=' . urlencode('Trao điểm thưởng thành công'));
             exit;
 
         } catch (Exception $e) {
             $customerId = $_POST['customer_id'] ?? '';
-            header('Location: /5s-fashion/admin/customers/view/' . $customerId . '?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/customers/view/' . $customerId . '?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -524,7 +530,7 @@ class CustomersController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/customers');
+                header('Location: /zone-fashion/admin/customers');
                 exit;
             }
 
@@ -546,11 +552,11 @@ class CustomersController extends BaseController
                 }
             }
 
-            header('Location: /5s-fashion/admin/customers?success=' . urlencode("Đã gửi email cho {$count} khách hàng"));
+            header('Location: /zone-fashion/admin/customers?success=' . urlencode("Đã gửi email cho {$count} khách hàng"));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/customers?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/customers?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -602,8 +608,8 @@ class CustomersController extends BaseController
      */
     private function sendWelcomeEmail($customerData)
     {
-        $subject = "Chào mừng bạn đến với 5S Fashion!";
-        $message = "Xin chào {$customerData['full_name']}, cảm ơn bạn đã đăng ký tài khoản tại 5S Fashion.";
+        $subject = "Chào mừng bạn đến với zone Fashion!";
+        $message = "Xin chào {$customerData['full_name']}, cảm ơn bạn đã đăng ký tài khoản tại zone Fashion.";
 
         // TODO: Implement actual email sending
         // mail($customerData['email'], $subject, $message);

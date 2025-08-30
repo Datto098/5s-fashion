@@ -1,7 +1,7 @@
 <?php
 /**
  * User Model
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class User extends BaseModel

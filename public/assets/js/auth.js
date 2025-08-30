@@ -206,7 +206,7 @@ class AuthManager {
 
 				// Show success message
 				this.showMessage(
-					'Đăng ký thành công! Chào mừng bạn đến với 5S Fashion!',
+					'Đăng ký thành công! Chào mừng bạn đến với zone Fashion!',
 					'success'
 				);
 
@@ -316,7 +316,7 @@ class AuthManager {
 				firstName: 'Nguyễn',
 				lastName: 'Văn A',
 				role: 'customer',
-				avatar: '/5s-fashion/public/assets/images/avatar-customer.jpg',
+				avatar: '/zone-fashion/public/assets/images/avatar-customer.jpg',
 			},
 			'admin@demo.com': {
 				id: 2,
@@ -325,7 +325,7 @@ class AuthManager {
 				firstName: 'Admin',
 				lastName: 'System',
 				role: 'admin',
-				avatar: '/5s-fashion/public/assets/images/avatar-admin.jpg',
+				avatar: '/zone-fashion/public/assets/images/avatar-admin.jpg',
 			},
 		};
 
@@ -374,7 +374,7 @@ class AuthManager {
 			birthDate: userData.birthDate,
 			gender: userData.gender,
 			role: 'customer',
-			avatar: '/5s-fashion/public/assets/images/avatar-default.jpg',
+			avatar: '/zone-fashion/public/assets/images/avatar-default.jpg',
 			createdAt: new Date().toISOString(),
 		};
 
@@ -393,7 +393,7 @@ class AuthManager {
 			const formData = new FormData();
 			formData.append('email', email);
 
-			const response = await fetch('/5s-fashion/public/forgot-password', {
+			const response = await fetch('/zone-fashion/public/forgot-password', {
 				method: 'POST',
 				body: formData,
 				credentials: 'same-origin',

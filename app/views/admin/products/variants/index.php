@@ -6,17 +6,17 @@ $currentPage = 'products';
 function getImageUrl($imagePath)
 {
     if (empty($imagePath) || $imagePath === '/assets/images/no-image.jpg') {
-        return '/5s-fashion/assets/images/no-image.jpg';
+        return '/zone-fashion/assets/images/no-image.jpg';
     }
 
     // Nếu path bắt đầu với /uploads/, chuyển thành URL đầy đủ
     if (strpos($imagePath, '/uploads/') === 0) {
         // Loại bỏ /uploads/ và chỉ giữ phần sau (ví dụ: products/filename.webp)
         $fileParam = ltrim(str_replace('/uploads/', '', $imagePath), '/');
-        return '/5s-fashion/serve-file.php?file=' . urlencode($fileParam);
+        return '/zone-fashion/serve-file.php?file=' . urlencode($fileParam);
     }
 
-    return '/5s-fashion' . $imagePath;
+    return '/zone-fashion' . $imagePath;
 }
 ?>
 
@@ -55,7 +55,7 @@ function getImageUrl($imagePath)
             </div>
         </div>
         <div class="mt-2 text-center">
-            <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants/fix-duplicates" class="btn btn-sm btn-warning" onclick="return confirm('Hành động này sẽ sửa các biến thể có nhiều thuộc tính trùng loại bằng cách chỉ giữ lại giá trị đầu tiên cho mỗi loại. Bạn có chắc chắn muốn tiếp tục?')">
+            <a href="/zone-fashion/admin/products/<?= $product['id'] ?>/variants/fix-duplicates" class="btn btn-sm btn-warning" onclick="return confirm('Hành động này sẽ sửa các biến thể có nhiều thuộc tính trùng loại bằng cách chỉ giữ lại giá trị đầu tiên cho mỗi loại. Bạn có chắc chắn muốn tiếp tục?')">
                 <i class="fas fa-wrench me-1"></i> Sửa tự động các biến thể lỗi
             </a>
         </div>
@@ -102,7 +102,7 @@ function getImageUrl($imagePath)
 <div class="modal" id="addVariantModal" tabindex="-1" style="display: none;">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" action="/5s-fashion/admin/products/<?= $product['id'] ?>/variants/create">
+            <form method="POST" action="/zone-fashion/admin/products/<?= $product['id'] ?>/variants/create">
                 <div class="modal-header">
                     <h5 class="modal-title">Thêm biến thể mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -228,7 +228,7 @@ function getImageUrl($imagePath)
 <div class="modal" id="generateVariantsModal" tabindex="-1" style="display: none;">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" action="/5s-fashion/admin/products/<?= $product['id'] ?>/variants/generate">
+            <form method="POST" action="/zone-fashion/admin/products/<?= $product['id'] ?>/variants/generate">
                 <div class="modal-header">
                     <h5 class="modal-title">Tạo biến thể tự động</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -413,7 +413,7 @@ const loadVariants = function() {
         const productId = pathParts[productIdIndex];
 
         // Tải lại danh sách biến thể
-        fetch(`/5s-fashion/admin/products/${productId}/variants?format=json`, {
+        fetch(`/zone-fashion/admin/products/${productId}/variants?format=json`, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
             }
@@ -528,10 +528,10 @@ function editVariant(variantId, variantName, sku, price, salePrice, stockQuantit
     // Set action cho form
     const form = document.getElementById('editVariantForm');
     const productId = window.location.pathname.split('/')[4]; // /admin/products/:productId/variants
-    form.action = `/5s-fashion/admin/products/${productId}/variants/${variantId}/update`;
+    form.action = `/zone-fashion/admin/products/${productId}/variants/${variantId}/update`;
 
     // Lấy thông tin thuộc tính
-    fetch(`/5s-fashion/admin/products/${productId}/variants/${variantId}/attributes`)
+    fetch(`/zone-fashion/admin/products/${productId}/variants/${variantId}/attributes`)
         .then(response => response.json())
         .then(data => {
             if (data.attributes && data.attributes.length > 0) {

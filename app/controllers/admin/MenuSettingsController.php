@@ -1,7 +1,7 @@
 <?php
 /**
  * Menu Settings Controller
- * 5S Fashion E-commerce Platform
+ * zone Fashion E-commerce Platform
  */
 
 class MenuSettingsController extends Controller

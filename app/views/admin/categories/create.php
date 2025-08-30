@@ -8,7 +8,7 @@
                     <p class="text-muted mb-0">Tạo danh mục sản phẩm mới</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/categories" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/categories" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                 </div>
@@ -25,7 +25,7 @@
         </div>
     <?php endif; ?>
 
-    <form action="/5s-fashion/admin/categories/store" method="POST" enctype="multipart/form-data" id="categoryForm">
+    <form action="/zone-fashion/admin/categories/store" method="POST" enctype="multipart/form-data" id="categoryForm">
         <div class="row">
             <!-- Main Content -->
             <div class="col-lg-8">
@@ -137,7 +137,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Tạo danh mục
                             </button>
-                            <a href="/5s-fashion/admin/categories" class="btn btn-secondary">
+                            <a href="/zone-fashion/admin/categories" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Hủy bỏ
                             </a>
                         </div>

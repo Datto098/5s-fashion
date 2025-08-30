@@ -22,11 +22,11 @@ $visibilityOptions = [
                     <p class="text-muted mb-0">Cập nhật thông tin sản phẩm</p>
                 </div>
                 <div>
-                    <a href="/5s-fashion/admin/products" class="btn btn-secondary">
+                    <a href="/zone-fashion/admin/products" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Quay lại
                     </a>
                     <?php if (!empty($product['has_variants'])): ?>
-                        <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants" class="btn btn-info ms-2">
+                        <a href="/zone-fashion/admin/products/<?= $product['id'] ?>/variants" class="btn btn-info ms-2">
                             <i class="fas fa-cogs"></i> Quản lý biến thể
                         </a>
                     <?php endif; ?>
@@ -52,7 +52,7 @@ $visibilityOptions = [
         </div>
     <?php endif; ?>
 
-    <form action="/5s-fashion/admin/products/update/<?= $product['id'] ?>" method="POST" enctype="multipart/form-data" id="productForm">
+    <form action="/zone-fashion/admin/products/update/<?= $product['id'] ?>" method="POST" enctype="multipart/form-data" id="productForm">
         <div class="row">
             <!-- Main Content -->
             <div class="col-lg-8">
@@ -187,7 +187,7 @@ $visibilityOptions = [
                                 <div class="alert alert-success">
                                     <i class="fas fa-check-circle"></i>
                                     <strong>Sản phẩm đã bật chế độ biến thể:</strong>
-                                    <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants" class="btn btn-sm btn-success ms-2" target="_blank">
+                                    <a href="/zone-fashion/admin/products/<?= $product['id'] ?>/variants" class="btn btn-sm btn-success ms-2" target="_blank">
                                         <i class="fas fa-cog"></i> Quản lý biến thể & tồn kho
                                     </a>
                                 </div>
@@ -253,7 +253,7 @@ $visibilityOptions = [
                                     <?php else: ?>
                                         <div class="alert alert-warning">
                                             <i class="fas fa-exclamation-triangle"></i>
-                                            Chưa có biến thể nào. <a href="/5s-fashion/admin/products/<?= $product['id'] ?>/variants">Tạo biến thể ngay</a>
+                                            Chưa có biến thể nào. <a href="/zone-fashion/admin/products/<?= $product['id'] ?>/variants">Tạo biến thể ngay</a>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -292,7 +292,7 @@ $visibilityOptions = [
                                     }
 
                                     // Use file server instead of direct access
-                                    $fullImagePath = '/5s-fashion/serve-file.php?file=' . urlencode($cleanPath);
+                                    $fullImagePath = '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
 
                                     // Debug output
                                     echo "<!-- DEBUG: Original path: " . htmlspecialchars($imagePath) . " -->";
@@ -351,7 +351,7 @@ $visibilityOptions = [
 
                                                     $encodedPath = urlencode($imagePath);
                                                     ?>
-                                                    <img src="/5s-fashion/serve-file.php?file=<?= $encodedPath ?>"
+                                                    <img src="/zone-fashion/serve-file.php?file=<?= $encodedPath ?>"
                                                          alt="Gallery Image <?= $index + 1 ?>"
                                                          class="img-thumbnail w-100"
                                                          style="height: 120px; object-fit: cover;">
@@ -557,10 +557,10 @@ $visibilityOptions = [
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Cập nhật sản phẩm
                             </button>
-                            <a href="/5s-fashion/admin/products/show/<?= $product['id'] ?>" class="btn btn-info">
+                            <a href="/zone-fashion/admin/products/show/<?= $product['id'] ?>" class="btn btn-info">
                                 <i class="fas fa-eye"></i> Xem chi tiết
                             </a>
-                            <a href="/5s-fashion/admin/products" class="btn btn-secondary">
+                            <a href="/zone-fashion/admin/products" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Hủy bỏ
                             </a>
                         </div>
@@ -749,7 +749,7 @@ function deleteGalleryImage(productId, imageIndex) {
     const originalContent = galleryItem.innerHTML;
     galleryItem.innerHTML = '<div class="text-center p-3"><i class="fas fa-spinner fa-spin"></i> Đang xóa...</div>';
 
-    fetch('/5s-fashion/admin/products/deletegalleryimage', {
+    fetch('/zone-fashion/admin/products/deletegalleryimage', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -824,7 +824,7 @@ function clearAllGalleryImages() {
             return;
         }
 
-        fetch('/5s-fashion/admin/products/deletegalleryimage', {
+        fetch('/zone-fashion/admin/products/deletegalleryimage', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -864,7 +864,7 @@ function viewGalleryImage(imagePath) {
     }
 
     const encodedPath = encodeURIComponent(cleanPath);
-    const serveUrl = `/5s-fashion/serve-file.php?file=${encodedPath}`;
+    const serveUrl = `/zone-fashion/serve-file.php?file=${encodedPath}`;
 
     // Create modal to view image
     const modal = document.createElement('div');

@@ -19,7 +19,7 @@ class ProductsController extends BaseController
 
         // Check admin authentication
         if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
-            header('Location: /5s-fashion/admin/login');
+            header('Location: /zone-fashion/admin/login');
             exit;
         }
 
@@ -58,14 +58,14 @@ class ProductsController extends BaseController
             $stats = $this->productModel->getProductStatistics();
 
             $data = [
-                'title' => 'Quản lý sản phẩm - 5S Fashion Admin',
+                'title' => 'Quản lý sản phẩm - zone Fashion Admin',
                 'products' => $products,
                 'categories' => $categories,
                 'stats' => $stats,
                 'search' => $search,
                 'filters' => $filters,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['title' => 'Sản phẩm']
                 ]
             ];
@@ -74,13 +74,13 @@ class ProductsController extends BaseController
 
         } catch (Exception $e) {
             $data = [
-                'title' => 'Quản lý sản phẩm - 5S Fashion Admin',
+                'title' => 'Quản lý sản phẩm - zone Fashion Admin',
                 'error' => 'Lỗi khi tải danh sách sản phẩm: ' . $e->getMessage(),
                 'products' => [],
                 'categories' => [],
                 'stats' => [],
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
                     ['title' => 'Sản phẩm']
                 ]
             ];
@@ -96,11 +96,11 @@ class ProductsController extends BaseController
             $categories = $this->categoryModel->getActive();
 
             $data = [
-                'title' => 'Thêm sản phẩm mới - 5S Fashion Admin',
+                'title' => 'Thêm sản phẩm mới - zone Fashion Admin',
                 'categories' => $categories,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['title' => 'Sản phẩm', 'url' => '/5s-fashion/admin/products'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['title' => 'Sản phẩm', 'url' => '/zone-fashion/admin/products'],
                     ['title' => 'Thêm mới']
                 ]
             ];
@@ -108,7 +108,7 @@ class ProductsController extends BaseController
             $this->render('admin/products/create', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/products?error=' . urlencode('Lỗi khi tải form tạo sản phẩm'));
+            header('Location: /zone-fashion/admin/products?error=' . urlencode('Lỗi khi tải form tạo sản phẩm'));
             exit;
         }
     }
@@ -117,7 +117,7 @@ class ProductsController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/products');
+                header('Location: /zone-fashion/admin/products');
                 exit;
             }
 
@@ -195,11 +195,11 @@ class ProductsController extends BaseController
             }
             */
 
-            header('Location: /5s-fashion/admin/products?success=' . urlencode('Tạo sản phẩm thành công'));
+            header('Location: /zone-fashion/admin/products?success=' . urlencode('Tạo sản phẩm thành công'));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/products/create?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/products/create?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -231,13 +231,13 @@ class ProductsController extends BaseController
             }
 
             $data = [
-                'title' => 'Chi tiết sản phẩm: ' . $product['name'] . ' - 5S Fashion Admin',
+                'title' => 'Chi tiết sản phẩm: ' . $product['name'] . ' - zone Fashion Admin',
                 'product' => $product,
                 'variants' => $variants,
                 'galleryImages' => $galleryImages,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['title' => 'Sản phẩm', 'url' => '/5s-fashion/admin/products'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['title' => 'Sản phẩm', 'url' => '/zone-fashion/admin/products'],
                     ['title' => 'Chi tiết']
                 ]
             ];
@@ -245,7 +245,7 @@ class ProductsController extends BaseController
             $this->render('admin/products/show', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/products?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/products?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -264,12 +264,12 @@ class ProductsController extends BaseController
             $categories = $this->categoryModel->getActive();
 
             $data = [
-                'title' => 'Chỉnh sửa sản phẩm - 5S Fashion Admin',
+                'title' => 'Chỉnh sửa sản phẩm - zone Fashion Admin',
                 'product' => $product,
                 'categories' => $categories,
                 'breadcrumbs' => [
-                    ['title' => 'Dashboard', 'url' => '/5s-fashion/admin'],
-                    ['title' => 'Sản phẩm', 'url' => '/5s-fashion/admin/products'],
+                    ['title' => 'Dashboard', 'url' => '/zone-fashion/admin'],
+                    ['title' => 'Sản phẩm', 'url' => '/zone-fashion/admin/products'],
                     ['title' => 'Chỉnh sửa']
                 ]
             ];
@@ -277,7 +277,7 @@ class ProductsController extends BaseController
             $this->render('admin/products/edit', $data, 'admin/layouts/main-inline');
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/products?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/products?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -286,7 +286,7 @@ class ProductsController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/products');
+                header('Location: /zone-fashion/admin/products');
                 exit;
             }
 
@@ -381,11 +381,11 @@ class ProductsController extends BaseController
                 throw new Exception('Không thể cập nhật sản phẩm');
             }
 
-            header('Location: /5s-fashion/admin/products?success=' . urlencode('Cập nhật sản phẩm thành công'));
+            header('Location: /zone-fashion/admin/products?success=' . urlencode('Cập nhật sản phẩm thành công'));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/products/edit/' . $id . '?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/products/edit/' . $id . '?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -401,7 +401,7 @@ class ProductsController extends BaseController
                     echo json_encode(['success' => false, 'message' => 'Method not allowed']);
                     exit;
                 } else {
-                    header('Location: /5s-fashion/admin/products');
+                    header('Location: /zone-fashion/admin/products');
                     exit;
                 }
             }
@@ -440,7 +440,7 @@ class ProductsController extends BaseController
                 echo json_encode(['success' => true, 'message' => 'Xóa sản phẩm thành công']);
                 exit;
             } else {
-                header('Location: /5s-fashion/admin/products?success=' . urlencode('Xóa sản phẩm thành công'));
+                header('Location: /zone-fashion/admin/products?success=' . urlencode('Xóa sản phẩm thành công'));
                 exit;
             }
 
@@ -450,7 +450,7 @@ class ProductsController extends BaseController
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
                 exit;
             } else {
-                header('Location: /5s-fashion/admin/products?error=' . urlencode($e->getMessage()));
+                header('Location: /zone-fashion/admin/products?error=' . urlencode($e->getMessage()));
                 exit;
             }
         }
@@ -597,7 +597,7 @@ class ProductsController extends BaseController
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Location: /5s-fashion/admin/products');
+                header('Location: /zone-fashion/admin/products');
                 exit;
             }
 
@@ -643,11 +643,11 @@ class ProductsController extends BaseController
                 }
             }
 
-            header('Location: /5s-fashion/admin/products?success=' . urlencode("Đã thực hiện thao tác cho {$count} sản phẩm"));
+            header('Location: /zone-fashion/admin/products?success=' . urlencode("Đã thực hiện thao tác cho {$count} sản phẩm"));
             exit;
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/products?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/products?error=' . urlencode($e->getMessage()));
             exit;
         }
     }
@@ -675,7 +675,7 @@ class ProductsController extends BaseController
             }
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/products?error=' . urlencode('Lỗi khi xuất dữ liệu: ' . $e->getMessage()));
+            header('Location: /zone-fashion/admin/products?error=' . urlencode('Lỗi khi xuất dữ liệu: ' . $e->getMessage()));
             exit;
         }
     }
@@ -1005,7 +1005,7 @@ class ProductsController extends BaseController
 
         try {
             $db = Database::getInstance();
-            $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/5s-fashion/public/uploads/products/';
+            $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/zone-fashion/public/uploads/products/';
 
             // Create directory if it doesn't exist
             if (!is_dir($uploadDir)) {
@@ -1123,7 +1123,7 @@ class ProductsController extends BaseController
                 return;
             }
 
-            $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/5s-fashion/public/uploads/products/';
+            $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/zone-fashion/public/uploads/products/';
 
             // Delete featured image
             if (!empty($product['featured_image'])) {
@@ -1165,7 +1165,7 @@ class ProductsController extends BaseController
 
             // Check if product has variants enabled
             if (empty($product['has_variants'])) {
-                header('Location: /5s-fashion/admin/products/' . $productId . '/edit?error=' . urlencode('Sản phẩm này chưa bật chế độ biến thể'));
+                header('Location: /zone-fashion/admin/products/' . $productId . '/edit?error=' . urlencode('Sản phẩm này chưa bật chế độ biến thể'));
                 exit;
             }
 
@@ -1175,7 +1175,7 @@ class ProductsController extends BaseController
             $variantsController->index($productId);
 
         } catch (Exception $e) {
-            header('Location: /5s-fashion/admin/products?error=' . urlencode($e->getMessage()));
+            header('Location: /zone-fashion/admin/products?error=' . urlencode($e->getMessage()));
             exit;
         }
     }

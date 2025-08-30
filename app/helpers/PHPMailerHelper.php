@@ -26,7 +26,7 @@ class PHPMailerHelper {
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
 
-            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', '5S Fashion');
+            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', 'zone Fashion');
             if ($toName) {
                 $mail->addAddress($to, $toName);
             } else {
@@ -58,12 +58,12 @@ class PHPMailerHelper {
             $mail->CharSet    = 'UTF-8';
 
             //Recipients
-            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', '5S Fashion');
+            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', 'zone Fashion');
             $mail->addAddress($to, $toName);
 
             //Content
             $mail->isHTML(true);
-            $mail->Subject = 'Xác thực email đăng ký 5S Fashion';
+            $mail->Subject = 'Xác thực email đăng ký zone Fashion';
             $mail->Body    = '<p>Chào ' . htmlspecialchars($toName) . ',</p>' .
                 '<p>Vui lòng nhấn vào liên kết dưới đây để xác thực email của bạn:</p>' .
                 '<p><a href="' . $verifyUrl . '">' . $verifyUrl . '</a></p>' .
@@ -98,12 +98,12 @@ class PHPMailerHelper {
             $mail->CharSet    = 'UTF-8';
 
             //Recipients
-            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', '5S Fashion');
+            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', 'zone Fashion');
             $mail->addAddress($to, $toName);
 
             //Content
             $mail->isHTML(true);
-            $mail->Subject = 'Yêu cầu đặt lại mật khẩu - 5S Fashion';
+            $mail->Subject = 'Yêu cầu đặt lại mật khẩu - zone Fashion';
             $mail->Body    = '<p>Chào ' . htmlspecialchars($toName) . ',</p>' .
                 '<p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Vui lòng nhấn vào liên kết dưới đây để đặt lại mật khẩu (link có hiệu lực trong 1 giờ):</p>' .
                 '<p><a href="' . $resetUrl . '">' . $resetUrl . '</a></p>' .
