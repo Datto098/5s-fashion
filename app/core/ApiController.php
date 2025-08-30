@@ -18,6 +18,11 @@ abstract class ApiController
         // Enable CORS
         $this->enableCors();
 
+        // Ensure PHP session is started so API controllers can use $_SESSION (cookies must be sent by client)
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         // Get request method and data
         $this->requestMethod = $_SERVER['REQUEST_METHOD'];
         $this->headers = getallheaders();
@@ -40,8 +45,16 @@ abstract class ApiController
      */
     private function enableCors()
     {
-        // Allow requests from any origin (adjust for production)
-        header('Access-Control-Allow-Origin: *');
+        // Allow requests from the requesting origin and enable credentials so session cookie can be sent.
+        // In production, consider whitelisting allowed origins instead of echoing the incoming origin.
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? null;
+        if ($origin) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Access-Control-Allow-Credentials: true');
+        } else {
+            header('Access-Control-Allow-Origin: *');
+        }
+
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
         header('Access-Control-Max-Age: 86400'); // Cache preflight for 24 hours

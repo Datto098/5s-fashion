@@ -743,7 +743,11 @@ class QuickViewModal {
 			window.notifications &&
 			typeof window.notifications.show === 'function'
 		) {
-			window.notifications.show(message, type);
+			if (type === 'success' && typeof window.showSuccess === 'function') {
+				window.showSuccess(message);
+			} else {
+				window.notifications.show(message, type);
+			}
 			return;
 		}
 

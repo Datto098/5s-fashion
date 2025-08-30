@@ -206,14 +206,14 @@ class AjaxController extends Controller
             // Cart::addToCart now returns structured array ['success'=>bool, 'quantity'=>int, 'clamped'=>bool] or ['success'=>false,'message'=>...]
             if (is_array($result)) {
                 if (empty($result['success'])) {
-                    throw new Exception($result['message'] ?? 'Could not add product to cart');
+                    throw new Exception($result['message'] ?? 'Đã hết hàng sản phẩm này rồi.');
                 }
                 $addedQuantity = $result['quantity'] ?? $quantity;
                 $wasClamped = !empty($result['clamped']);
             } else {
                 // Backwards compatibility: boolean true/false
                 if (!$result) {
-                    throw new Exception('Could not add product to cart');
+                    throw new Exception('Đã hết hàng sản phẩm này rồi.');
                 }
                 $addedQuantity = $quantity;
                 $wasClamped = false;
@@ -244,14 +244,14 @@ class AjaxController extends Controller
                 'clamped' => !empty($wasClamped)
             ];
 
-            echo json_encode($response);
+            echo json_encode($response, JSON_UNESCAPED_UNICODE);
 
         } catch (Exception $e) {
             http_response_code(400);
             echo json_encode([
                 'success' => false,
                 'message' => $e->getMessage()
-            ]);
+            ], JSON_UNESCAPED_UNICODE);
         }
     }
 

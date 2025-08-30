@@ -143,7 +143,18 @@ class App
             $this->controller = new DashboardController();
         }
 
-        // Set method
+        // Special pattern: /admin/{controller}/{id}/{action}
+        // After removing controller key, $url[1] may be the id and $url[2] the action.
+        if (isset($url[1]) && is_numeric($url[1]) && isset($url[2]) && method_exists($this->controller, $url[2])) {
+            $this->method = $url[2];
+            // params should be only the id
+            $this->params = [$url[1]];
+            // Call and return early
+            call_user_func_array([$this->controller, $this->method], $this->params);
+            return;
+        }
+
+        // Set method (standard behavior)
         if (isset($url[1])) {
             if (method_exists($this->controller, $url[1])) {
                 $this->method = $url[1];

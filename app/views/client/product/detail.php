@@ -154,6 +154,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 });
+    // Helper: call the same quickview API the modal uses and return parsed variants
+    async function fetchQuickviewVariants(productId) {
+        try {
+            const res = await fetch(`/zone-fashion/ajax/product/quickview?id=${productId}`);
+            if (!res.ok) return [];
+            const data = await res.json();
+            const variants = (data && data.product && data.product.variants) || data.variants || (data.data && data.data.variants) || [];
+            return Array.isArray(variants) ? variants : [];
+        } catch (e) {
+            console.error('fetchQuickviewVariants error', e);
+            return [];
+        }
+    }
+
+    async function getVariantFromAPI(productId, variantId) {
+        if (!variantId) return null;
+        const variants = await fetchQuickviewVariants(productId);
+        return variants.find(v => String(v.id) === String(variantId)) || null;
+    }
 // Hàm đồng bộ variant đang chọn giống modal
 function updateSelectedVariantDetail() {
     const colorBtn = document.querySelector('.color-option.active');
@@ -192,47 +211,20 @@ function updateSelectedVariantDetail() {
     try { updateDetailAddToCartState(); } catch(e) {}
 }
 // Ghi đè hàm handleAddToCart để truyền đúng variant id và số lượng
-function handleAddToCart(productId) {
+// Legacy wrapper: delegate to the API-backed async handler (defined later in this file)
+function handleAddToCartLegacy(productId) {
+    // call async handler and ignore returned promise (keeps backward compatibility)
+    try {
+        if (typeof window.handleAddToCart === 'function') {
+            // call the (async) handler defined later
+            window.handleAddToCart(productId);
+            return;
+        }
+    } catch (e) {}
+    // fallback: basic synchronous behavior (best-effort)
     const qtyInput = document.getElementById('quantity');
     const quantity = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
-    const selected = window.selectedVariantDetail;
-    if (!selected || !selected.id) {
-        alert('Vui lòng chọn màu sắc và kích thước!');
-        return;
-    }
-    if (quantity > selected.maxQty) {
-        alert('Số lượng vượt quá tồn kho!');
-        return;
-    }
-    // Lấy object variant đầy đủ từ sizesByColor
-    let fullVariant = null;
-    if (window.sizesByColor && selected.color && window.sizesByColor[selected.color]) {
-        fullVariant = window.sizesByColor[selected.color].find(v => v.id == selected.id);
-    }
-    if (!fullVariant) {
-        alert('Không tìm thấy biến thể sản phẩm!');
-        return;
-    }
-    // Sử dụng hàm addToCart của client.js nếu có
-    if (window.addToCart) {
-        window.addToCart(productId, quantity, fullVariant);
-    } else {
-        // Fallback ajax, truyền đủ thông tin variant
-        fetch('/zone-fashion/ajax/cart/add', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                product_id: productId,
-                quantity: quantity,
-                variant_id: fullVariant.id,
-                variant: fullVariant
-            })
-        })
-        .then(r=>r.json()).then(data=>{
-            if(data.success) alert('Đã thêm sản phẩm vào giỏ hàng!');
-            else alert(data.message||'Có lỗi xảy ra');
-        }).catch(()=>alert('Có lỗi xảy ra khi thêm vào giỏ hàng'));
-    }
+    alert('Đang xử lý...');
 }
 // Hàm đồng bộ variant đang chọn giống modal
 function updateSelectedVariantDetail() {
@@ -603,12 +595,12 @@ ob_start();
                         </div>
 
                         <div class="action-buttons">
-                            <button class="btn btn-add-cart" onclick="handleAddToCart(<?= $product['id'] ?>)">
+                            <button class="btn btn-add-cart" onclick="buyNow(<?= $product['id'] ?>)">
                                 <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ
                             </button>
-                            <button class="btn btn-buy-now" onclick="buyNow(<?= $product['id'] ?>)">
+                            <!-- <button class="btn btn-buy-now" onclick="buyNow(<?= $product['id'] ?>)">
                                 <i class="fas fa-bolt me-2"></i>Mua ngay
-                            </button>
+                            </button> -->
                             <button class="wishlist-btn" onclick="toggleWishlist(<?= $product['id'] ?>)" title="Thêm vào yêu thích">
                                 <i class="far fa-heart"></i>
                             </button>
@@ -1046,70 +1038,60 @@ ob_start();
         }
     });
 
-    // Handle add to cart click
-    function handleAddToCart(productId) {
-        console.log('=== ADD TO CART DEBUG ===');
-
-        // Check how many quantity inputs exist
+    // Handle add to cart click - verify stock via quickview API used by modal
+    async function handleAddToCart(productId) {
+        // resolve quantity the same robust way as before
         const allQuantityInputs = document.querySelectorAll('#quantity');
-        const allQuantityInputsByName = document.querySelectorAll('input[name="quantity"]');
-        const allQuantityInputsByClass = document.querySelectorAll('.quantity-input');
-
-        console.log('Elements with ID "quantity":', allQuantityInputs.length);
-        console.log('Elements with name "quantity":', allQuantityInputsByName.length);
-        console.log('Elements with class "quantity-input":', allQuantityInputsByClass.length);
-
-        // Try multiple ways to get the quantity input
         let quantityInput = document.getElementById('quantity');
-
-        // If not found or multiple, try by class
         if (!quantityInput || allQuantityInputs.length > 1) {
             const inputsByClass = document.querySelectorAll('.quantity-input');
-            if (inputsByClass.length > 0) {
-                quantityInput = inputsByClass[0]; // Use first one
-                console.log('Using quantity input from class selector');
-            }
+            if (inputsByClass.length > 0) quantityInput = inputsByClass[0];
         }
-
-        // If still not found, try by type and context
         if (!quantityInput) {
             const productSection = document.querySelector('.product-detail-section');
-            if (productSection) {
-                quantityInput = productSection.querySelector('input[type="number"]');
-                console.log('Using quantity input from product section');
-            }
+            if (productSection) quantityInput = productSection.querySelector('input[type="number"]');
         }
-
-        // Use global quantity as fallback
         const quantity = window.currentQuantity || parseInt(quantityInput ? quantityInput.value : 1) || 1;
 
-        console.log('Final quantity input:', quantityInput);
-        console.log('Input element found:', !!quantityInput);
-        console.log('Input element value:', quantityInput ? quantityInput.value : 'N/A');
-        console.log('Input element type:', quantityInput ? quantityInput.type : 'N/A');
-        console.log('Global quantity:', window.currentQuantity);
-        console.log('Final quantity used:', quantity);
+        // Prefer authoritative selected variant id
+        const selected = window.selectedVariantDetail;
+        if (!selected || !selected.id) {
+            alert('Vui lòng chọn màu sắc và kích thước!');
+            return;
+        }
 
-        // Check if there are other quantity inputs with different values
-        allQuantityInputsByClass.forEach((input, index) => {
-            console.log(`Quantity input ${index}:`, input.value, input);
-        });
+        // fetch fresh variant data from quickview API to avoid stale client state
+        const apiVariant = await getVariantFromAPI(productId, selected.id);
+        const apiStock = apiVariant ? (apiVariant.stock_quantity ?? apiVariant.stock ?? 0) : (selected.maxQty || 0);
 
-        console.log('===========================');
+        if (apiStock <= 0) {
+            try { updateDetailAddToCartState(); } catch(e) {}
+            alert('Sản phẩm hiện đã hết hàng.');
+            return;
+        }
 
-        console.log('Adding to cart:', {
-            productId: productId,
-            quantity: quantity,
-            inputValue: quantityInput ? quantityInput.value : 'N/A',
-            inputElement: quantityInput
-        });
+        if (quantity > apiStock) {
+            alert('Số lượng vượt quá tồn kho!');
+            return;
+        }
+
+        // build fullVariant (try local cache first, fallback to API object)
+        let fullVariant = null;
+        try {
+            if (window.sizesByColor && selected.color && window.sizesByColor[selected.color]) {
+                fullVariant = window.sizesByColor[selected.color].find(v => String(v.id) === String(selected.id));
+            }
+        } catch(e) {}
+        if (!fullVariant && apiVariant) fullVariant = apiVariant;
+
+        if (!fullVariant) {
+            alert('Không tìm thấy biến thể sản phẩm!');
+            return;
+        }
 
         if (window.cartManager && typeof window.cartManager.addToCart === 'function') {
-            const selectedVariant = getSelectedVariant();
-            console.log('Using cartManager, variant:', selectedVariant);
-            window.cartManager.addToCart(productId, quantity, selectedVariant);
+            window.cartManager.addToCart(productId, quantity, fullVariant);
         } else {
-            console.log('Using fallback method');
             addToCartFallback(productId, quantity);
         }
     }
@@ -1185,8 +1167,28 @@ ob_start();
             });
     }
 
-    function buyNow(productId) {
+    async function buyNow(productId) {
         const quantity = parseInt(document.getElementById('quantity').value) || 1;
+        const selected = window.selectedVariantDetail;
+
+        if (!selected || !selected.id) {
+            alert('Vui lòng chọn màu sắc và kích thước!');
+            return;
+        }
+
+        const apiVariant = await getVariantFromAPI(productId, selected.id);
+        const apiStock = apiVariant ? (apiVariant.stock_quantity ?? apiVariant.stock ?? 0) : (selected.maxQty || 0);
+
+        if (apiStock <= 0) {
+            try { updateDetailAddToCartState(); } catch(e) {}
+            alert('Sản phẩm hiện đã hết hàng.');
+            return;
+        }
+
+        if (quantity > apiStock) {
+            alert('Số lượng vượt quá tồn kho!');
+            return;
+        }
 
         if (window.cartManager && typeof window.cartManager.addToCart === 'function') {
             const selectedVariant = getSelectedVariant();

@@ -460,25 +460,25 @@ ob_start();
                 <!-- Action Buttons -->
                 <div class="action-buttons text-center">
                     <div class="row g-3">
-                        <div class="col-md-3 col-6">
+                        <!-- <div class="col-md-3 col-6">
                             <a href="/zone-fashion/order/tracking" class="btn-primary-action w-100">
                                 <i class="fas fa-search me-2"></i>
                                 Theo dõi đơn hàng
                             </a>
-                        </div>
-                        <div class="col-md-3 col-6">
+                        </div> -->
+                        <div class="col-md-4 col-6">
                             <button class="btn-success-action w-100" onclick="downloadInvoice()">
                                 <i class="fas fa-download me-2"></i>
                                 Tải hóa đơn
                             </button>
                         </div>
-                        <div class="col-md-3 col-6">
+                        <div class="col-md-4 col-6">
                             <a href="/zone-fashion" class="btn-outline-primary-action w-100">
                                 <i class="fas fa-shopping-bag me-2"></i>
                                 Tiếp tục mua sắm
                             </a>
                         </div>
-                        <div class="col-md-3 col-6">
+                        <div class="col-md-4 col-6">
                             <a href="/zone-fashion" class="btn-outline-secondary-action w-100">
                                 <i class="fas fa-home me-2"></i>
                                 Về trang chủ

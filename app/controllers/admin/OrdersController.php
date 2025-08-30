@@ -270,8 +270,24 @@ class OrdersController extends BaseController
                 throw new Exception('Không tìm thấy đơn hàng');
             }
 
-            // Update order status
-            $result = $this->orderModel->updateStatus($orderId, $status, $adminNotes);
+            // If admin is cancelling via status change, call the model cancel path which handles stock properly
+            if ($status === 'cancelled') {
+                // Use model's cancelOrder which also adds logs and notifies
+                $result = $this->orderModel->cancelOrder($orderId, $adminNotes);
+            } else {
+                // If we're restoring from a cancelled state, attempt to reinstate stock/reservations first
+                if ($order['status'] === 'cancelled') {
+                    try {
+                        $this->orderModel->reinstateOrder($orderId);
+                    } catch (Exception $e) {
+                        // Reinstate failed; prevent status change and report error
+                        throw new Exception('Không thể khôi phục trạng thái kho: ' . $e->getMessage());
+                    }
+                }
+
+                // Regular status update
+                $result = $this->orderModel->updateStatus($orderId, $status, $adminNotes);
+            }
 
             if (!$result) {
                 throw new Exception('Không thể cập nhật trạng thái đơn hàng');
@@ -395,11 +411,45 @@ class OrdersController extends BaseController
                 header('Location: /zone-fashion/admin/orders');
                 exit;
             }
+            // Debug entry
+            $uri = $_SERVER['REQUEST_URI'] ?? '';
+            error_log("[ADMIN CANCEL] Request received. URI={$uri}, METHOD={$_SERVER['REQUEST_METHOD']}");
 
-            $orderId = $_POST['order_id'] ?? null;
-            $reason = $_POST['reason'] ?? null;
+            // Detect AJAX/XHR so we return JSON instead of redirecting
+            $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+            // Support order_id passed in URL: try several patterns to be robust with prefix paths
+            $orderId = null;
+            if (preg_match('/\/admin\/orders\/cancel\/(\d+)/', $uri, $m)) {
+                $orderId = (int)$m[1];
+            } elseif (preg_match('/cancel\/(\d+)(?:$|\/|\?)/', $uri, $m2)) {
+                $orderId = (int)$m2[1];
+            } else {
+                // Fallback: take last numeric segment if present
+                if (preg_match_all('/(\d+)/', $uri, $all)) {
+                    $nums = $all[1];
+                    $orderId = (int)end($nums);
+                }
+            }
+
+            // Support JSON body or form POST for explicit order_id/reason
+            $jsonInput = json_decode(file_get_contents('php://input'), true);
+            if ($jsonInput && is_array($jsonInput)) {
+                $orderId = $orderId ?: ($jsonInput['order_id'] ?? null);
+                $reason = $jsonInput['reason'] ?? ($jsonInput['note'] ?? null);
+            } else {
+                $orderId = $orderId ?: ($_POST['order_id'] ?? null);
+                $reason = $_POST['reason'] ?? null;
+            }
+
+            error_log(sprintf("[ADMIN CANCEL] Resolved orderId=%s, isAjax=%s", var_export($orderId, true), $isAjax ? '1' : '0'));
 
             if (!$orderId) {
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Thiếu ID đơn hàng']);
+                    exit;
+                }
                 throw new Exception('Thiếu ID đơn hàng');
             }
 
@@ -418,11 +468,22 @@ class OrdersController extends BaseController
             $result = $this->orderModel->cancelOrder($orderId, $reason);
 
             if (!$result) {
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Không thể hủy đơn hàng']);
+                    exit;
+                }
                 throw new Exception('Không thể hủy đơn hàng');
             }
 
             // Send cancellation notification to customer
             $this->sendOrderCancellationNotification($order, $reason);
+
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'message' => 'Hủy đơn hàng thành công']);
+                exit;
+            }
 
             header('Location: /zone-fashion/admin/orders?success=' . urlencode('Hủy đơn hàng thành công'));
             exit;

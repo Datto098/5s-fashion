@@ -198,8 +198,7 @@
                         <select class="status-select" data-order-id="<?= $order['id'] ?>" onchange="updateOrderStatus(this)">
                             <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Chờ xử lý</option>
                             <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : '' ?>>Đang xử lý</option>
-                            <option value="shipping" <?= $order['status'] === 'shipping' ? 'selected' : '' ?>>Đã gửi</option>
-                            <option value="delivered" <?= $order['status'] === 'delivered' ? 'selected' : '' ?>>Đã giao</option>
+                                <option value="shipped" <?= $order['status'] === 'shipped' ? 'selected' : '' ?>>Đã gửi</option>
                             <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
                         </select>
                         <?php endif; ?>
@@ -746,6 +745,7 @@
         if (confirm(`Bạn có chắc chắn muốn thay đổi trạng thái đơn hàng này?`)) {
             fetch(`/zone-fashion/admin/orders/update-status/${orderId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
@@ -820,6 +820,7 @@
 
         fetch(`/zone-fashion/admin/orders/update-status/${orderId}`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
@@ -933,6 +934,7 @@
         if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
             fetch(`/zone-fashion/admin/orders/cancel/${orderId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'

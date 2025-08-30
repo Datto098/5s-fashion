@@ -368,6 +368,11 @@ class Cart extends BaseModel {
      * Lấy User ID hiện tại
      */
     private function getCurrentUserId() {
+        // Ensure session is started before reading session variables
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+
         return $_SESSION['user_id'] ?? null;
     }
 

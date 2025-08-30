@@ -251,8 +251,9 @@ function processOrder(orderId) {
 }
 
 function updateOrderStatus(orderId, status) {
-    fetch('/zone-fashion/admin/orders/update-status', {
+    fetch(`/zone-fashion/admin/orders/update-status/${orderId}`, {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
             'Content-Type': 'application/json',
         },

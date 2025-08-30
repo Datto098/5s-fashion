@@ -1,12 +1,13 @@
 <?php
 
+
 /**
  * Order Controller
  * Handle order and address management for checkout
  * zone Fashion E-commerce Platform
  */
 
-class OrderController extends Controller
+class OrderController extends BaseController
 {
     private $userModel;
     private $customerModel;
@@ -488,6 +489,56 @@ public function checkout()
                     }
                 }
 
+                // If variant_id still not resolved, try extra heuristics: variant_sku field, part before '|' or matching substring
+                if (empty($resolvedVariantId) && !empty($item['variant'])) {
+                    // Try explicit variant_sku first if provided
+                    if (!empty($item['variant_sku'])) {
+                        require_once dirname(__DIR__) . '/models/ProductVariant.php';
+                        $foundBySku = ProductVariant::getBySku($item['variant_sku']);
+                        if ($foundBySku && isset($foundBySku['id'])) {
+                            $resolvedVariantId = $foundBySku['id'];
+                        }
+                    }
+
+                    // If still not found, try trimming the part before a pipe '|' which some clients append
+                    if (empty($resolvedVariantId) && mb_strpos($item['variant'], '|') !== false) {
+                        $parts = explode('|', $item['variant']);
+                        $candidate = trim($parts[0]);
+                        require_once dirname(__DIR__) . '/models/ProductVariant.php';
+                        $found = ProductVariant::getBySku($candidate);
+                        if ($found && isset($found['id'])) {
+                            $resolvedVariantId = $found['id'];
+                        } else {
+                            // try matching by variant_name substring
+                            $variants = ProductVariant::getByProduct($item['product_id'], false);
+                            foreach ($variants as $v) {
+                                if (isset($v['variant_name']) && mb_stripos($v['variant_name'], $candidate) !== false) {
+                                    $resolvedVariantId = $v['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Final heuristic: try to match by last two segments (color/size) separated by ' - '
+                    if (empty($resolvedVariantId)) {
+                        $candidateFull = $item['variant'];
+                        $segments = preg_split('/\s*-\s*/u', $candidateFull);
+                        if (count($segments) >= 2) {
+                            // try match using last two segments joined
+                            $tail = trim(implode(' - ', array_slice($segments, -2)));
+                            require_once dirname(__DIR__) . '/models/ProductVariant.php';
+                            $variants = ProductVariant::getByProduct($item['product_id'], false);
+                            foreach ($variants as $v) {
+                                if (isset($v['variant_name']) && mb_stripos($v['variant_name'], $tail) !== false) {
+                                    $resolvedVariantId = $v['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $orderItems[] = [
                     'product_id' => $item['product_id'],
                     'variant_id' => $resolvedVariantId,
@@ -534,13 +585,26 @@ public function checkout()
 
             $orderId = $orderModel->createOrder($orderData, $orderItems);
 
-            // Nếu có mã giảm giá đã áp dụng thì cập nhật user_coupons
+            // Nếu có mã giảm giá đã áp dụng thì ghi nhận usage vào coupon_usage và tăng used_count
             if ($orderId && isset($_SESSION['applied_coupon']) && !empty($_SESSION['applied_coupon']['id'])) {
-                require_once dirname(__DIR__) . '/models/UserCoupon.php';
-                $userCouponModel = new UserCoupon();
+                require_once dirname(__DIR__) . '/models/Coupon.php';
+                $couponModel = new Coupon();
                 $couponId = $_SESSION['applied_coupon']['id'];
                 $userId = $user['id'];
-                $userCouponModel->updateCouponUsed($userId, $couponId, $orderId);
+                // discount amount persisted in order data
+                $discountAmount = isset($orderData['discount_amount']) ? (float)$orderData['discount_amount'] : 0.0;
+
+                // applyCoupon will insert into coupon_usage, increment coupons.used_count
+                // and mark user_coupons as used when $userId is provided
+                $applied = $couponModel->applyCoupon($couponId, $orderId, $userId, $discountAmount);
+                if (!$applied) {
+                    error_log("[COUPON] Failed to record coupon usage for coupon_id={$couponId}, order_id={$orderId}");
+                }
+            }
+
+            // Clear applied coupon from session so it won't be reused for future orders
+            if (isset($_SESSION['applied_coupon'])) {
+                unset($_SESSION['applied_coupon']);
             }
 
             if ($orderId) {
@@ -686,7 +750,13 @@ public function checkout()
             'orderCode' => $orderCodeOrId
         ];
 
-        require dirname(__DIR__) . '/views/client/order/success.php';
+        // Clear applied coupon from session after viewing success page
+        if (isset($_SESSION['applied_coupon'])) {
+            unset($_SESSION['applied_coupon']);
+        }
+
+    // Render success page using controller helper to apply layout
+    $this->render('client/order/success', $data, 'client/layouts/app');
     }
 
     /**
