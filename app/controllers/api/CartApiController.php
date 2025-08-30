@@ -47,6 +47,11 @@ class CartApiController extends ApiController
         }
 
         try {
+            // Debug: log session and cookie info to help diagnose missing user_id
+            error_log('[CartApiController::add] session_id: ' . session_id());
+            error_log('[CartApiController::add] COOKIE: ' . json_encode($_COOKIE));
+            error_log('[CartApiController::add] SESSION user_id: ' . ($_SESSION['user_id'] ?? 'NULL'));
+            error_log('[CartApiController::add] Request Origin: ' . ($_SERVER['HTTP_ORIGIN'] ?? ''));
             $productId = (int)$this->requestData['product_id'];
             $quantity = (int)$this->requestData['quantity'];
             $variantId = isset($this->requestData['variant_id']) ? (int)$this->requestData['variant_id'] : null;
@@ -229,7 +234,12 @@ class CartApiController extends ApiController
      */
     private function getCart()
     {
-        return $_SESSION[$this->sessionKey] ?? [];
+    // Debug: log session info when reading cart
+    error_log('[CartApiController::getCart] session_id: ' . session_id());
+    error_log('[CartApiController::getCart] COOKIE: ' . json_encode($_COOKIE));
+    error_log('[CartApiController::getCart] SESSION user_id: ' . ($_SESSION['user_id'] ?? 'NULL'));
+
+    return $_SESSION[$this->sessionKey] ?? [];
     }
 
     /**
@@ -270,6 +280,7 @@ class CartApiController extends ApiController
         }
 
         $currentUserId = $_SESSION['user_id'] ?? null;
+
         $currentSessionId = $_SESSION['cart_session_id'] ?? null;
 
         if ($variantId) {

@@ -142,6 +142,15 @@ class AuthController extends BaseController
 
             setFlash('success', 'Đăng nhập thành công!');
 
+            // Transfer any session-based cart items to the user's cart in DB
+            try {
+                require_once dirname(__DIR__) . '/models/Cart.php';
+                $cartModel = new Cart();
+                $cartModel->transferSessionCartToUser($user['id']);
+            } catch (Exception $e) {
+                error_log('Error transferring session cart to user after login: ' . $e->getMessage());
+            }
+
             // Debug: Check session after setting
             error_log("Session after login - admin_logged_in: " . (isset($_SESSION['admin_logged_in']) ? 'true' : 'false'));
             error_log("Session after login - user_role: " . ($_SESSION['user_role'] ?? 'not set'));

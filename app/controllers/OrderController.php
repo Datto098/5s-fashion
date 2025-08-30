@@ -488,6 +488,56 @@ public function checkout()
                     }
                 }
 
+                // If variant_id still not resolved, try extra heuristics: variant_sku field, part before '|' or matching substring
+                if (empty($resolvedVariantId) && !empty($item['variant'])) {
+                    // Try explicit variant_sku first if provided
+                    if (!empty($item['variant_sku'])) {
+                        require_once dirname(__DIR__) . '/models/ProductVariant.php';
+                        $foundBySku = ProductVariant::getBySku($item['variant_sku']);
+                        if ($foundBySku && isset($foundBySku['id'])) {
+                            $resolvedVariantId = $foundBySku['id'];
+                        }
+                    }
+
+                    // If still not found, try trimming the part before a pipe '|' which some clients append
+                    if (empty($resolvedVariantId) && mb_strpos($item['variant'], '|') !== false) {
+                        $parts = explode('|', $item['variant']);
+                        $candidate = trim($parts[0]);
+                        require_once dirname(__DIR__) . '/models/ProductVariant.php';
+                        $found = ProductVariant::getBySku($candidate);
+                        if ($found && isset($found['id'])) {
+                            $resolvedVariantId = $found['id'];
+                        } else {
+                            // try matching by variant_name substring
+                            $variants = ProductVariant::getByProduct($item['product_id'], false);
+                            foreach ($variants as $v) {
+                                if (isset($v['variant_name']) && mb_stripos($v['variant_name'], $candidate) !== false) {
+                                    $resolvedVariantId = $v['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Final heuristic: try to match by last two segments (color/size) separated by ' - '
+                    if (empty($resolvedVariantId)) {
+                        $candidateFull = $item['variant'];
+                        $segments = preg_split('/\s*-\s*/u', $candidateFull);
+                        if (count($segments) >= 2) {
+                            // try match using last two segments joined
+                            $tail = trim(implode(' - ', array_slice($segments, -2)));
+                            require_once dirname(__DIR__) . '/models/ProductVariant.php';
+                            $variants = ProductVariant::getByProduct($item['product_id'], false);
+                            foreach ($variants as $v) {
+                                if (isset($v['variant_name']) && mb_stripos($v['variant_name'], $tail) !== false) {
+                                    $resolvedVariantId = $v['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $orderItems[] = [
                     'product_id' => $item['product_id'],
                     'variant_id' => $resolvedVariantId,

@@ -165,7 +165,7 @@ class GoogleAuthController extends Controller
                 'created_at' => isset($updatedUser['created_at']) ? (is_array($updatedUser['created_at']) ? date('Y-m-d H:i:s') : $updatedUser['created_at']) : date('Y-m-d H:i:s'),
                 'updated_at' => isset($updatedUser['updated_at']) ? (is_array($updatedUser['updated_at']) ? date('Y-m-d H:i:s') : $updatedUser['updated_at']) : date('Y-m-d H:i:s'),
             ];
-            
+            $_SESSION['user_id'] = $existingUser['id'];
             error_log('Login successful - Session created for user ID: ' . $existingUser['id']);
             setFlashMessage('success', 'Đăng nhập thành công bằng Google!');
             redirect('account');

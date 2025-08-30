@@ -137,7 +137,7 @@ class CartManager {
 	/**
 	 * Add item to cart
 	 */
-	async addToCart(productId, quantity = 1, variant = null) {
+	async addToCart(productId, quantity, variant = null) {
 		console.log('CartManager.addToCart called with:', {
 			productId: productId,
 			quantity: quantity,
@@ -146,9 +146,14 @@ class CartManager {
 
 		if (!this.isUserLoggedIn()) {
 			this.showAlert(
-				'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
+				'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng ',
 				'warning'
 			);
+			return false;
+		}
+// hết hàng
+		if () {
+			this.showAlert('Sản phẩm đã hết hàng', 'error');
 			return false;
 		}
 

@@ -120,7 +120,14 @@ class PaymentController extends Controller
             if ($vnp_ResponseCode === '00') {
                 // Payment successful
                 $this->orderModel->updatePaymentStatus($order['id'], 'paid', $vnp_TransactionNo);
-                // $this->orderModel->updateOrderStatus($order['id'], 'processing');
+
+                // Finalize stock: if order used reserved quantities, convert reserved -> sold atomically
+                try {
+                    $this->orderModel->finalizeOrderStock($order['id']);
+                } catch (Exception $e) {
+                    error_log('Error finalizing order stock for order ' . $order['id'] . ': ' . $e->getMessage());
+                    // We still mark payment as paid but surface admin notification later
+                }
 
                 // Clear cart after successful payment
                 $this->clearUserCart($order['user_id']);
