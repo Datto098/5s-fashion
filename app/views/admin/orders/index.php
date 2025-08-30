@@ -745,6 +745,7 @@
         if (confirm(`Bạn có chắc chắn muốn thay đổi trạng thái đơn hàng này?`)) {
             fetch(`/zone-fashion/admin/orders/update-status/${orderId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
@@ -819,6 +820,7 @@
 
         fetch(`/zone-fashion/admin/orders/update-status/${orderId}`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
@@ -932,6 +934,7 @@
         if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
             fetch(`/zone-fashion/admin/orders/cancel/${orderId}`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'

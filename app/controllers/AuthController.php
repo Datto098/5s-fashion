@@ -289,6 +289,16 @@ class AuthController extends BaseController
      */
     public function logout()
     {
+        // Ensure session started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Clear applied coupon if present
+        if (isset($_SESSION['applied_coupon'])) {
+            unset($_SESSION['applied_coupon']);
+        }
+
         // Destroy session
         session_destroy();
 

@@ -87,6 +87,11 @@ class AuthMiddleware
         // Clear session
         unset($_SESSION['auth_user']);
 
+        // Also clear applied coupon if present
+        if (isset($_SESSION['applied_coupon'])) {
+            unset($_SESSION['applied_coupon']);
+        }
+
         // Destroy session if empty
         if (empty($_SESSION)) {
             session_destroy();

@@ -40,6 +40,11 @@ class HomeController extends BaseController
 
     public function index()
     {
+        // If user visited home, clear any applied coupon from a previous checkout session
+        if (isset($_SESSION['applied_coupon'])) {
+            unset($_SESSION['applied_coupon']);
+        }
+
         // Get featured categories
         $featuredCategories = $this->categoryModel->getFeaturedCategories(6);
 

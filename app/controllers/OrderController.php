@@ -585,13 +585,26 @@ public function checkout()
 
             $orderId = $orderModel->createOrder($orderData, $orderItems);
 
-            // Nếu có mã giảm giá đã áp dụng thì cập nhật user_coupons
+            // Nếu có mã giảm giá đã áp dụng thì ghi nhận usage vào coupon_usage và tăng used_count
             if ($orderId && isset($_SESSION['applied_coupon']) && !empty($_SESSION['applied_coupon']['id'])) {
-                require_once dirname(__DIR__) . '/models/UserCoupon.php';
-                $userCouponModel = new UserCoupon();
+                require_once dirname(__DIR__) . '/models/Coupon.php';
+                $couponModel = new Coupon();
                 $couponId = $_SESSION['applied_coupon']['id'];
                 $userId = $user['id'];
-                $userCouponModel->updateCouponUsed($userId, $couponId, $orderId);
+                // discount amount persisted in order data
+                $discountAmount = isset($orderData['discount_amount']) ? (float)$orderData['discount_amount'] : 0.0;
+
+                // applyCoupon will insert into coupon_usage, increment coupons.used_count
+                // and mark user_coupons as used when $userId is provided
+                $applied = $couponModel->applyCoupon($couponId, $orderId, $userId, $discountAmount);
+                if (!$applied) {
+                    error_log("[COUPON] Failed to record coupon usage for coupon_id={$couponId}, order_id={$orderId}");
+                }
+            }
+
+            // Clear applied coupon from session so it won't be reused for future orders
+            if (isset($_SESSION['applied_coupon'])) {
+                unset($_SESSION['applied_coupon']);
             }
 
             if ($orderId) {
@@ -737,7 +750,13 @@ public function checkout()
             'orderCode' => $orderCodeOrId
         ];
 
-        require dirname(__DIR__) . '/views/client/order/success.php';
+        // Clear applied coupon from session after viewing success page
+        if (isset($_SESSION['applied_coupon'])) {
+            unset($_SESSION['applied_coupon']);
+        }
+
+    // Render success page using controller helper to apply layout
+    $this->render('client/order/success', $data, 'client/layouts/app');
     }
 
     /**

@@ -369,6 +369,7 @@ function updateOrderStatus(status) {
 
         fetch(`/zone-fashion/admin/orders/update-status/<?= $order['id'] ?>`, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'

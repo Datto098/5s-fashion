@@ -170,7 +170,8 @@ class NotificationManager {
 	 * Show success notification
 	 */
 	success(message, title = 'Thành công') {
-		this.show(message, 'success', title);
+        // Make success notifications persistent until manually closed by user
+        this.show(message, 'success', title, 0);
 	}
 
 	/**
