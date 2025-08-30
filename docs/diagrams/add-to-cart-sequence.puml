@@ -1,0 +1,138 @@
+@startuml Add to Cart - Sequence Diagram
+
+actor User
+participant "CartController" as Controller
+participant "Validator" as Valid
+participant "Product Model" as ProductModel
+participant "ProductVariant Model" as VariantModel
+participant "Cart Model" as CartModel
+participant "Database" as DB
+
+User -> Controller: POST /cart/add (productId, variantId, quantity)
+activate Controller
+
+Controller -> Valid: validateInput(data)
+activate Valid
+Valid --> Controller: validation result
+deactivate Valid
+
+alt validation successful
+    Controller -> ProductModel: getById(productId)
+    activate ProductModel
+    ProductModel -> DB: SELECT * FROM products WHERE id = ? AND status = 'active'
+    activate DB
+    DB --> ProductModel: product data
+    deactivate DB
+
+    alt product exists and active
+        ProductModel --> Controller: product object
+        deactivate ProductModel
+
+        alt variant specified
+            Controller -> VariantModel: getById(variantId)
+            activate VariantModel
+            VariantModel -> DB: SELECT * FROM product_variants WHERE id = ? AND product_id = ?
+            activate DB
+            DB --> VariantModel: variant data
+            deactivate DB
+
+            alt variant exists
+                VariantModel -> VariantModel: checkStock(quantity)
+
+                alt stock sufficient
+                    VariantModel --> Controller: variant with stock info
+                    deactivate VariantModel
+
+                    Controller -> CartModel: getByUserAndVariant(userId, variantId)
+                    activate CartModel
+                    CartModel -> DB: SELECT * FROM cart WHERE user_id = ? AND variant_id = ?
+                    activate DB
+                    DB --> CartModel: existing cart item
+                    deactivate DB
+
+                    alt item exists in cart
+                        CartModel -> CartModel: updateQuantity(existingQuantity + newQuantity)
+                        CartModel -> DB: UPDATE cart SET quantity = ? WHERE id = ?
+                        activate DB
+                        DB --> CartModel: updated
+                        deactivate DB
+                        CartModel --> Controller: cart item updated
+                    else new item
+                        CartModel -> CartModel: addItem(userId, productId, variantId, quantity, price)
+                        CartModel -> DB: INSERT INTO cart (user_id, product_id, variant_id, quantity, price)
+                        activate DB
+                        DB --> CartModel: cart item created
+                        deactivate DB
+                        CartModel --> Controller: cart item added
+                    end
+                    deactivate CartModel
+
+                    Controller -> CartModel: getTotal(userId)
+                    activate CartModel
+                    CartModel -> DB: SELECT SUM(quantity * price) FROM cart WHERE user_id = ?
+                    activate DB
+                    DB --> CartModel: total amount
+                    deactivate DB
+                    CartModel --> Controller: cart total
+                    deactivate CartModel
+
+                    Controller --> User: HTTP 200 - Item added to cart + cart summary
+                else insufficient stock
+                    VariantModel --> Controller: stock error
+                    deactivate VariantModel
+                    Controller --> User: HTTP 400 - Insufficient stock
+                end
+            else variant not found
+                VariantModel --> Controller: variant not found
+                deactivate VariantModel
+                Controller --> User: HTTP 404 - Variant not found
+            end
+        else no variant (simple product)
+            Controller -> ProductModel: checkStock(productId, quantity)
+            activate ProductModel
+            ProductModel -> DB: SELECT stock FROM products WHERE id = ?
+            activate DB
+            DB --> ProductModel: stock info
+            deactivate DB
+
+            alt stock sufficient
+                ProductModel --> Controller: stock available
+                deactivate ProductModel
+
+                Controller -> CartModel: addItem(userId, productId, null, quantity, productPrice)
+                activate CartModel
+                CartModel -> DB: INSERT INTO cart (user_id, product_id, quantity, price)
+                activate DB
+                DB --> CartModel: cart item created
+                deactivate DB
+                CartModel --> Controller: item added
+                deactivate CartModel
+
+                Controller --> User: HTTP 200 - Item added to cart
+            else insufficient stock
+                ProductModel --> Controller: stock error
+                deactivate ProductModel
+                Controller --> User: HTTP 400 - Product out of stock
+            end
+        end
+    else product not found or inactive
+        ProductModel --> Controller: product not available
+        deactivate ProductModel
+        Controller --> User: HTTP 404 - Product not available
+    end
+else validation failed
+    Controller --> User: HTTP 400 - Validation errors
+end
+
+deactivate Controller
+
+== AJAX Add to Cart ==
+User -> Controller: AJAX POST /ajax/cart/add
+activate Controller
+
+note over Controller: Same validation and logic as above
+
+Controller --> User: JSON response { success: true, cartCount: 5, message: "Added to cart" }
+deactivate Controller
+
+@enduml

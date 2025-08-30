@@ -1,0 +1,23 @@
+@startuml Checkout Process Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Checkout Process - Actors
+
+actor "Customer" as Customer
+actor "Payment Gateway" as PaymentGateway
+usecase "Thanh toán đơn hàng" as UC_Checkout
+
+Customer --> UC_Checkout
+UC_Checkout --> PaymentGateway
+
+note right of UC_Checkout
+  - Xem lại giỏ hàng
+  - Nhập thông tin giao hàng
+  - Chọn phương thức thanh toán
+  - Áp dụng mã giảm giá
+  - Xác nhận đặt hàng
+end note
+
+@enduml

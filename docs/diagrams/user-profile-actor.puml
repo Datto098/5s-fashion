@@ -1,0 +1,22 @@
+@startuml User Profile Management Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title User Profile Management - Actors
+
+actor "Customer" as Customer
+usecase "Quản lý thông tin cá nhân" as UC_Profile
+
+Customer --> UC_Profile
+
+note right of UC_Profile
+  - Cập nhật thông tin cá nhân
+  - Thay đổi mật khẩu
+  - Quản lý địa chỉ giao hàng
+  - Xem lịch sử mua hàng
+  - Cập nhật avatar
+  - Liên kết tài khoản Google
+end note
+
+@enduml

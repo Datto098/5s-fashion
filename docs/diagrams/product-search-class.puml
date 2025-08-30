@@ -1,0 +1,101 @@
+@startuml Product Search and View - Class Diagram
+
+!define ENTITY class
+!define CONTROLLER class
+
+package "Controllers" {
+    CONTROLLER HomeController {
+        +index()
+        +featured()
+        +categories()
+    }
+
+    CONTROLLER ProductController {
+        +index()
+        +show()
+        +search()
+        +filter()
+    }
+}
+
+package "Models" {
+    ENTITY Product {
+        -id: int
+        -name: string
+        -description: text
+        -price: decimal
+        -categoryId: int
+        -status: string
+        -createdAt: datetime
+        +getAll()
+        +getByCategory()
+        +search()
+        +getById()
+        +getFeatured()
+    }
+
+    ENTITY Category {
+        -id: int
+        -name: string
+        -parentId: int
+        -slug: string
+        +getAll()
+        +getTree()
+        +getProducts()
+        +getBySlug()
+    }
+
+    ENTITY ProductVariant {
+        -id: int
+        -productId: int
+        -sku: string
+        -price: decimal
+        -stock: int
+        -attributes: json
+        +getByProduct()
+        +checkStock()
+        +getPrice()
+    }
+
+    ENTITY ProductAttribute {
+        -id: int
+        -name: string
+        -type: string
+        +getAll()
+        +getByProduct()
+    }
+
+    ENTITY Review {
+        -id: int
+        -productId: int
+        -userId: int
+        -rating: int
+        -comment: text
+        +getByProduct()
+        +getAverageRating()
+        +getCount()
+    }
+}
+
+package "Core" {
+    ENTITY Database {
+        +connect()
+        +query()
+        +prepare()
+        +paginate()
+    }
+}
+
+HomeController --> Product : gets featured
+HomeController --> Category : gets categories
+ProductController --> Product : searches/filters
+ProductController --> Category : filters by
+ProductController --> ProductVariant : gets variants
+ProductController --> Review : gets reviews
+Product --> Database : queries
+Product --> Category : belongs to
+Product --> ProductVariant : has many
+Product --> Review : has many
+ProductVariant --> ProductAttribute : has attributes
+
+@enduml

@@ -1,0 +1,74 @@
+@startuml User Login - Class Diagram
+
+package "Controllers" {
+    class AuthController {
+        +login()
+        +validateCredentials()
+        +createSession()
+    }
+
+    class GoogleAuthController {
+        +googleLogin()
+        +handleCallback()
+        +getUserInfo()
+    }
+}
+
+package "Models" {
+    class User {
+        -id: int
+        -username: string
+        -email: string
+        -password: string
+        -googleId: string
+        -isVerified: boolean
+        +authenticate()
+        +findByEmail()
+        +findByGoogleId()
+        +createFromGoogle()
+    }
+}
+
+package "Helpers" {
+    class Validator {
+        +validateEmail()
+        +validatePassword()
+    }
+
+    class GoogleAuthHelper {
+        +getAuthUrl()
+        +getToken()
+        +getUserInfo()
+    }
+
+    class JWT {
+        +encode()
+        +decode()
+        +verify()
+    }
+}
+
+package "Core" {
+    class Database {
+        +connect()
+        +query()
+        +prepare()
+    }
+}
+
+package "Middleware" {
+    class AuthMiddleware {
+        +checkLogin()
+        +checkRole()
+    }
+}
+
+AuthController --> User : authenticates
+AuthController --> Validator : validates
+AuthController --> JWT : creates token
+GoogleAuthController --> GoogleAuthHelper : uses
+GoogleAuthController --> User : creates/finds
+User --> Database : queries
+AuthMiddleware --> JWT : verifies
+
+@enduml

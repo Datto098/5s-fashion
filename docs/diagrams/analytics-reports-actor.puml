@@ -1,0 +1,24 @@
+@startuml Analytics Reports Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Analytics & Reports - Actors
+
+actor "Admin" as Admin
+actor "Manager" as Manager
+usecase "Thống kê và báo cáo" as UC_Analytics
+
+Admin --> UC_Analytics
+Manager --> UC_Analytics
+
+note right of UC_Analytics
+  - Xem dashboard tổng quan
+  - Báo cáo doanh thu
+  - Thống kê sản phẩm bán chạy
+  - Báo cáo khách hàng
+  - Xuất báo cáo Excel/PDF
+  - Tạo báo cáo tùy chỉnh
+end note
+
+@enduml

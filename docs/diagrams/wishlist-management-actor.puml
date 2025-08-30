@@ -1,0 +1,21 @@
+@startuml Wishlist Management Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Wishlist Management - Actors
+
+actor "Customer" as Customer
+usecase "Quản lý danh sách yêu thích" as UC_Wishlist
+
+Customer --> UC_Wishlist
+
+note right of UC_Wishlist
+  - Thêm sản phẩm vào wishlist
+  - Xóa sản phẩm khỏi wishlist
+  - Xem danh sách yêu thích
+  - Chuyển từ wishlist sang giỏ hàng
+  - Chia sẻ wishlist
+end note
+
+@enduml

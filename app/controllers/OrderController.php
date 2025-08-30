@@ -375,7 +375,7 @@ public function checkout()
                 echo json_encode(['success' => false, 'message' => 'Không có dữ liệu đơn hàng']);
                 exit;
             }
-            
+
             // Kiểm tra và lấy thông tin mã giảm giá từ session nếu có
             if (isset($_SESSION['applied_coupon'])) {
                 // Lưu vào input data để sử dụng
@@ -494,6 +494,7 @@ public function checkout()
                 // No status - let database default to 'pending'
                 'payment_method' => $input['payment']['method'],
                 'payment_status' => 'pending',
+                'status' => 'pending',
                 'shipping_address' => json_encode([
                     'name' => $input['customer']['name'],
                     'phone' => $input['customer']['phone'],

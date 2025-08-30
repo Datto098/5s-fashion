@@ -1,0 +1,27 @@
+@startuml Product Review Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Product Review - Actors
+
+actor "Customer" as Customer
+actor "Admin" as Admin
+usecase "Đánh giá sản phẩm" as UC_Review
+
+Customer --> UC_Review
+Admin --> UC_Review
+
+note right of UC_Review
+  Customer:
+  - Viết đánh giá sản phẩm
+  - Cho điểm đánh giá
+  - Xem đánh giá khác
+  - Like/Unlike đánh giá
+
+  Admin:
+  - Duyệt đánh giá
+  - Xóa đánh giá không phù hợp
+end note
+
+@enduml

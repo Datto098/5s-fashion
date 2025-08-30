@@ -120,7 +120,7 @@ class PaymentController extends Controller
             if ($vnp_ResponseCode === '00') {
                 // Payment successful
                 $this->orderModel->updatePaymentStatus($order['id'], 'paid', $vnp_TransactionNo);
-                $this->orderModel->updateOrderStatus($order['id'], 'processing');
+                // $this->orderModel->updateOrderStatus($order['id'], 'processing');
 
                 // Clear cart after successful payment
                 $this->clearUserCart($order['user_id']);
@@ -173,7 +173,7 @@ class PaymentController extends Controller
             // Update order payment method to COD
             try {
                 $paymentResult = $this->orderModel->updatePaymentMethod($order['id'], 'cod', 'pending');
-                $statusResult = $this->orderModel->updateOrderStatus($order['id'], 'processing');
+                // $statusResult = $this->orderModel->updateOrderStatus($order['id'], 'processing');
 
                 // Clear cart after successful order creation
                 $this->clearUserCart($order['user_id']);

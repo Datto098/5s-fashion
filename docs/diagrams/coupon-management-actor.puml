@@ -1,0 +1,28 @@
+@startuml Coupon Management Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Coupon Management - Actors
+
+actor "Admin" as Admin
+actor "Customer" as Customer
+usecase "Quản lý mã giảm giá" as UC_Coupon
+
+Admin --> UC_Coupon
+Customer --> UC_Coupon
+
+note right of UC_Coupon
+  Admin:
+  - Tạo mã giảm giá mới
+  - Cập nhật thông tin coupon
+  - Xem thống kê sử dụng
+  - Vô hiệu hóa coupon
+
+  Customer:
+  - Xem danh sách coupon
+  - Lưu coupon
+  - Sử dụng coupon khi mua hàng
+end note
+
+@enduml
