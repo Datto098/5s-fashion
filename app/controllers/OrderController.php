@@ -1,12 +1,13 @@
 <?php
 
+
 /**
  * Order Controller
  * Handle order and address management for checkout
  * zone Fashion E-commerce Platform
  */
 
-class OrderController extends Controller
+class OrderController extends BaseController
 {
     private $userModel;
     private $customerModel;
