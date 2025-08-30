@@ -146,14 +146,9 @@ class CartManager {
 
 		if (!this.isUserLoggedIn()) {
 			this.showAlert(
-				'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng ',
+				'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng d',
 				'warning'
 			);
-			return false;
-		}
-// hết hàng
-		if () {
-			this.showAlert('Sản phẩm đã hết hàng', 'error');
 			return false;
 		}
 
