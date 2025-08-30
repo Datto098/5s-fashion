@@ -1,0 +1,141 @@
+@startuml Analytics and Reports - Class Diagram
+
+package "Admin Controllers" {
+    class AnalyticsController {
+        +index()
+        +salesReport()
+        +productReport()
+        +customerReport()
+        +inventoryReport()
+        +exportReport()
+        +customReport()
+    }
+
+    class StatisticsController {
+        +dashboard()
+        +getChartData()
+        +getMetrics()
+        +getKPIs()
+    }
+}
+
+package "Models" {
+    class Order {
+        -id: int
+        -userId: int
+        -totalAmount: decimal
+        -status: string
+        -paymentStatus: string
+        -createdAt: datetime
+        +getSalesData()
+        +getRevenueByPeriod()
+        +getOrderStatistics()
+        +getTopCustomers()
+    }
+
+    class Product {
+        -id: int
+        -name: string
+        -price: decimal
+        -categoryId: int
+        -viewCount: int
+        -salesCount: int
+        +getBestSellers()
+        +getInventoryReport()
+        +getViewStatistics()
+        +getLowStockProducts()
+    }
+
+    class User {
+        -id: int
+        -username: string
+        -email: string
+        -createdAt: datetime
+        -lastLogin: datetime
+        +getNewCustomers()
+        +getActiveCustomers()
+        +getCustomerStatistics()
+    }
+
+    class OrderDetail {
+        -id: int
+        -orderId: int
+        -productId: int
+        -quantity: int
+        -price: decimal
+        +getProductSales()
+        +getCategorySales()
+    }
+
+    class Category {
+        -id: int
+        -name: string
+        +getSalesData()
+        +getProductCount()
+    }
+
+    class Review {
+        -id: int
+        -productId: int
+        -rating: int
+        -createdAt: datetime
+        +getRatingStatistics()
+        +getReviewTrends()
+    }
+}
+
+package "Helpers" {
+    class ReportGenerator {
+        +generatePDF()
+        +generateExcel()
+        +generateCSV()
+        +setTemplate()
+    }
+
+    class ChartHelper {
+        +generateLineChart()
+        +generateBarChart()
+        +generatePieChart()
+        +formatData()
+    }
+
+    class DateHelper {
+        +getDateRange()
+        +formatPeriod()
+        +getLastMonth()
+        +getLastYear()
+    }
+}
+
+package "Core" {
+    class Database {
+        +query()
+        +prepare()
+        +aggregate()
+        +groupBy()
+    }
+}
+
+package "Middleware" {
+    class AuthMiddleware {
+        +checkAdmin()
+        +checkReportPermission()
+    }
+}
+
+AnalyticsController --> Order : gets sales data
+AnalyticsController --> Product : gets product data
+AnalyticsController --> User : gets customer data
+AnalyticsController --> ReportGenerator : generates reports
+StatisticsController --> Order : gets metrics
+StatisticsController --> Product : gets statistics
+StatisticsController --> ChartHelper : creates charts
+Order --> OrderDetail : has many
+Product --> Category : belongs to
+Product --> Review : has many
+ReportGenerator --> Database : queries data
+ChartHelper --> Database : aggregates data
+AuthMiddleware --> AnalyticsController : protects
+AuthMiddleware --> StatisticsController : protects
+
+@enduml

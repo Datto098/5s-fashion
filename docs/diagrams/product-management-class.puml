@@ -1,0 +1,126 @@
+@startuml Product Management Admin - Class Diagram
+
+!define ENTITY class
+!define CONTROLLER class
+!define SERVICE class
+
+package "Admin Controllers" {
+    CONTROLLER ProductsController {
+        +index()
+        +create()
+        +store()
+        +edit()
+        +update()
+        +delete()
+        +bulkActions()
+    }
+
+    CONTROLLER ProductVariantsController {
+        +index()
+        +create()
+        +store()
+        +update()
+        +delete()
+    }
+}
+
+package "Models" {
+    ENTITY Product {
+        -id: int
+        -name: string
+        -description: text
+        -price: decimal
+        -categoryId: int
+        -status: string
+        -featured: boolean
+        -images: json
+        -createdAt: datetime
+        +create()
+        +update()
+        +delete()
+        +getAll()
+        +getById()
+        +search()
+    }
+
+    ENTITY ProductVariant {
+        -id: int
+        -productId: int
+        -sku: string
+        -price: decimal
+        -stock: int
+        -attributes: json
+        -status: string
+        +create()
+        +update()
+        +delete()
+        +getByProduct()
+        +updateStock()
+    }
+
+    ENTITY Category {
+        -id: int
+        -name: string
+        -parentId: int
+        -status: string
+        +getAll()
+        +getActive()
+        +getTree()
+    }
+
+    ENTITY ProductAttribute {
+        -id: int
+        -name: string
+        -type: string
+        -options: json
+        +getAll()
+        +getByCategory()
+    }
+}
+
+package "Helpers" {
+    SERVICE FileUploader {
+        +upload()
+        +resize()
+        +validate()
+        +delete()
+        +generateThumbnail()
+    }
+
+    SERVICE Validator {
+        +validateProduct()
+        +validatePrice()
+        +validateSKU()
+        +validateImages()
+    }
+}
+
+package "Middleware" {
+    SERVICE AuthMiddleware {
+        +checkAdmin()
+        +checkPermission()
+    }
+}
+
+package "Core" {
+    SERVICE Database {
+        +beginTransaction()
+        +commit()
+        +rollback()
+        +query()
+    }
+}
+
+ProductsController --> Product : manages
+ProductsController --> Category : uses
+ProductsController --> FileUploader : uploads images
+ProductsController --> Validator : validates
+ProductVariantsController --> ProductVariant : manages
+ProductVariantsController --> ProductAttribute : uses
+Product --> ProductVariant : has many
+Product --> Category : belongs to
+ProductVariant --> ProductAttribute : has attributes
+AuthMiddleware --> ProductsController : protects
+AuthMiddleware --> ProductVariantsController : protects
+
+@enduml

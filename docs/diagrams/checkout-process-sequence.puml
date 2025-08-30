@@ -1,0 +1,176 @@
+@startuml Checkout Process - Sequence Diagram
+
+actor User
+participant "OrderController" as OrderCtrl
+participant "PaymentController" as PaymentCtrl
+participant "Cart Model" as CartModel
+participant "Coupon Model" as CouponModel
+participant "Order Model" as OrderModel
+participant "OrderDetail Model" as DetailModel
+participant "ProductVariant Model" as VariantModel
+participant "VNPayHelper" as VNPay
+participant "PHPMailerHelper" as Mail
+participant "Database" as DB
+
+User -> OrderCtrl: GET /checkout
+activate OrderCtrl
+
+OrderCtrl -> CartModel: getByUser(userId)
+activate CartModel
+CartModel -> DB: SELECT * FROM cart WHERE user_id = ?
+activate DB
+DB --> CartModel: cart items
+deactivate DB
+CartModel --> OrderCtrl: cart data
+deactivate CartModel
+
+OrderCtrl --> User: HTTP 200 - Checkout page with cart items
+deactivate OrderCtrl
+
+User -> OrderCtrl: POST /checkout (shipping_info, payment_method, coupon_code)
+activate OrderCtrl
+
+OrderCtrl -> DB: beginTransaction()
+activate DB
+
+alt coupon provided
+    OrderCtrl -> CouponModel: validate(couponCode, userId, cartTotal)
+    activate CouponModel
+    CouponModel -> DB: SELECT * FROM coupons WHERE code = ? AND valid_until > NOW()
+    DB --> CouponModel: coupon data
+
+    alt coupon valid
+        CouponModel -> CouponModel: checkUsageLimit()
+        CouponModel -> CouponModel: calculateDiscount(cartTotal)
+        CouponModel --> OrderCtrl: discount amount
+    else coupon invalid
+        CouponModel --> OrderCtrl: coupon error
+        OrderCtrl -> DB: rollback()
+        OrderCtrl --> User: HTTP 400 - Invalid coupon
+    end
+    deactivate CouponModel
+end
+
+OrderCtrl -> CartModel: getByUser(userId)
+activate CartModel
+CartModel --> OrderCtrl: cart items
+deactivate CartModel
+
+OrderCtrl -> OrderCtrl: calculateFinalTotal(cartTotal, discount, shipping)
+
+OrderCtrl -> OrderModel: create(orderData)
+activate OrderModel
+OrderModel -> DB: INSERT INTO orders (user_id, total_amount, payment_method, ...)
+DB --> OrderModel: order created with ID
+OrderModel --> OrderCtrl: order object
+deactivate OrderModel
+
+loop for each cart item
+    OrderCtrl -> DetailModel: create(orderId, cartItem)
+    activate DetailModel
+    DetailModel -> DB: INSERT INTO order_details (order_id, product_id, variant_id, ...)
+    DB --> DetailModel: detail created
+    DetailModel --> OrderCtrl: order detail
+    deactivate DetailModel
+
+    OrderCtrl -> VariantModel: updateStock(variantId, -quantity)
+    activate VariantModel
+    VariantModel -> DB: UPDATE product_variants SET stock = stock - ? WHERE id = ?
+    DB --> VariantModel: stock updated
+    VariantModel --> OrderCtrl: stock update result
+    deactivate VariantModel
+end
+
+alt coupon used
+    OrderCtrl -> CouponModel: incrementUsage(couponId)
+    activate CouponModel
+    CouponModel -> DB: UPDATE coupons SET used_count = used_count + 1 WHERE id = ?
+    DB --> CouponModel: usage updated
+    CouponModel --> OrderCtrl: usage incremented
+    deactivate CouponModel
+end
+
+OrderCtrl -> CartModel: clearCart(userId)
+activate CartModel
+CartModel -> DB: DELETE FROM cart WHERE user_id = ?
+DB --> CartModel: cart cleared
+CartModel --> OrderCtrl: cart empty
+deactivate CartModel
+
+alt payment method is VNPay
+    OrderCtrl -> PaymentCtrl: createVNPayPayment(order)
+    activate PaymentCtrl
+    PaymentCtrl -> VNPay: createPayment(orderData)
+    activate VNPay
+    VNPay -> VNPay: buildPaymentUrl()
+    VNPay --> PaymentCtrl: payment URL
+    deactivate VNPay
+    PaymentCtrl --> OrderCtrl: VNPay URL
+    deactivate PaymentCtrl
+
+    OrderCtrl -> DB: commit()
+    deactivate DB
+    OrderCtrl --> User: HTTP 302 - Redirect to VNPay
+
+    == VNPay Payment Flow ==
+    User -> VNPay: Complete payment
+    VNPay -> PaymentCtrl: GET /payment/vnpay/callback (payment result)
+    activate PaymentCtrl
+    PaymentCtrl -> VNPay: verifyReturn(callbackData)
+    activate VNPay
+    VNPay --> PaymentCtrl: verification result
+    deactivate VNPay
+
+    alt payment successful
+        PaymentCtrl -> OrderModel: updateStatus(orderId, 'paid')
+        activate OrderModel
+        OrderModel -> DB: UPDATE orders SET payment_status = 'paid' WHERE id = ?
+        activate DB
+        DB --> OrderModel: status updated
+        deactivate DB
+        OrderModel --> PaymentCtrl: order updated
+        deactivate OrderModel
+
+        PaymentCtrl -> Mail: sendOrderConfirmation(order)
+        activate Mail
+        Mail -> Mail: setTemplate("order_confirmation")
+        Mail -> Mail: send()
+        Mail --> PaymentCtrl: email sent
+        deactivate Mail
+
+        PaymentCtrl --> User: HTTP 200 - Payment successful page
+    else payment failed
+        PaymentCtrl -> OrderModel: updateStatus(orderId, 'payment_failed')
+        activate OrderModel
+        OrderModel -> DB: UPDATE orders SET payment_status = 'failed' WHERE id = ?
+        activate DB
+        DB --> OrderModel: status updated
+        deactivate DB
+        OrderModel --> PaymentCtrl: order updated
+        deactivate OrderModel
+
+        PaymentCtrl --> User: HTTP 200 - Payment failed page
+    end
+    deactivate PaymentCtrl
+
+else payment method is COD
+    OrderCtrl -> OrderModel: updateStatus(orderId, 'pending')
+    activate OrderModel
+    OrderModel -> DB: UPDATE orders SET payment_status = 'pending' WHERE id = ?
+    DB --> OrderModel: status updated
+    OrderModel --> OrderCtrl: order updated
+    deactivate OrderModel
+
+    OrderCtrl -> Mail: sendOrderConfirmation(order)
+    activate Mail
+    Mail --> OrderCtrl: email sent
+    deactivate Mail
+
+    OrderCtrl -> DB: commit()
+    deactivate DB
+    OrderCtrl --> User: HTTP 200 - Order confirmation page
+end
+
+deactivate OrderCtrl
+
+@enduml

@@ -1,0 +1,21 @@
+@startuml Add to Cart Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Add to Cart - Actors
+
+actor "Customer" as Customer
+usecase "Thêm vào giỏ hàng" as UC_AddCart
+
+Customer --> UC_AddCart
+
+note right of UC_AddCart
+  - Chọn sản phẩm
+  - Chọn biến thể (size, màu)
+  - Nhập số lượng
+  - Thêm vào giỏ hàng
+  - Xem giỏ hàng
+end note
+
+@enduml

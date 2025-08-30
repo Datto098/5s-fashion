@@ -1,0 +1,276 @@
+@startuml Product Management Admin - Sequence Diagram
+
+actor Admin
+participant "AuthMiddleware" as Auth
+participant "ProductsController" as Controller
+participant "Validator" as Valid
+participant "FileUploader" as Upload
+participant "Product Model" as ProductModel
+participant "ProductVariant Model" as VariantModel
+participant "Category Model" as CategoryModel
+participant "Database" as DB
+
+== Create Product ==
+Admin -> Controller: GET /admin/products/create
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> CategoryModel: getAll()
+activate CategoryModel
+CategoryModel -> DB: SELECT * FROM categories WHERE status = 'active'
+activate DB
+DB --> CategoryModel: categories data
+deactivate DB
+CategoryModel --> Controller: categories list
+deactivate CategoryModel
+
+Controller --> Admin: HTTP 200 - Create product form
+deactivate Controller
+
+Admin -> Controller: POST /admin/products (product_data, images)
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> Valid: validateProduct(productData)
+activate Valid
+Valid --> Controller: validation result
+deactivate Valid
+
+alt validation successful
+    Controller -> DB: beginTransaction()
+    activate DB
+
+    alt images uploaded
+        loop for each image
+            Controller -> Upload: upload(image, 'products/')
+            activate Upload
+            Upload -> Upload: validate(image)
+            Upload -> Upload: resize(image, [800x800, 400x400, 200x200])
+            Upload -> Upload: generateThumbnail(image)
+            Upload --> Controller: uploaded file paths
+            deactivate Upload
+        end
+    end
+
+    Controller -> ProductModel: create(productData, imagePaths)
+    activate ProductModel
+    ProductModel -> DB: INSERT INTO products (name, description, price, category_id, images, ...)
+    DB --> ProductModel: product created with ID
+    ProductModel --> Controller: product object
+    deactivate ProductModel
+
+    Controller -> DB: commit()
+    deactivate DB
+
+    Controller --> Admin: HTTP 302 - Redirect to products list with success message
+else validation failed
+    Controller --> Admin: HTTP 400 - Validation errors
+end
+deactivate Controller
+
+== Edit Product ==
+Admin -> Controller: GET /admin/products/{id}/edit
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> ProductModel: getById(id)
+activate ProductModel
+ProductModel -> DB: SELECT * FROM products WHERE id = ?
+activate DB
+DB --> ProductModel: product data
+deactivate DB
+
+alt product exists
+    ProductModel --> Controller: product object
+    deactivate ProductModel
+
+    Controller -> CategoryModel: getAll()
+    activate CategoryModel
+    CategoryModel -> DB: SELECT * FROM categories WHERE status = 'active'
+    activate DB
+    DB --> CategoryModel: categories data
+    deactivate DB
+    CategoryModel --> Controller: categories list
+    deactivate CategoryModel
+
+    Controller -> VariantModel: getByProduct(productId)
+    activate VariantModel
+    VariantModel -> DB: SELECT * FROM product_variants WHERE product_id = ?
+    activate DB
+    DB --> VariantModel: variants data
+    deactivate DB
+    VariantModel --> Controller: product variants
+    deactivate VariantModel
+
+    Controller --> Admin: HTTP 200 - Edit product form with data
+else product not found
+    ProductModel --> Controller: null
+    deactivate ProductModel
+    Controller --> Admin: HTTP 404 - Product not found
+end
+deactivate Controller
+
+== Update Product ==
+Admin -> Controller: PUT /admin/products/{id} (updated_data, new_images)
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> Valid: validateProduct(updatedData)
+activate Valid
+Valid --> Controller: validation result
+deactivate Valid
+
+alt validation successful
+    Controller -> DB: beginTransaction()
+    activate DB
+
+    Controller -> ProductModel: getById(id)
+    activate ProductModel
+    ProductModel -> DB: SELECT * FROM products WHERE id = ?
+    DB --> ProductModel: existing product
+    ProductModel --> Controller: current product data
+    deactivate ProductModel
+
+    alt new images uploaded
+        loop for each new image
+            Controller -> Upload: upload(image, 'products/')
+            activate Upload
+            Upload --> Controller: new image paths
+            deactivate Upload
+        end
+
+        alt old images to delete
+            loop for each old image
+                Controller -> Upload: delete(oldImagePath)
+                activate Upload
+                Upload --> Controller: image deleted
+                deactivate Upload
+            end
+        end
+    end
+
+    Controller -> ProductModel: update(id, updatedData, imagePaths)
+    activate ProductModel
+    ProductModel -> DB: UPDATE products SET name = ?, description = ?, price = ?, images = ? WHERE id = ?
+    DB --> ProductModel: product updated
+    ProductModel --> Controller: updated product
+    deactivate ProductModel
+
+    Controller -> DB: commit()
+    deactivate DB
+
+    Controller --> Admin: HTTP 302 - Redirect with success message
+else validation failed
+    Controller --> Admin: HTTP 400 - Validation errors
+end
+deactivate Controller
+
+== Manage Product Variants ==
+Admin -> Controller: GET /admin/products/{id}/variants
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> VariantModel: getByProduct(productId)
+activate VariantModel
+VariantModel -> DB: SELECT * FROM product_variants WHERE product_id = ?
+activate DB
+DB --> VariantModel: variants data
+deactivate DB
+VariantModel --> Controller: product variants
+deactivate VariantModel
+
+Controller --> Admin: HTTP 200 - Variants management page
+deactivate Controller
+
+Admin -> Controller: POST /admin/variants (variant_data)
+activate Controller
+
+Controller -> Valid: validateVariant(variantData)
+activate Valid
+Valid -> Valid: checkSKUUnique(sku)
+Valid --> Controller: validation result
+deactivate Valid
+
+alt validation successful
+    Controller -> VariantModel: create(variantData)
+    activate VariantModel
+    VariantModel -> DB: INSERT INTO product_variants (product_id, sku, price, stock, attributes)
+    activate DB
+    DB --> VariantModel: variant created
+    deactivate DB
+    VariantModel --> Controller: variant object
+    deactivate VariantModel
+
+    Controller --> Admin: JSON response - Variant created successfully
+else validation failed
+    Controller --> Admin: JSON response - Validation errors
+end
+deactivate Controller
+
+== Delete Product ==
+Admin -> Controller: DELETE /admin/products/{id}
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> DB: beginTransaction()
+activate DB
+
+Controller -> ProductModel: getById(id)
+activate ProductModel
+ProductModel -> DB: SELECT * FROM products WHERE id = ?
+DB --> ProductModel: product data
+ProductModel --> Controller: product with images
+deactivate ProductModel
+
+Controller -> VariantModel: deleteByProduct(productId)
+activate VariantModel
+VariantModel -> DB: DELETE FROM product_variants WHERE product_id = ?
+DB --> VariantModel: variants deleted
+VariantModel --> Controller: variants removed
+deactivate VariantModel
+
+loop for each product image
+    Controller -> Upload: delete(imagePath)
+    activate Upload
+    Upload --> Controller: image deleted
+    deactivate Upload
+end
+
+Controller -> ProductModel: delete(id)
+activate ProductModel
+ProductModel -> DB: DELETE FROM products WHERE id = ?
+DB --> ProductModel: product deleted
+ProductModel --> Controller: deletion confirmed
+deactivate ProductModel
+
+Controller -> DB: commit()
+deactivate DB
+
+Controller --> Admin: HTTP 302 - Redirect with success message
+deactivate Controller
+
+@enduml

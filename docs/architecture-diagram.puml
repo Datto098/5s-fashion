@@ -1,0 +1,34 @@
+@startuml 5S Fashion Architecture
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam handwritten false
+skinparam componentStyle rectangle
+
+rectangle "Tầng giao diện\n(Presentation Layer)" as presentation {
+    class "Client" {
+        [Web Browser] as browser
+    }
+}
+
+rectangle "Tầng dịch vụ & nghiệp vụ\n(Business Logic Layer)" as business {
+    class "Server" {
+        [Router] as router
+        [Controllers] as controllers
+        [Middleware] as middleware
+        [Helpers] as helpers
+    }
+}
+
+rectangle "Tầng truy xuất dữ liệu\n(Data Access Layer)" as data {
+    database "Database" {
+        [Models] as models
+    }
+}
+
+presentation <--> business : HTTP Requests/Responses
+business <--> data : Database Queries
+
+@enduml

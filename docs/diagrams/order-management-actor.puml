@@ -1,0 +1,27 @@
+@startuml Order Management Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Order Management - Actors
+
+actor "Admin" as Admin
+actor "Customer" as Customer
+usecase "Quản lý đơn hàng" as UC_OrderMgmt
+
+Admin --> UC_OrderMgmt
+Customer --> UC_OrderMgmt
+
+note right of UC_OrderMgmt
+  Admin:
+  - Xem tất cả đơn hàng
+  - Cập nhật trạng thái đơn hàng
+  - Xử lý hoàn trả
+
+  Customer:
+  - Xem lịch sử đơn hàng
+  - Theo dõi trạng thái
+  - Hủy đơn hàng
+end note
+
+@enduml

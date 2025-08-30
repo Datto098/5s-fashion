@@ -1,0 +1,68 @@
+@startuml User Registration - Sequence Diagram
+
+actor User
+participant "AuthController" as Controller
+participant "Validator" as Valid
+participant "User Model" as UserModel
+participant "Database" as DB
+participant "PHPMailerHelper" as Mail
+
+User -> Controller: POST /register (username, email, password)
+activate Controller
+
+Controller -> Valid: validateInput(data)
+activate Valid
+Valid --> Controller: validation result
+deactivate Valid
+
+alt validation successful
+    Controller -> UserModel: findByEmail(email)
+    activate UserModel
+    UserModel -> DB: SELECT * FROM users WHERE email = ?
+    activate DB
+    DB --> UserModel: result
+    deactivate DB
+    UserModel --> Controller: user exists check
+    deactivate UserModel
+
+    alt email not exists
+        Controller -> UserModel: findByUsername(username)
+        activate UserModel
+        UserModel -> DB: SELECT * FROM users WHERE username = ?
+        activate DB
+        DB --> UserModel: result
+        deactivate DB
+        UserModel --> Controller: username exists check
+        deactivate UserModel
+
+        alt username not exists
+            Controller -> UserModel: create(userData)
+            activate UserModel
+            UserModel -> DB: INSERT INTO users (username, email, password, isVerified)
+            activate DB
+            DB --> UserModel: user created
+            deactivate DB
+            UserModel --> Controller: new user object
+            deactivate UserModel
+
+            Controller -> Mail: sendVerificationEmail(user)
+            activate Mail
+            Mail -> Mail: setTemplate("verification")
+            Mail -> Mail: send()
+            Mail --> Controller: email sent
+            deactivate Mail
+
+            Controller --> User: HTTP 200 - Registration successful, check email
+        else username exists
+            Controller --> User: HTTP 400 - Username already taken
+        end
+    else email exists
+        Controller --> User: HTTP 400 - Email already registered
+    end
+else validation failed
+    Controller --> User: HTTP 400 - Validation errors
+end
+
+deactivate Controller
+
+@enduml

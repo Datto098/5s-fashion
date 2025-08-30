@@ -1,0 +1,257 @@
+@startuml Order Management Admin - Sequence Diagram
+
+actor Admin
+participant "AuthMiddleware" as Auth
+participant "OrdersController" as Controller
+participant "Order Model" as OrderModel
+participant "OrderDetail Model" as DetailModel
+participant "User Model" as UserModel
+participant "ProductVariant Model" as VariantModel
+participant "PHPMailerHelper" as Mail
+participant "Database" as DB
+
+== View Orders List ==
+Admin -> Controller: GET /admin/orders
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> OrderModel: getAll(filters, pagination)
+activate OrderModel
+OrderModel -> DB: SELECT * FROM orders ORDER BY created_at DESC LIMIT ...
+activate DB
+DB --> OrderModel: orders data
+deactivate DB
+OrderModel --> Controller: orders list
+deactivate OrderModel
+
+Controller --> Admin: HTTP 200 - Orders list page
+deactivate Controller
+
+== View Order Details ==
+Admin -> Controller: GET /admin/orders/{id}
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> OrderModel: getById(id)
+activate OrderModel
+OrderModel -> DB: SELECT * FROM orders WHERE id = ?
+activate DB
+DB --> OrderModel: order data
+deactivate DB
+
+alt order exists
+    OrderModel --> Controller: order object
+    deactivate OrderModel
+
+    Controller -> DetailModel: getByOrder(orderId)
+    activate DetailModel
+    DetailModel -> DB: SELECT od.*, p.name, pv.sku FROM order_details od LEFT JOIN products p ON od.product_id = p.id LEFT JOIN product_variants pv ON od.variant_id = pv.id WHERE od.order_id = ?
+    activate DB
+    DB --> DetailModel: order details with product info
+    deactivate DB
+    DetailModel --> Controller: order details
+    deactivate DetailModel
+
+    Controller -> UserModel: getById(order.userId)
+    activate UserModel
+    UserModel -> DB: SELECT * FROM users WHERE id = ?
+    activate DB
+    DB --> UserModel: customer data
+    deactivate DB
+    UserModel --> Controller: customer info
+    deactivate UserModel
+
+    Controller --> Admin: HTTP 200 - Order detail page
+else order not found
+    OrderModel --> Controller: null
+    deactivate OrderModel
+    Controller --> Admin: HTTP 404 - Order not found
+end
+deactivate Controller
+
+== Update Order Status ==
+Admin -> Controller: PUT /admin/orders/{id}/status (new_status, notes)
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> OrderModel: getById(id)
+activate OrderModel
+OrderModel -> DB: SELECT * FROM orders WHERE id = ?
+activate DB
+DB --> OrderModel: current order
+deactivate DB
+OrderModel --> Controller: order data
+deactivate OrderModel
+
+Controller -> DB: beginTransaction()
+activate DB
+
+Controller -> OrderModel: updateStatus(id, newStatus, notes)
+activate OrderModel
+OrderModel -> DB: UPDATE orders SET status = ?, notes = ?, updated_at = NOW() WHERE id = ?
+DB --> OrderModel: status updated
+OrderModel --> Controller: updated order
+deactivate OrderModel
+
+alt status is 'delivered'
+    Controller -> OrderModel: updatePaymentStatus(id, 'completed')
+    activate OrderModel
+    OrderModel -> DB: UPDATE orders SET payment_status = 'completed' WHERE id = ?
+    DB --> OrderModel: payment status updated
+    OrderModel --> Controller: payment completed
+    deactivate OrderModel
+end
+
+Controller -> UserModel: getById(order.userId)
+activate UserModel
+UserModel -> DB: SELECT email, full_name FROM users WHERE id = ?
+DB --> UserModel: customer email
+UserModel --> Controller: customer contact
+deactivate UserModel
+
+Controller -> Mail: sendStatusUpdate(customerEmail, order, newStatus)
+activate Mail
+Mail -> Mail: setTemplate("order_status_update")
+Mail -> Mail: send()
+Mail --> Controller: notification sent
+deactivate Mail
+
+Controller -> DB: commit()
+deactivate DB
+
+Controller --> Admin: HTTP 200 - Status updated successfully
+deactivate Controller
+
+== Cancel Order ==
+Admin -> Controller: POST /admin/orders/{id}/cancel (reason)
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> OrderModel: getById(id)
+activate OrderModel
+OrderModel -> DB: SELECT * FROM orders WHERE id = ?
+activate DB
+DB --> OrderModel: order data
+deactivate DB
+
+alt order can be cancelled
+    OrderModel --> Controller: cancellable order
+    deactivate OrderModel
+
+    Controller -> DB: beginTransaction()
+    activate DB
+
+    Controller -> OrderModel: updateStatus(id, 'cancelled', reason)
+    activate OrderModel
+    OrderModel -> DB: UPDATE orders SET status = 'cancelled', notes = ? WHERE id = ?
+    DB --> OrderModel: order cancelled
+    OrderModel --> Controller: cancellation confirmed
+    deactivate OrderModel
+
+    Controller -> DetailModel: getByOrder(orderId)
+    activate DetailModel
+    DetailModel -> DB: SELECT * FROM order_details WHERE order_id = ?
+    DB --> DetailModel: order items
+    DetailModel --> Controller: items to restore
+    deactivate DetailModel
+
+    loop for each order item
+        Controller -> VariantModel: restoreStock(variantId, quantity)
+        activate VariantModel
+        VariantModel -> DB: UPDATE product_variants SET stock = stock + ? WHERE id = ?
+        DB --> VariantModel: stock restored
+        VariantModel --> Controller: stock updated
+        deactivate VariantModel
+    end
+
+    alt payment was completed
+        Controller -> OrderModel: updatePaymentStatus(id, 'refund_pending')
+        activate OrderModel
+        OrderModel -> DB: UPDATE orders SET payment_status = 'refund_pending' WHERE id = ?
+        DB --> OrderModel: refund status set
+        OrderModel --> Controller: refund pending
+        deactivate OrderModel
+    end
+
+    Controller -> UserModel: getById(order.userId)
+    activate UserModel
+    UserModel -> DB: SELECT email, full_name FROM users WHERE id = ?
+    DB --> UserModel: customer email
+    UserModel --> Controller: customer contact
+    deactivate UserModel
+
+    Controller -> Mail: sendCancellation(customerEmail, order, reason)
+    activate Mail
+    Mail -> Mail: setTemplate("order_cancelled")
+    Mail -> Mail: send()
+    Mail --> Controller: cancellation notice sent
+    deactivate Mail
+
+    Controller -> DB: commit()
+    deactivate DB
+
+    Controller --> Admin: HTTP 200 - Order cancelled successfully
+else order cannot be cancelled
+    OrderModel --> Controller: cancellation not allowed
+    deactivate OrderModel
+    Controller --> Admin: HTTP 400 - Cannot cancel order in current status
+end
+deactivate Controller
+
+== Print Invoice ==
+Admin -> Controller: GET /admin/orders/{id}/invoice
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> OrderModel: getById(id)
+activate OrderModel
+OrderModel -> DB: SELECT * FROM orders WHERE id = ?
+activate DB
+DB --> OrderModel: order data
+deactivate DB
+OrderModel --> Controller: order info
+deactivate OrderModel
+
+Controller -> DetailModel: getByOrder(orderId)
+activate DetailModel
+DetailModel -> DB: SELECT od.*, p.name, p.images FROM order_details od JOIN products p ON od.product_id = p.id WHERE od.order_id = ?
+activate DB
+DB --> DetailModel: detailed order items
+deactivate DB
+DetailModel --> Controller: invoice items
+deactivate DetailModel
+
+Controller -> UserModel: getById(order.userId)
+activate UserModel
+UserModel -> DB: SELECT * FROM users WHERE id = ?
+activate DB
+DB --> UserModel: customer details
+deactivate DB
+UserModel --> Controller: billing info
+deactivate UserModel
+
+Controller -> Controller: generateInvoicePDF(order, items, customer)
+Controller --> Admin: HTTP 200 - PDF invoice download
+deactivate Controller
+
+@enduml

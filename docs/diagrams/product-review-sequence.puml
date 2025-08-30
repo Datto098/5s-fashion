@@ -1,0 +1,223 @@
+@startuml Product Review - Sequence Diagram
+
+actor User
+participant "ReviewController" as Controller
+participant "Validator" as Valid
+participant "Order Model" as OrderModel
+participant "OrderDetail Model" as DetailModel
+participant "Review Model" as ReviewModel
+participant "Product Model" as ProductModel
+participant "FileUploader" as Upload
+participant "Database" as DB
+
+== Create Review ==
+User -> Controller: GET /products/{productId}/review
+activate Controller
+
+Controller -> OrderModel: getDeliveredOrdersByUser(userId)
+activate OrderModel
+OrderModel -> DB: SELECT * FROM orders WHERE user_id = ? AND status = 'delivered'
+activate DB
+DB --> OrderModel: delivered orders
+deactivate DB
+OrderModel --> Controller: user orders
+deactivate OrderModel
+
+Controller -> DetailModel: checkUserPurchasedProduct(userId, productId)
+activate DetailModel
+DetailModel -> DB: SELECT od.* FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.user_id = ? AND od.product_id = ? AND o.status = 'delivered'
+activate DB
+DB --> DetailModel: purchase verification
+deactivate DB
+
+alt user purchased product
+    DetailModel --> Controller: purchase confirmed
+    deactivate DetailModel
+
+    Controller -> ReviewModel: getByUserAndProduct(userId, productId)
+    activate ReviewModel
+    ReviewModel -> DB: SELECT * FROM reviews WHERE user_id = ? AND product_id = ?
+    activate DB
+    DB --> ReviewModel: existing review
+    deactivate DB
+
+    alt no existing review
+        ReviewModel --> Controller: can create review
+        deactivate ReviewModel
+        Controller --> User: HTTP 200 - Review form
+    else review already exists
+        ReviewModel --> Controller: review exists
+        deactivate ReviewModel
+        Controller --> User: HTTP 400 - Already reviewed this product
+    end
+else user did not purchase
+    DetailModel --> Controller: no purchase found
+    deactivate DetailModel
+    Controller --> User: HTTP 403 - Must purchase to review
+end
+deactivate Controller
+
+== Submit Review ==
+User -> Controller: POST /reviews (productId, rating, comment, images)
+activate Controller
+
+Controller -> Valid: validateReview(reviewData)
+activate Valid
+Valid -> Valid: validateRating(rating)
+Valid -> Valid: validateComment(comment)
+Valid -> Valid: validateImages(images)
+Valid --> Controller: validation result
+deactivate Valid
+
+alt validation successful
+    Controller -> OrderModel: verifyPurchase(userId, productId)
+    activate OrderModel
+    OrderModel -> DB: SELECT COUNT(*) FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.user_id = ? AND od.product_id = ? AND o.status = 'delivered'
+    activate DB
+    DB --> OrderModel: purchase count
+    deactivate DB
+
+    alt purchase verified
+        OrderModel --> Controller: purchase confirmed
+        deactivate OrderModel
+
+        Controller -> DB: beginTransaction()
+        activate DB
+
+        alt images provided
+            loop for each image
+                Controller -> Upload: upload(image, 'reviews/')
+                activate Upload
+                Upload -> Upload: validate(image)
+                Upload -> Upload: resize(image, [600x600, 300x300])
+                Upload --> Controller: uploaded image path
+                deactivate Upload
+            end
+        end
+
+        Controller -> ReviewModel: create(reviewData, imagePaths)
+        activate ReviewModel
+        ReviewModel -> DB: INSERT INTO reviews (product_id, user_id, order_id, rating, comment, images, status)
+        DB --> ReviewModel: review created
+        ReviewModel --> Controller: review object
+        deactivate ReviewModel
+
+        Controller -> ProductModel: updateAverageRating(productId)
+        activate ProductModel
+        ProductModel -> DB: SELECT AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE product_id = ? AND status = 'approved'
+        activate DB
+        DB --> ProductModel: rating statistics
+        deactivate DB
+        ProductModel -> DB: UPDATE products SET average_rating = ?, review_count = ? WHERE id = ?
+        DB --> ProductModel: product rating updated
+        ProductModel --> Controller: rating updated
+        deactivate ProductModel
+
+        Controller -> DB: commit()
+        deactivate DB
+
+        Controller --> User: HTTP 200 - Review submitted for moderation
+    else purchase not verified
+        OrderModel --> Controller: no purchase
+        deactivate OrderModel
+        Controller --> User: HTTP 403 - Must purchase to review
+    end
+else validation failed
+    Controller --> User: HTTP 400 - Validation errors
+end
+deactivate Controller
+
+== Like Review ==
+User -> Controller: POST /reviews/{reviewId}/like
+activate Controller
+
+Controller -> ReviewModel: getById(reviewId)
+activate ReviewModel
+ReviewModel -> DB: SELECT * FROM reviews WHERE id = ?
+activate DB
+DB --> ReviewModel: review data
+deactivate DB
+
+alt review exists
+    ReviewModel --> Controller: review object
+    deactivate ReviewModel
+
+    Controller -> ReviewModel: checkUserLike(reviewId, userId)
+    activate ReviewModel
+    ReviewModel -> DB: SELECT * FROM review_likes WHERE review_id = ? AND user_id = ?
+    activate DB
+    DB --> ReviewModel: like status
+    deactivate DB
+
+    alt not already liked
+        ReviewModel -> DB: INSERT INTO review_likes (review_id, user_id)
+        DB --> ReviewModel: like created
+        ReviewModel -> DB: UPDATE reviews SET likes = likes + 1 WHERE id = ?
+        DB --> ReviewModel: like count updated
+        ReviewModel --> Controller: like added
+        deactivate ReviewModel
+
+        Controller --> User: JSON response - Review liked
+    else already liked
+        ReviewModel -> DB: DELETE FROM review_likes WHERE review_id = ? AND user_id = ?
+        DB --> ReviewModel: like removed
+        ReviewModel -> DB: UPDATE reviews SET likes = likes - 1 WHERE id = ?
+        DB --> ReviewModel: like count updated
+        ReviewModel --> Controller: like removed
+        deactivate ReviewModel
+
+        Controller --> User: JSON response - Like removed
+    end
+else review not found
+    ReviewModel --> Controller: review not found
+    deactivate ReviewModel
+    Controller --> User: HTTP 404 - Review not found
+end
+deactivate Controller
+
+== Admin Review Moderation ==
+actor Admin
+participant "ReviewsController" as AdminController
+
+Admin -> AdminController: GET /admin/reviews
+activate AdminController
+
+AdminController -> ReviewModel: getPendingReviews()
+activate ReviewModel
+ReviewModel -> DB: SELECT r.*, p.name as product_name, u.username FROM reviews r JOIN products p ON r.product_id = p.id JOIN users u ON r.user_id = u.id WHERE r.status = 'pending'
+activate DB
+DB --> ReviewModel: pending reviews
+deactivate DB
+ReviewModel --> AdminController: reviews list
+deactivate ReviewModel
+
+AdminController --> Admin: HTTP 200 - Pending reviews page
+deactivate AdminController
+
+Admin -> AdminController: POST /admin/reviews/{id}/approve
+activate AdminController
+
+AdminController -> ReviewModel: updateStatus(reviewId, 'approved')
+activate ReviewModel
+ReviewModel -> DB: UPDATE reviews SET status = 'approved' WHERE id = ?
+activate DB
+DB --> ReviewModel: status updated
+deactivate DB
+ReviewModel --> AdminController: review approved
+deactivate ReviewModel
+
+AdminController -> ProductModel: updateAverageRating(productId)
+activate ProductModel
+ProductModel -> DB: SELECT AVG(rating), COUNT(*) FROM reviews WHERE product_id = ? AND status = 'approved'
+activate DB
+DB --> ProductModel: new rating stats
+deactivate DB
+ProductModel -> DB: UPDATE products SET average_rating = ?, review_count = ? WHERE id = ?
+DB --> ProductModel: product updated
+ProductModel --> AdminController: rating recalculated
+deactivate ProductModel
+
+AdminController --> Admin: HTTP 200 - Review approved
+deactivate AdminController
+
+@enduml

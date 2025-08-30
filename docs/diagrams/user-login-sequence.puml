@@ -1,0 +1,95 @@
+@startuml User Login - Sequence Diagram
+
+actor User
+participant "AuthController" as Controller
+participant "Validator" as Valid
+participant "User Model" as UserModel
+participant "Database" as DB
+participant "JWT" as JWT
+
+User -> Controller: POST /login (email, password)
+activate Controller
+
+Controller -> Valid: validateInput(credentials)
+activate Valid
+Valid --> Controller: validation result
+deactivate Valid
+
+alt validation successful
+    Controller -> UserModel: authenticate(email, password)
+    activate UserModel
+    UserModel -> DB: SELECT * FROM users WHERE email = ?
+    activate DB
+    DB --> UserModel: user data
+    deactivate DB
+
+    UserModel -> UserModel: verifyPassword(password, hashedPassword)
+
+    alt password correct
+        UserModel --> Controller: authenticated user
+        deactivate UserModel
+
+        Controller -> JWT: encode(userData)
+        activate JWT
+        JWT --> Controller: JWT token
+        deactivate JWT
+
+        Controller -> Controller: createSession(user)
+        Controller --> User: HTTP 200 - Login successful + redirect to home
+    else password incorrect
+        UserModel --> Controller: authentication failed
+        deactivate UserModel
+        Controller --> User: HTTP 401 - Invalid credentials
+    end
+else validation failed
+    Controller --> User: HTTP 400 - Validation errors
+end
+
+deactivate Controller
+
+== Alternative: Google Login ==
+
+User -> Controller: GET /auth/google
+activate Controller
+Controller -> GoogleAuthHelper: getAuthUrl()
+activate GoogleAuthHelper
+GoogleAuthHelper --> Controller: auth URL
+deactivate GoogleAuthHelper
+Controller --> User: HTTP 302 - Redirect to Google
+
+User -> GoogleAuthHelper: Authorize application
+GoogleAuthHelper -> Controller: GET /auth/google/callback (code)
+Controller -> GoogleAuthHelper: getToken(code)
+activate GoogleAuthHelper
+GoogleAuthHelper --> Controller: access token
+Controller -> GoogleAuthHelper: getUserInfo(token)
+GoogleAuthHelper --> Controller: user info
+deactivate GoogleAuthHelper
+
+Controller -> UserModel: findByGoogleId(googleId)
+activate UserModel
+UserModel -> DB: SELECT * FROM users WHERE google_id = ?
+activate DB
+DB --> UserModel: result
+deactivate DB
+
+alt user not exists
+    UserModel -> UserModel: createFromGoogle(googleData)
+    UserModel -> DB: INSERT INTO users
+    activate DB
+    DB --> UserModel: new user created
+    deactivate DB
+end
+
+UserModel --> Controller: user object
+deactivate UserModel
+
+Controller -> JWT: encode(userData)
+activate JWT
+JWT --> Controller: JWT token
+deactivate JWT
+
+Controller --> User: HTTP 200 - Login successful
+deactivate Controller
+
+@enduml

@@ -1,0 +1,70 @@
+@startuml 5S Fashion - All Use Cases with Actors
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title 5S Fashion E-commerce System - Use Cases & Actors
+
+' Actors
+actor "Guest" as Guest
+actor "Customer" as Customer
+actor "Admin" as Admin
+actor "Manager" as Manager
+actor "Payment Gateway" as PaymentGateway
+
+' Customer Use Cases
+package "Customer Features" {
+  usecase "Đăng ký tài khoản" as UC_Register
+  usecase "Đăng nhập" as UC_Login
+  usecase "Tìm kiếm sản phẩm" as UC_Search
+  usecase "Thêm vào giỏ hàng" as UC_AddCart
+  usecase "Thanh toán đơn hàng" as UC_Checkout
+  usecase "Đánh giá sản phẩm" as UC_Review
+  usecase "Quản lý danh sách yêu thích" as UC_Wishlist
+  usecase "Quản lý thông tin cá nhân" as UC_Profile
+  usecase "Xem đơn hàng" as UC_ViewOrder
+  usecase "Sử dụng mã giảm giá" as UC_UseCoupon
+}
+
+' Admin Use Cases
+package "Admin Features" {
+  usecase "Quản lý sản phẩm" as UC_ProductMgmt
+  usecase "Quản lý đơn hàng" as UC_OrderMgmt
+  usecase "Quản lý mã giảm giá" as UC_CouponMgmt
+  usecase "Thống kê và báo cáo" as UC_Analytics
+  usecase "Quản lý người dùng" as UC_UserMgmt
+  usecase "Duyệt đánh giá" as UC_ReviewMgmt
+}
+
+' Guest relationships
+Guest --> UC_Search
+Guest --> UC_Register
+
+' Customer relationships
+Customer --> UC_Login
+Customer --> UC_Search
+Customer --> UC_AddCart
+Customer --> UC_Checkout
+Customer --> UC_Review
+Customer --> UC_Wishlist
+Customer --> UC_Profile
+Customer --> UC_ViewOrder
+Customer --> UC_UseCoupon
+
+' Admin relationships
+Admin --> UC_Login
+Admin --> UC_ProductMgmt
+Admin --> UC_OrderMgmt
+Admin --> UC_CouponMgmt
+Admin --> UC_Analytics
+Admin --> UC_UserMgmt
+Admin --> UC_ReviewMgmt
+
+' Manager relationships
+Manager --> UC_Login
+Manager --> UC_Analytics
+
+' External system relationships
+UC_Checkout --> PaymentGateway
+
+@enduml
