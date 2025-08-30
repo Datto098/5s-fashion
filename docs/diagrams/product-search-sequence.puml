@@ -1,0 +1,132 @@
+@startuml Product Search and View - Sequence Diagram
+
+actor User
+participant "ProductController" as Controller
+participant "Product Model" as ProductModel
+participant "Category Model" as CategoryModel
+participant "ProductVariant Model" as VariantModel
+participant "Review Model" as ReviewModel
+participant "Database" as DB
+
+== Product Listing ==
+User -> Controller: GET /products
+activate Controller
+
+Controller -> CategoryModel: getAll()
+activate CategoryModel
+CategoryModel -> DB: SELECT * FROM categories
+activate DB
+DB --> CategoryModel: categories data
+deactivate DB
+CategoryModel --> Controller: categories list
+deactivate CategoryModel
+
+Controller -> ProductModel: getAll(filters, pagination)
+activate ProductModel
+ProductModel -> DB: SELECT * FROM products WHERE ... ORDER BY ... LIMIT ...
+activate DB
+DB --> ProductModel: products data
+deactivate DB
+ProductModel --> Controller: products list
+deactivate ProductModel
+
+Controller --> User: HTTP 200 - Product listing page
+deactivate Controller
+
+== Product Search ==
+User -> Controller: GET /products/search?q=keyword&category=1&price_min=100
+activate Controller
+
+Controller -> ProductModel: search(keyword, filters)
+activate ProductModel
+ProductModel -> DB: SELECT * FROM products WHERE name LIKE ? AND category_id = ? AND price >= ?
+activate DB
+DB --> ProductModel: search results
+deactivate DB
+ProductModel --> Controller: filtered products
+deactivate ProductModel
+
+alt no products found
+    Controller --> User: HTTP 200 - No products found message + suggestions
+else products found
+    Controller --> User: HTTP 200 - Search results
+end
+deactivate Controller
+
+== Product Detail View ==
+User -> Controller: GET /products/{id}
+activate Controller
+
+Controller -> ProductModel: getById(id)
+activate ProductModel
+ProductModel -> DB: SELECT * FROM products WHERE id = ?
+activate DB
+DB --> ProductModel: product data
+deactivate DB
+
+alt product not found
+    ProductModel --> Controller: null
+    Controller --> User: HTTP 404 - Product not found
+else product found
+    ProductModel --> Controller: product object
+    deactivate ProductModel
+
+    Controller -> VariantModel: getByProduct(productId)
+    activate VariantModel
+    VariantModel -> DB: SELECT * FROM product_variants WHERE product_id = ?
+    activate DB
+    DB --> VariantModel: variants data
+    deactivate DB
+    VariantModel --> Controller: product variants
+    deactivate VariantModel
+
+    Controller -> ReviewModel: getByProduct(productId)
+    activate ReviewModel
+    ReviewModel -> DB: SELECT * FROM reviews WHERE product_id = ? AND status = 'approved'
+    activate DB
+    DB --> ReviewModel: reviews data
+    deactivate DB
+
+    ReviewModel -> ReviewModel: calculateAverageRating()
+    ReviewModel --> Controller: reviews and rating
+    deactivate ReviewModel
+
+    Controller -> CategoryModel: getById(categoryId)
+    activate CategoryModel
+    CategoryModel -> DB: SELECT * FROM categories WHERE id = ?
+    activate DB
+    DB --> CategoryModel: category data
+    deactivate DB
+    CategoryModel --> Controller: category info
+    deactivate CategoryModel
+
+    Controller --> User: HTTP 200 - Product detail page with variants, reviews, category
+end
+deactivate Controller
+
+== Filter by Category ==
+User -> Controller: GET /products/category/{slug}
+activate Controller
+
+Controller -> CategoryModel: getBySlug(slug)
+activate CategoryModel
+CategoryModel -> DB: SELECT * FROM categories WHERE slug = ?
+activate DB
+DB --> CategoryModel: category data
+deactivate DB
+CategoryModel --> Controller: category object
+deactivate CategoryModel
+
+Controller -> ProductModel: getByCategory(categoryId)
+activate ProductModel
+ProductModel -> DB: SELECT * FROM products WHERE category_id = ?
+activate DB
+DB --> ProductModel: products data
+deactivate DB
+ProductModel --> Controller: category products
+deactivate ProductModel
+
+Controller --> User: HTTP 200 - Category products page
+deactivate Controller
+
+@enduml

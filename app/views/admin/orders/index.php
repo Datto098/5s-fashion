@@ -197,9 +197,9 @@
                             <?php else: ?>
                         <select class="status-select" data-order-id="<?= $order['id'] ?>" onchange="updateOrderStatus(this)">
                             <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Chờ xử lý</option>
-                            <option value="confirmed" <?= $order['status'] === 'confirmed' ? 'selected' : '' ?>>Đã xác nhận</option>
                             <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : '' ?>>Đang xử lý</option>
-                            <option value="shipped" <?= $order['status'] === 'shipped' ? 'selected' : '' ?>>Đã gửi</option>
+                            <option value="shipping" <?= $order['status'] === 'shipping' ? 'selected' : '' ?>>Đã gửi</option>
+                            <option value="delivered" <?= $order['status'] === 'delivered' ? 'selected' : '' ?>>Đã giao</option>
                             <option value="cancelled" <?= $order['status'] === 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
                         </select>
                         <?php endif; ?>

@@ -1,0 +1,56 @@
+@startuml User Registration - Class Diagram
+
+package "Controllers" {
+    class AuthController {
+        +register()
+        +validateInput()
+        +handleRequest()
+    }
+}
+
+package "Models" {
+    class User {
+        -id: int
+        -username: string
+        -email: string
+        -password: string
+        -isVerified: boolean
+        -createdAt: datetime
+        +create()
+        +findByEmail()
+        +findByUsername()
+        +updateVerificationStatus()
+    }
+}
+
+package "Helpers" {
+    class Validator {
+        +validateEmail()
+        +validatePassword()
+        +validateUsername()
+        +sanitizeInput()
+    }
+
+    class PHPMailerHelper {
+        +sendVerificationEmail()
+        +setTemplate()
+        +send()
+    }
+}
+
+package "Core" {
+    class Database {
+        +connect()
+        +query()
+        +prepare()
+        +execute()
+    }
+}
+
+AuthController --> User : creates
+AuthController --> Validator : validates
+AuthController --> PHPMailerHelper : sends email
+User --> Database : persists to
+PHPMailerHelper --> Database : logs email
+
+@enduml

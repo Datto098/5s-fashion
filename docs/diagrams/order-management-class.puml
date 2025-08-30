@@ -1,0 +1,120 @@
+@startuml Order Management Admin - Class Diagram
+
+!define ENTITY class
+!define CONTROLLER class
+!define SERVICE class
+
+package "Admin Controllers" {
+    CONTROLLER OrdersController {
+        +index()
+        +show()
+        +updateStatus()
+        +printInvoice()
+        +cancel()
+        +bulkActions()
+    }
+}
+
+package "Models" {
+    ENTITY Order {
+        -id: int
+        -userId: int
+        -orderNumber: string
+        -status: string
+        -paymentMethod: string
+        -paymentStatus: string
+        -totalAmount: decimal
+        -shippingAddress: text
+        -notes: text
+        -createdAt: datetime
+        +getAll()
+        +getById()
+        +updateStatus()
+        +cancel()
+        +getByStatus()
+        +search()
+    }
+
+    ENTITY OrderDetail {
+        -id: int
+        -orderId: int
+        -productId: int
+        -variantId: int
+        -quantity: int
+        -price: decimal
+        -total: decimal
+        +getByOrder()
+        +getProduct()
+        +getVariant()
+    }
+
+    ENTITY User {
+        -id: int
+        -username: string
+        -email: string
+        -fullName: string
+        -phone: string
+        +getById()
+        +getOrders()
+    }
+
+    ENTITY Product {
+        -id: int
+        -name: string
+        -images: json
+        +getById()
+        +getName()
+    }
+
+    ENTITY ProductVariant {
+        -id: int
+        -productId: int
+        -sku: string
+        -stock: int
+        +getById()
+        +updateStock()
+        +restoreStock()
+    }
+}
+
+package "Helpers" {
+    SERVICE PHPMailerHelper {
+        +sendStatusUpdate()
+        +sendCancellation()
+        +setTemplate()
+    }
+
+    SERVICE Validator {
+        +validateStatus()
+        +validateCancelReason()
+    }
+}
+
+package "Middleware" {
+    SERVICE AuthMiddleware {
+        +checkAdmin()
+        +checkPermission()
+    }
+}
+
+package "Core" {
+    SERVICE Database {
+        +beginTransaction()
+        +commit()
+        +rollback()
+        +query()
+    }
+}
+
+OrdersController --> Order : manages
+OrdersController --> OrderDetail : views
+OrdersController --> User : gets customer info
+OrdersController --> PHPMailerHelper : sends notifications
+OrdersController --> Validator : validates
+Order --> OrderDetail : has many
+Order --> User : belongs to
+OrderDetail --> Product : references
+OrderDetail --> ProductVariant : references
+AuthMiddleware --> OrdersController : protects
+
+@enduml

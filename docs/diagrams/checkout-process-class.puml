@@ -1,0 +1,126 @@
+@startuml Checkout Process - Class Diagram
+
+!define ENTITY class
+!define CONTROLLER class
+!define SERVICE class
+
+package "Controllers" {
+    CONTROLLER OrderController {
+        +checkout()
+        +create()
+        +confirm()
+        +track()
+    }
+
+    CONTROLLER PaymentController {
+        +vnpay()
+        +callback()
+        +verify()
+        +cod()
+    }
+}
+
+package "Models" {
+    ENTITY Order {
+        -id: int
+        -userId: int
+        -orderNumber: string
+        -status: string
+        -paymentMethod: string
+        -paymentStatus: string
+        -totalAmount: decimal
+        -shippingAddress: text
+        -createdAt: datetime
+        +create()
+        +updateStatus()
+        +getByUser()
+        +getById()
+    }
+
+    ENTITY OrderDetail {
+        -id: int
+        -orderId: int
+        -productId: int
+        -variantId: int
+        -quantity: int
+        -price: decimal
+        -total: decimal
+        +createFromCart()
+        +getByOrder()
+    }
+
+    ENTITY Cart {
+        -id: int
+        -userId: int
+        -productId: int
+        -variantId: int
+        -quantity: int
+        -price: decimal
+        +getByUser()
+        +clearCart()
+        +getTotal()
+    }
+
+    ENTITY Coupon {
+        -id: int
+        -code: string
+        -discount: decimal
+        -discountType: string
+        -validUntil: datetime
+        -usageLimit: int
+        +validate()
+        +apply()
+        +incrementUsage()
+    }
+
+    ENTITY ProductVariant {
+        -id: int
+        -productId: int
+        -stock: int
+        +updateStock()
+        +checkAvailability()
+    }
+}
+
+package "Helpers" {
+    SERVICE VNPayHelper {
+        +createPayment()
+        +verifyReturn()
+        +getStatus()
+        +buildUrl()
+    }
+
+    SERVICE PHPMailerHelper {
+        +sendOrderConfirmation()
+        +sendInvoice()
+        +setTemplate()
+    }
+
+    SERVICE Validator {
+        +validateShippingInfo()
+        +validatePaymentMethod()
+        +validateCoupon()
+    }
+}
+
+package "Core" {
+    SERVICE Database {
+        +beginTransaction()
+        +commit()
+        +rollback()
+        +query()
+    }
+}
+
+OrderController --> Order : creates
+OrderController --> Cart : processes
+OrderController --> Coupon : applies
+PaymentController --> VNPayHelper : uses
+PaymentController --> Order : updates
+Order --> OrderDetail : has many
+Order --> PHPMailerHelper : sends confirmation
+OrderDetail --> ProductVariant : updates stock
+Cart --> Order : converts to
+Coupon --> Order : applies to
+
+@enduml

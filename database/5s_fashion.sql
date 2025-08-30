@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1:3306
--- Thời gian đã tạo: Th8 13, 2025 lúc 10:08 PM
+-- Thời gian đã tạo: Th8 26, 2025 lúc 07:18 AM
 -- Phiên bản máy phục vụ: 8.2.0
 -- Phiên bản PHP: 8.2.13
 
@@ -118,15 +118,21 @@ CREATE TABLE IF NOT EXISTS `carts` (
   KEY `idx_session_id` (`session_id`),
   KEY `idx_product_id` (`product_id`),
   KEY `idx_variant_id` (`variant_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `carts`
 --
 
 INSERT INTO `carts` (`id`, `user_id`, `session_id`, `product_id`, `variant_id`, `quantity`, `price`, `created_at`, `updated_at`) VALUES
-(67, 1018, 'cart_689c6be18c0a9_1755081697', 4, 21, 3, 599000.00, '2025-08-13 14:02:15', '2025-08-13 14:02:15'),
-(68, 1018, 'cart_689c6be18c0a9_1755081697', 4, NULL, 1, 599000.00, '2025-08-13 16:04:00', '2025-08-13 16:04:00');
+(90, NULL, 'cart_68ab1bf724af9_1756044279', 4, 33, 1, 599000.00, '2025-08-24 23:48:08', '2025-08-24 23:48:08'),
+(103, NULL, 'cart_68abb46ebaba2_1756083310', 4, 31, 16, 200000.00, '2025-08-25 06:51:29', '2025-08-25 06:58:52'),
+(104, NULL, 'cart_68abb46ebaba2_1756083310', 4, 32, 1, 599000.00, '2025-08-25 06:51:32', '2025-08-25 06:51:32'),
+(105, NULL, 'cart_68abb46ebaba2_1756083310', 4, 34, 1, 599000.00, '2025-08-25 06:51:36', '2025-08-25 06:51:36'),
+(106, NULL, 'cart_68abb46ebaba2_1756083310', 4, 33, 1, 599000.00, '2025-08-25 06:51:40', '2025-08-25 06:51:40'),
+(110, NULL, 'cart_68ac9914925f6_1756141844', 4, 31, 6, 200000.00, '2025-08-25 18:34:53', '2025-08-25 19:35:07'),
+(112, NULL, 'cart_68ad0da9500b9_1756171689', 4, 32, 10, 599000.00, '2025-08-26 01:36:05', '2025-08-26 01:36:05'),
+(113, NULL, 'cart_68ad1357be205_1756173143', 6, NULL, 13, 699000.00, '2025-08-26 01:55:02', '2025-08-26 02:13:31');
 
 -- --------------------------------------------------------
 
@@ -153,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   KEY `categories_parent_id_foreign` (`parent_id`),
   KEY `categories_status_index` (`status`),
   KEY `categories_sort_order_index` (`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `categories`
@@ -265,7 +271,7 @@ CREATE TABLE IF NOT EXISTS `customer_addresses` (
   PRIMARY KEY (`id`),
   KEY `customer_addresses_user_id_foreign` (`user_id`),
   KEY `customer_addresses_is_default_index` (`is_default`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `customer_addresses`
@@ -276,39 +282,12 @@ INSERT INTO `customer_addresses` (`id`, `user_id`, `name`, `phone`, `address`, `
 (3, 1003, 'Trần Thị B', '0912345678', '789 Cách Mạng Tháng 8, Quận 10', 1, '2025-07-25 13:10:32', '2025-07-25 13:10:32', ''),
 (4, 1004, 'Lê Văn C', '0923456789', '321 Nguyễn Trãi, Quận 5', 1, '2025-07-25 13:10:32', '2025-07-25 13:10:32', ''),
 (9, 1002, 'Do Ngoc Hieu', '00000000003', '80, Phố Trần Phú, Điện Biên, Phường Ba Đình, Hà Nội, 10160, Việt Nam', 1, '2025-08-03 07:40:47', '2025-08-03 21:28:06', 'ljasdfb'),
-(11, 1018, 'Do Ngoc', '03748646524', 'Bệnh viện Nhi Trung ương, 18, Ngõ 879 La Thành, Láng Thượng, Phường Láng, Hà Nội, 10080, Việt Nam', 0, '2025-08-04 19:03:00', '2025-08-11 06:50:42', 'd'),
+(11, 1018, 'Do Ngoc', '03748646524', 'Bệnh viện Nhi Trung ương, 18, Ngõ 879 La Thành, Láng Thượng, Phường Láng, Hà Nội, 10080, Việt Nam', 0, '2025-08-04 19:03:00', '2025-08-26 01:30:51', 'd'),
 (18, 1, 'Nguyễn Tiến Đạt', '0375099213', 'Địa chỉ cụ thể 1, Phường 2, Quận Hoàn Kiếm, Thành phố Hà Nội', 1, '2025-08-09 13:40:15', '2025-08-09 13:40:15', ''),
 (19, 1019, 'Nguyen Tien Dat', '0375099213', 'Discovery Central, 67, Tran Phu Street, Điện Biên, Ba Đình District, Hà Nội, 10160, Vietnam', 1, '2025-08-10 07:57:55', '2025-08-10 07:57:55', ''),
-(20, 1018, 'Do Ngoc Hieu', '0384946973', '131, Đường La Thành, Ô Chợ Dừa, Quận Đống Đa, Hà Nội, 10178, Việt Nam', 1, '2025-08-12 18:33:11', '2025-08-12 18:33:11', '');
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `newsletter_subscriptions`
---
-
-DROP TABLE IF EXISTS `newsletter_subscriptions`;
-CREATE TABLE IF NOT EXISTS `newsletter_subscriptions` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `status` enum('active','inactive','unsubscribed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'active',
-  `subscribed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `unsubscribed_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `newsletter_subscriptions_email_unique` (`email`),
-  KEY `newsletter_subscriptions_status_index` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Đang đổ dữ liệu cho bảng `newsletter_subscriptions`
---
-
-INSERT INTO `newsletter_subscriptions` (`id`, `email`, `name`, `status`, `subscribed_at`, `unsubscribed_at`) VALUES
-(1, 'john.doe@email.com', 'John Doe', 'active', '2025-07-25 13:10:32', NULL),
-(2, 'jane.smith@email.com', 'Jane Smith', 'active', '2025-07-25 13:10:32', NULL),
-(3, 'peter.parker@email.com', 'Peter Parker', 'active', '2025-07-25 13:10:32', NULL),
-(4, 'mary.jane@email.com', 'Mary Jane', 'active', '2025-07-25 13:10:32', NULL);
+(20, 1018, 'Do Ngoc Hieu', '0384946973', '131, Đường La Thành, Ô Chợ Dừa, Quận Đống Đa, Hà Nội, 10178, Việt Nam', 0, '2025-08-12 18:33:11', '2025-08-25 03:02:37', ''),
+(21, 1044, 'Nguyen Tien Dat', '0375099213', '6, Ngõ Lương Sử C, Van Mieu – Quoc Tu Giam Ward, Đống Đa District, Hà Nội, 11018, Vietnam', 1, '2025-08-16 09:02:07', '2025-08-16 09:02:07', ''),
+(22, 1018, 'Do Ngoc Hieu', '0384946973', '269, Phố Kim Mã, Kim Mã, Phường Giảng Võ, Quận Ba Đình, Hà Nội, 10276, Việt Nam', 1, '2025-08-25 03:02:37', '2025-08-26 01:30:51', 'None');
 
 -- --------------------------------------------------------
 
@@ -348,7 +327,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   KEY `orders_created_at_index` (`created_at`),
   KEY `orders_user_status_date` (`user_id`,`status`,`created_at`),
   KEY `orders_status_payment_date` (`status`,`payment_status`,`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=100107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=100109 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `orders`
@@ -366,7 +345,9 @@ INSERT INTO `orders` (`id`, `user_id`, `order_code`, `customer_name`, `customer_
 (100103, 1018, 'ORD2508138169', 'Do Ngoc', 'dongochieu333@gmail.com', '03748646524', 1797000.00, 0.00, 30000.00, 0.00, 1827000.00, 'cancelled', 'cod', 'pending', '{\"name\": \"Do Ngoc\", \"phone\": \"03748646524\", \"address\": \"Bệnh viện Nhi Trung ương, 18, Ngõ 879 La Thành, Láng Thượng, Phường Láng, Hà Nội, 10080, Việt Nam\"}', NULL, '', 'Khách hàng yêu cầu hủy', NULL, NULL, '2025-08-12 19:13:25', '2025-08-12 19:13:45'),
 (100104, 1018, 'ORD2508136514', 'Do Ngoc', 'dongochieu333@gmail.com', '03748646524', 2396000.00, 0.00, 30000.00, 0.00, 2426000.00, 'processing', 'cod', 'pending', '{\"name\": \"Do Ngoc\", \"phone\": \"03748646524\", \"address\": \"Bệnh viện Nhi Trung ương, 18, Ngõ 879 La Thành, Láng Thượng, Phường Láng, Hà Nội, 10080, Việt Nam\"}', NULL, '', NULL, NULL, NULL, '2025-08-13 11:28:24', '2025-08-13 11:28:24'),
 (100105, 1018, 'ORD2508138896', 'Do Ngoc Hieu', 'dongochieu333@gmail.com', '0384946973', 2396000.00, 0.00, 30000.00, 239600.00, 2186400.00, 'processing', 'cod', 'pending', '{\"name\": \"Do Ngoc Hieu\", \"phone\": \"0384946973\", \"address\": \"131, Đường La Thành, Ô Chợ Dừa, Quận Đống Đa, Hà Nội, 10178, Việt Nam\"}', NULL, '', NULL, NULL, NULL, '2025-08-13 13:02:45', '2025-08-13 13:02:45'),
-(100106, 1018, 'ORD2508132840', 'Do Ngoc Hieu', 'dongochieu333@gmail.com', '0384946973', 599000.00, 0.00, 30000.00, 50000.00, 579000.00, 'delivered', 'cod', 'pending', '{\"name\": \"Do Ngoc Hieu\", \"phone\": \"0384946973\", \"address\": \"131, Đường La Thành, Ô Chợ Dừa, Quận Đống Đa, Hà Nội, 10178, Việt Nam\"}', NULL, '', 'Cập nhật từ admin interface', NULL, '2025-08-13 16:33:46', '2025-08-13 13:31:56', '2025-08-13 16:33:46');
+(100106, 1018, 'ORD2508132840', 'Do Ngoc Hieu', 'dongochieu333@gmail.com', '0384946973', 599000.00, 0.00, 30000.00, 50000.00, 579000.00, 'delivered', 'cod', 'pending', '{\"name\": \"Do Ngoc Hieu\", \"phone\": \"0384946973\", \"address\": \"131, Đường La Thành, Ô Chợ Dừa, Quận Đống Đa, Hà Nội, 10178, Việt Nam\"}', NULL, '', 'Cập nhật từ admin interface', NULL, '2025-08-13 16:33:46', '2025-08-13 13:31:56', '2025-08-13 16:33:46'),
+(100107, 1044, 'ORD2508166278', 'Nguyen Tien Dat', 'datto2442004@gmail.com', '0375099213', 3594000.00, 0.00, 30000.00, 0.00, 3624000.00, 'processing', 'cod', 'pending', '{\"name\": \"Nguyen Tien Dat\", \"phone\": \"0375099213\", \"address\": \"6, Ngõ Lương Sử C, Van Mieu – Quoc Tu Giam Ward, Đống Đa District, Hà Nội, 11018, Vietnam\"}', NULL, '', NULL, NULL, NULL, '2025-08-16 09:02:12', '2025-08-16 09:02:12'),
+(100108, 1044, 'ORD2508166931', 'Nguyen Tien Dat', 'datto2442004@gmail.com', '0375099213', 2396000.00, 0.00, 30000.00, 0.00, 2426000.00, 'delivered', 'cod', 'paid', '{\"name\": \"Nguyen Tien Dat\", \"phone\": \"0375099213\", \"address\": \"6, Ngõ Lương Sử C, Van Mieu – Quoc Tu Giam Ward, Đống Đa District, Hà Nội, 11018, Vietnam\"}', NULL, '', 'Cập nhật từ admin interface', NULL, '2025-08-16 13:53:29', '2025-08-16 13:52:55', '2025-08-16 14:06:25');
 
 -- --------------------------------------------------------
 
@@ -392,7 +373,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   KEY `order_items_order_id_foreign` (`order_id`),
   KEY `order_items_product_id_foreign` (`product_id`),
   KEY `order_items_variant_id_foreign` (`variant_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=96 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=98 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `order_items`
@@ -410,7 +391,9 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `produc
 (92, 100103, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 3, 599000.00, 1797000.00, '2025-08-12 19:13:25', '2025-08-12 19:13:25'),
 (93, 100104, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 4, 599000.00, 2396000.00, '2025-08-13 11:28:24', '2025-08-13 11:28:24'),
 (94, 100105, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 4, 599000.00, 2396000.00, '2025-08-13 13:02:45', '2025-08-13 13:02:45'),
-(95, 100106, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 1, 599000.00, 599000.00, '2025-08-13 13:31:56', '2025-08-13 13:31:56');
+(95, 100106, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 1, 599000.00, 599000.00, '2025-08-13 13:31:56', '2025-08-13 13:31:56'),
+(96, 100107, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 6, 599000.00, 3594000.00, '2025-08-16 09:02:12', '2025-08-16 09:02:12'),
+(97, 100108, 4, NULL, 'Váy Maxi Nữ Hoa Nhí', '', NULL, 4, 599000.00, 2396000.00, '2025-08-16 13:52:55', '2025-08-16 13:52:55');
 
 -- --------------------------------------------------------
 
@@ -431,7 +414,7 @@ CREATE TABLE IF NOT EXISTS `order_logs` (
   KEY `order_logs_order_id_foreign` (`order_id`),
   KEY `order_logs_created_by_foreign` (`created_by`),
   KEY `order_logs_created_at_index` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `order_logs`
@@ -442,7 +425,8 @@ INSERT INTO `order_logs` (`id`, `order_id`, `status_from`, `status_to`, `notes`,
 (27, 100100, 'shipped', 'delivered', 'Cập nhật từ admin interface', 1, '2025-08-10 14:00:07'),
 (28, 100100, 'delivered', 'cancelled', 'Cập nhật từ admin interface', 1, '2025-08-10 14:00:15'),
 (29, 100100, 'cancelled', 'delivered', 'Cập nhật từ admin interface', 1, '2025-08-10 14:01:14'),
-(30, 100106, 'processing', 'delivered', 'Cập nhật từ admin interface', 1, '2025-08-13 16:33:46');
+(30, 100106, 'processing', 'delivered', 'Cập nhật từ admin interface', 1, '2025-08-13 16:33:46'),
+(31, 100108, 'processing', 'delivered', 'Cập nhật từ admin interface', 1, '2025-08-16 13:53:29');
 
 -- --------------------------------------------------------
 
@@ -549,14 +533,12 @@ CREATE TABLE IF NOT EXISTS `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `slug`, `sku`, `short_description`, `description`, `price`, `sale_price`, `cost_price`, `category_id`, `brand_id`, `featured_image`, `gallery`, `status`, `featured`, `weight`, `dimensions`, `material`, `care_instructions`, `gender`, `season`, `style`, `meta_title`, `meta_description`, `views`, `created_at`, `updated_at`, `has_variants`, `manage_stock`, `stock_quantity`, `low_stock_threshold`) VALUES
-(4, 'Váy Maxi Nữ Hoa Nhí', 'quan-kaki-nam-4', 'VMN001', 'Váy maxi nữ họa tiết hoa nhí dễ thương', 'Váy maxi nữ với họa tiết hoa nhí dễ thương, phù hợp cho dạo phố và du lịch. Chất liệu voan mềm mại, thoáng mát.', 599000.00, NULL, NULL, 5, 4, '/uploads/products/689710bd6913c_1754730685.webp', '[\"/uploads/products/689710bd69f23_1754730685_0.webp\", \"/uploads/products/689710bd6a269_1754730685_1.webp\"]', 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 112, '2025-07-27 04:06:19', '2025-08-09 10:11:19', 1, 0, 0, 5),
-(5, 'Quần Âu Nữ Ống Suông', 'ao-hoodie-nam-5', 'QAN001', 'Quần âu nữ ống suông thanh lịch', 'Quần âu nữ ống suông với thiết kế thanh lịch, phù hợp cho công sở và những dịp trang trọng.', 729000.00, 0.00, NULL, 4, 5, '/uploads/products/6886434ae7a37_1753629514.webp', NULL, 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 67, '2025-07-27 04:06:19', '2025-07-28 06:47:10', 0, 1, 0, 5),
+(4, 'Váy Maxi Nữ Hoa Nhí', 'quan-kaki-nam-4', 'VMN001', 'Váy maxi nữ họa tiết hoa nhí dễ thương', 'Váy maxi nữ với họa tiết hoa nhí dễ thương, phù hợp cho dạo phố và du lịch. Chất liệu voan mềm mại, thoáng mát.', 599000.00, NULL, NULL, 5, 4, '/uploads/products/689710bd6913c_1754730685.webp', '[\"/uploads/products/689710bd69f23_1754730685_0.webp\", \"/uploads/products/689710bd6a269_1754730685_1.webp\"]', 'published', 1, NULL, NULL, NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 112, '2025-07-27 04:06:19', '2025-08-24 10:17:41', 1, 1, 0, 5),
+(5, 'Quần Âu Nữ Ống Suông', 'ao-hoodie-nam-5', 'QAN001', 'Quần âu nữ ống suông thanh lịch', 'Quần âu nữ ống suông với thiết kế thanh lịch, phù hợp cho công sở và những dịp trang trọng.', 729000.00, NULL, NULL, 4, 5, '/uploads/products/6886434ae7a37_1753629514.webp', NULL, 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 67, '2025-07-27 04:06:19', '2025-08-16 09:19:52', 0, 1, 1000, 5),
 (6, 'Áo Khoác Nam Bomber', 'ao-thun-nu-crop-6', 'AKN001', 'Áo khoác nam style bomber thời trang', 'Áo khoác nam style bomber với thiết kế trẻ trung, năng động. Chất liệu polyester chống gió, giữ ấm tốt.', 899000.00, 699000.00, NULL, 1, 1, '/uploads/products/6886435667f65_1753629526.webp', NULL, 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 234, '2025-07-27 04:06:19', '2025-07-27 08:18:46', 0, 1, 0, 5),
 (7, 'Đầm Nữ Midi Cổ V', 'quan-jean-nu-skinny-7', 'DAN001', 'Đầm nữ midi cổ V thanh lịch', 'Đầm nữ midi với thiết kế cổ V thanh lịch, phù hợp cho những buổi hẹn hò và dự tiệc.', 759000.00, 559000.00, NULL, 5, 3, '/uploads/products/6886436366223_1753629539.webp', NULL, 'published', 1, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 145, '2025-07-27 04:06:19', '2025-07-27 08:18:59', 0, 1, 0, 5),
 (8, 'Áo Polo Nam Premium', 'ao-kieu-nu-hoa-tiet-8', 'APN001', 'Áo polo nam chất liệu premium cao cấp', 'Áo polo nam với chất liệu premium, thiết kế tinh tế. Phù hợp cho cả môi trường công sở và leisure.', 549000.00, 0.00, NULL, 1, 2, '/uploads/products/688643718e0ea_1753629553.webp', NULL, 'published', 0, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 98, '2025-07-27 04:06:19', '2025-07-27 08:19:13', 0, 1, 0, 5),
-(9, 'Chân Váy Nữ Xòe', 'chan-vay-nu-xoe-9', 'CVN001', 'Chân váy nữ xòe dễ thương', 'Chân váy nữ xòe với thiết kế dễ thương, trẻ trung. Dễ phối đồ với nhiều loại áo khác nhau.', 389000.00, 299000.00, NULL, 5, 4, '/uploads/products/6886437ba38b9_1753629563.webp', NULL, 'published', 0, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 76, '2025-07-27 04:06:19', '2025-07-27 08:19:23', 0, 1, 0, 5),
-(10018, 'Áo Thun Cotton Basic Test', 'ao-thun-cotton-basic-test', '', NULL, 'Áo thun cotton cao cấp - Test variant system', 299000.00, 249000.00, NULL, 1, NULL, NULL, NULL, '', 1, NULL, NULL, NULL, NULL, 'unisex', 'all_season', 'casual', NULL, NULL, 0, '2025-07-30 00:03:59', '2025-07-30 00:03:59', 1, 1, 0, 5),
-(10022, 'Áo Thun Cotton Basic Test 1753859335', 'ao-thun-cotton-basic-test-1753859335', 'TEST-1753859335', NULL, 'Áo thun cotton cao cấp - Test variant system', 299000.00, 249000.00, NULL, 1, NULL, NULL, NULL, '', 1, NULL, NULL, NULL, NULL, 'unisex', 'all_season', 'casual', NULL, NULL, 0, '2025-07-30 00:08:55', '2025-07-30 00:08:55', 1, 1, 0, 5);
+(9, 'Chân Váy Nữ Xòe', 'chan-vay-nu-xoe-9', 'CVN001', 'Chân váy nữ xòe dễ thương', 'Chân váy nữ xòe với thiết kế dễ thương, trẻ trung. Dễ phối đồ với nhiều loại áo khác nhau.', 389000.00, 299000.00, NULL, 5, 4, '/uploads/products/6886437ba38b9_1753629563.webp', NULL, 'published', 0, NULL, '', NULL, NULL, 'unisex', 'all_season', 'casual', '', '', 76, '2025-07-27 04:06:19', '2025-07-27 08:19:23', 0, 1, 0, 5);
 
 -- --------------------------------------------------------
 
@@ -635,56 +617,6 @@ INSERT INTO `product_attribute_values` (`id`, `attribute_id`, `value`, `slug`, `
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `product_images`
---
-
-DROP TABLE IF EXISTS `product_images`;
-CREATE TABLE IF NOT EXISTS `product_images` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `variant_id` int DEFAULT NULL,
-  `image_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `alt_text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `sort_order` int DEFAULT '0',
-  `is_primary` tinyint(1) DEFAULT '0',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `product_images_product_id_foreign` (`product_id`),
-  KEY `product_images_variant_id_foreign` (`variant_id`),
-  KEY `product_images_sort_order_index` (`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `product_reviews`
---
-
-DROP TABLE IF EXISTS `product_reviews`;
-CREATE TABLE IF NOT EXISTS `product_reviews` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `user_id` int DEFAULT NULL,
-  `order_id` int DEFAULT NULL,
-  `rating` tinyint(1) NOT NULL,
-  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `review` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `status` enum('pending','approved','rejected') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
-  `helpful_count` int DEFAULT '0',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `product_reviews_product_id_foreign` (`product_id`),
-  KEY `product_reviews_user_id_foreign` (`user_id`),
-  KEY `product_reviews_order_id_foreign` (`order_id`),
-  KEY `product_reviews_rating_index` (`rating`),
-  KEY `product_reviews_status_index` (`status`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
 -- Cấu trúc bảng cho bảng `product_variants`
 --
 
@@ -712,7 +644,7 @@ CREATE TABLE IF NOT EXISTS `product_variants` (
   KEY `product_variants_product_id_foreign` (`product_id`),
   KEY `product_variants_status_index` (`status`),
   KEY `product_variants_stock_index` (`stock_quantity`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `product_variants`
@@ -731,9 +663,10 @@ INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `variant_name`, `pric
 (10, 10022, 'TEST-2-7-10022', 'Áo Thun Test - Xanh dương - XS', NULL, NULL, NULL, 26, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:08:55', '2025-07-30 00:08:55'),
 (11, 10022, 'TEST-2-8-10022', 'Áo Thun Test - Xanh dương - S', NULL, NULL, NULL, 44, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:08:55', '2025-07-30 00:08:55'),
 (12, 10022, 'TEST-2-9-10022', 'Áo Thun Test - Xanh dương - M', NULL, NULL, NULL, 45, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-07-30 00:08:55', '2025-07-30 00:08:55'),
-(20, 4, 'VMN001-XAN-XS-DO', 'Váy Maxi Nữ Hoa Nhí - Xanh dương - XS - Đỏ', NULL, NULL, NULL, 10, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-09 09:47:37', '2025-08-09 09:47:37'),
-(21, 4, 'VMN001-DEN-M-DO', 'Váy Maxi Nữ Hoa Nhí - Đen - M - Đỏ', NULL, NULL, NULL, 20, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-09 09:47:49', '2025-08-09 09:47:49'),
-(22, 4, 'VMN001-TRA-S-DO', 'Váy Maxi Nữ Hoa Nhí - Trắng - S - Đỏ', NULL, NULL, NULL, 30, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-09 09:48:01', '2025-08-09 09:48:01');
+(31, 4, 'VMN001-XAN-M', 'Váy Maxi Nữ Hoa Nhí - Xanh lá - M', 200000.00, NULL, NULL, 10, 0, NULL, '', '', NULL, 'active', 0, '2025-08-24 10:18:02', '2025-08-26 01:56:00'),
+(32, 4, 'VMN001-TRA-M', 'Váy Maxi Nữ Hoa Nhí - Trắng - M', NULL, NULL, NULL, 10, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-24 10:19:04', '2025-08-26 01:56:09'),
+(33, 4, 'VMN001-XAN-XL', 'Váy Maxi Nữ Hoa Nhí - Xanh lá - XL', NULL, NULL, NULL, 0, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-24 10:39:53', '2025-08-26 01:58:08'),
+(34, 4, 'VMN001-VAN-XXL', 'Váy Maxi Nữ Hoa Nhí - Vàng - XXL', NULL, NULL, NULL, 10, 0, NULL, NULL, NULL, NULL, 'active', 0, '2025-08-24 10:40:11', '2025-08-26 01:56:14');
 
 -- --------------------------------------------------------
 
@@ -751,7 +684,7 @@ CREATE TABLE IF NOT EXISTS `product_variant_attributes` (
   UNIQUE KEY `product_variant_attributes_unique` (`variant_id`,`attribute_value_id`),
   KEY `product_variant_attributes_variant_id_foreign` (`variant_id`),
   KEY `product_variant_attributes_attribute_value_id_foreign` (`attribute_value_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `product_variant_attributes`
@@ -800,7 +733,37 @@ INSERT INTO `product_variant_attributes` (`id`, `variant_id`, `attribute_value_i
 (45, 21, 1, '2025-08-09 09:47:49'),
 (46, 22, 6, '2025-08-09 09:48:01'),
 (47, 22, 8, '2025-08-09 09:48:01'),
-(48, 22, 1, '2025-08-09 09:48:01');
+(48, 22, 1, '2025-08-09 09:48:01'),
+(49, 23, 1, '2025-08-24 09:24:46'),
+(50, 23, 11, '2025-08-24 09:24:46'),
+(51, 23, 3, '2025-08-24 09:24:46'),
+(52, 24, 6, '2025-08-24 09:25:47'),
+(53, 24, 10, '2025-08-24 09:25:47'),
+(54, 24, 3, '2025-08-24 09:25:47'),
+(55, 25, 6, '2025-08-24 09:33:36'),
+(56, 25, 8, '2025-08-24 09:33:36'),
+(57, 25, 4, '2025-08-24 09:33:36'),
+(58, 26, 3, '2025-08-24 09:34:33'),
+(59, 26, 7, '2025-08-24 09:34:33'),
+(60, 26, 1, '2025-08-24 09:34:33'),
+(61, 27, 6, '2025-08-24 09:44:36'),
+(62, 27, 10, '2025-08-24 09:44:36'),
+(63, 27, 1, '2025-08-24 09:44:36'),
+(64, 28, 4, '2025-08-24 09:49:09'),
+(65, 28, 9, '2025-08-24 09:49:09'),
+(66, 28, 3, '2025-08-24 09:49:09'),
+(67, 29, 3, '2025-08-24 10:02:56'),
+(68, 29, 9, '2025-08-24 10:02:56'),
+(69, 30, 6, '2025-08-24 10:04:01'),
+(70, 30, 9, '2025-08-24 10:04:01'),
+(71, 31, 3, '2025-08-24 10:18:02'),
+(72, 31, 9, '2025-08-24 10:18:02'),
+(73, 32, 6, '2025-08-24 10:19:04'),
+(74, 32, 9, '2025-08-24 10:19:04'),
+(75, 33, 3, '2025-08-24 10:39:53'),
+(76, 33, 11, '2025-08-24 10:39:53'),
+(77, 34, 4, '2025-08-24 10:40:11'),
+(78, 34, 12, '2025-08-24 10:40:11');
 
 -- --------------------------------------------------------
 
@@ -827,14 +790,15 @@ CREATE TABLE IF NOT EXISTS `reviews` (
   KEY `reviews_order_id_foreign` (`order_id`),
   KEY `reviews_rating_index` (`rating`),
   KEY `reviews_status_index` (`status`)
-) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `reviews`
 --
 
 INSERT INTO `reviews` (`id`, `product_id`, `user_id`, `order_id`, `rating`, `title`, `content`, `status`, `helpful_count`, `created_at`, `updated_at`) VALUES
-(5, 4, 1018, NULL, 4, 'gggggggggggggggggggg', 'ggggggggggggggg', 'approved', 3, '2025-08-13 19:08:14', '2025-08-13 19:21:54');
+(14, 4, 1018, NULL, 5, 'Tốt', 'Đồ Rất Là Tốt Nhé...', 'approved', 1, '2025-08-24 20:27:49', '2025-08-25 03:27:57'),
+(6, 4, 1044, NULL, 3, 'sdf', 'sdf', 'approved', 1, '2025-08-16 07:00:00', '2025-08-25 03:27:58');
 
 -- --------------------------------------------------------
 
@@ -852,18 +816,17 @@ CREATE TABLE IF NOT EXISTS `review_likes` (
   UNIQUE KEY `unique_review_user` (`review_id`,`user_id`),
   KEY `review_likes_review_id_foreign` (`review_id`),
   KEY `review_likes_user_id_foreign` (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=83 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `review_likes`
 --
 
 INSERT INTO `review_likes` (`id`, `review_id`, `user_id`, `created_at`) VALUES
-(7, 3, 1018, '2025-08-13 18:57:13'),
-(9, 4, 1018, '2025-08-13 19:07:57'),
-(11, 5, 1018, '2025-08-13 19:08:27'),
-(15, 5, 1005, '2025-08-13 19:21:09'),
-(17, 5, 1004, '2025-08-13 19:21:54');
+(75, 5, 1018, '2025-08-25 03:15:40'),
+(76, 7, 1018, '2025-08-25 03:16:06'),
+(81, 14, 1018, '2025-08-25 03:27:57'),
+(82, 6, 1018, '2025-08-25 03:27:58');
 
 -- --------------------------------------------------------
 
@@ -916,56 +879,6 @@ INSERT INTO `settings` (`id`, `key`, `value`, `type`, `group`, `created_at`, `up
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `shopping_cart`
---
-
-DROP TABLE IF EXISTS `shopping_cart`;
-CREATE TABLE IF NOT EXISTS `shopping_cart` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int DEFAULT NULL,
-  `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `product_id` int NOT NULL,
-  `variant_id` int DEFAULT NULL,
-  `quantity` int NOT NULL DEFAULT '1',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `shopping_cart_user_id_foreign` (`user_id`),
-  KEY `shopping_cart_product_id_foreign` (`product_id`),
-  KEY `shopping_cart_variant_id_foreign` (`variant_id`),
-  KEY `shopping_cart_session_id_index` (`session_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `stock_movements`
---
-
-DROP TABLE IF EXISTS `stock_movements`;
-CREATE TABLE IF NOT EXISTS `stock_movements` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `variant_id` int DEFAULT NULL,
-  `type` enum('in','out','adjustment') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `quantity` int NOT NULL,
-  `reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `reference_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `reference_id` int DEFAULT NULL,
-  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `created_by` int DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `stock_movements_product_id_foreign` (`product_id`),
-  KEY `stock_movements_variant_id_foreign` (`variant_id`),
-  KEY `stock_movements_created_by_foreign` (`created_by`),
-  KEY `stock_movements_type_index` (`type`),
-  KEY `stock_movements_created_at_index` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Cấu trúc bảng cho bảng `users`
 --
 
@@ -990,13 +903,13 @@ CREATE TABLE IF NOT EXISTS `users` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `birthday` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `google_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `google_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`),
   UNIQUE KEY `users_username_unique` (`username`),
   KEY `users_role_index` (`role`),
   KEY `users_status_index` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=1042 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1047 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `users`
@@ -1009,9 +922,14 @@ INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `full_name`, `p
 (1004, 'le_van_c', 'levanc@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Lê Văn C', '0923456789', NULL, NULL, 'customer', 'active', '2025-08-04 18:22:35', NULL, '2025-08-13 19:21:40', NULL, NULL, NULL, '2025-07-25 13:10:32', '2025-08-13 19:21:40', '2025-08-03 15:51:26', NULL),
 (1005, 'pham_thi_d', 'phamthid@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Phạm Thị D', '0934567890', NULL, NULL, 'customer', 'active', '2025-08-04 18:22:35', NULL, '2025-08-13 19:10:11', NULL, NULL, NULL, '2025-07-25 13:10:32', '2025-08-13 19:10:11', '2025-08-03 15:51:26', NULL),
 (1006, 'datdev', 'datdev@gmail.com', '$2y$10$KLfaI8pXJND4/Ba1P4foL.nbGJMYLXtEPDJrM4wT2CFjpVSc38fZC', 'Nguyễn Tiến Đạt', '0375099213', NULL, NULL, 'admin', 'active', NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-26 15:25:08', '2025-07-26 15:25:08', '2025-08-03 15:51:26', NULL),
-(1018, 'Hieu', 'dongochieu333@gmail.com', '$2y$10$zRp4thHpMKd/TtpUkp4HkeKWynXGXlRMQ4NuwmcFnoKwi9gF5qLim', 'Do Ngoc Hieu', '0384946973', 'Hello', 'https://lh3.googleusercontent.com/a/ACg8ocK6ySse4OeWY7oQgMrArPjalBQ5PK6U8_gK8qXu2t9HsxpPxV4S=s96-c', 'customer', 'active', '2025-08-04 18:22:35', NULL, '2025-08-13 21:57:21', NULL, NULL, NULL, '2025-08-04 18:21:37', '2025-08-13 21:57:21', '2025-08-20 17:00:00', '108068036855262487099'),
+(1018, 'Hieu', 'dongochieu333@gmail.com', '$2y$10$zRp4thHpMKd/TtpUkp4HkeKWynXGXlRMQ4NuwmcFnoKwi9gF5qLim', 'Do Ngoc Hieu', '0384946973', 'Hello', 'https://lh3.googleusercontent.com/a/ACg8ocK6ySse4OeWY7oQgMrArPjalBQ5PK6U8_gK8qXu2t9HsxpPxV4S=s96-c', 'customer', 'active', '2025-08-04 18:22:35', NULL, '2025-08-26 03:23:11', NULL, NULL, NULL, '2025-08-04 18:21:37', '2025-08-26 03:23:11', '2025-08-20 17:00:00', '108068036855262487099'),
 (1019, 'Dat', 'dat@gmail.com', '$2y$10$gUPE9Y6LvqPisPty6hCzJOy9K2cmj34wtRHcEu6NXdshWxtYIX8Le', 'Nguyen Dat', '0988888888', NULL, NULL, 'customer', 'active', '2025-08-14 07:04:30', NULL, '2025-08-10 08:45:08', NULL, NULL, NULL, '2025-08-10 07:02:35', '2025-08-10 08:45:08', '2025-08-10 07:02:35', NULL),
-(1041, 'nha579728', 'nha579728@gmail.com', '$2y$10$62MIlXqHkVDQOljTzYxmCOdZwqBWxBWhecY0DoYcrXtqOTAKiMAzK', 'Nguyễn Hà', NULL, NULL, 'https://lh3.googleusercontent.com/a/ACg8ocJ4c4Q98re2H327cqdT7-EFO_qN1BqGqGNG2vwaM-yd7A-DzQ=s96-c', 'customer', 'active', '2025-08-13 21:58:05', NULL, '2025-08-13 21:58:05', NULL, NULL, NULL, '2025-08-13 21:58:05', '2025-08-13 21:58:05', '2025-08-13 21:58:05', '110964051539598102437');
+(1041, 'nha579728', 'nha579728@gmail.com', '$2y$10$62MIlXqHkVDQOljTzYxmCOdZwqBWxBWhecY0DoYcrXtqOTAKiMAzK', 'Nguyễn Hà', NULL, NULL, 'https://lh3.googleusercontent.com/a/ACg8ocJ4c4Q98re2H327cqdT7-EFO_qN1BqGqGNG2vwaM-yd7A-DzQ=s96-c', 'customer', 'active', '2025-08-13 21:58:05', NULL, '2025-08-13 21:58:05', NULL, NULL, NULL, '2025-08-13 21:58:05', '2025-08-13 21:58:05', '2025-08-13 21:58:05', '110964051539598102437'),
+(1042, 'Datttt', 'datt@gmail.com', '$2y$10$Z6q9cEkBuuappBKBzEa8B.bZQgnSLlx9ocRfQVoD6CA7ci5VX0pPy', 'Nguyen Datttt', '0375099213', NULL, NULL, 'customer', 'active', NULL, '416222c3f48a8a8503a63e9d45efb07dee13550d2e600d0bd1af7fe740e932b6', NULL, NULL, NULL, NULL, '2025-08-16 07:39:58', '2025-08-16 07:39:58', '2025-08-16 07:39:58', NULL),
+(1043, 'Datuuu', 'dattttt@gmail.com', '$2y$10$7ldeKXM4t3UYhH8StSrVTug5jcDapFtaIZ42Yrfs7FuI/vkKQMgjW', 'Nguyen Datuuu', '0375099213', NULL, NULL, 'customer', 'active', NULL, 'd5a787d6a663a42d68567f7128c22987deb697b15788b91c15403db3efa2d904', NULL, NULL, NULL, NULL, '2025-08-16 07:43:42', '2025-08-16 07:43:42', '2025-08-16 07:43:42', NULL),
+(1044, 'Dattt', 'datto2442004@gmail.com', '$2y$10$XAH6CUym.naVcZzY8dTI.On4otGWbFBj7xd0Km7zGqEcMvg3BQm/.', 'Nguyen Dattt', '0375099213', NULL, NULL, 'customer', 'active', '2025-08-16 07:45:14', NULL, '2025-08-16 13:52:21', NULL, NULL, NULL, '2025-08-16 07:44:39', '2025-08-16 13:52:21', '2025-08-16 07:44:39', NULL),
+(1045, 'Dattoo', 'datdat@gmail.com', '$2y$10$lnkL7hoSJydZqgdU1gCIzOUhyFwSoZW5N1pcMeEiPkneLzBQv7vE2', 'Nguyen Dattoo', '0375099213', NULL, NULL, 'customer', 'active', '2025-08-14 07:49:23', '80c1915933117311a905957a2d8e423a9d8548bc44b09a927bc9e13938cb1d82', '2025-08-24 07:49:31', NULL, NULL, NULL, '2025-08-24 07:48:20', '2025-08-24 07:49:31', '2025-08-24 07:48:20', NULL),
+(1046, 'Hieu 123', '22211tt2029@mail.tdc.edu.vn', '$2y$10$sH/ezdZCHLHRiRJgT64qQe4oK.zcMVB8SbK84MCS3jKRTLJfFKfwO', 'Do Ngoc Hieu 123', '0384946972', NULL, NULL, 'customer', 'active', '2025-08-26 03:12:07', NULL, '2025-08-26 03:12:23', NULL, NULL, NULL, '2025-08-26 03:09:00', '2025-08-26 03:12:23', '2025-08-26 03:09:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -1034,7 +952,7 @@ CREATE TABLE IF NOT EXISTS `user_coupons` (
   KEY `user_coupons_coupon_id_foreign` (`coupon_id`),
   KEY `user_coupons_order_id_foreign` (`order_id`),
   KEY `user_coupons_status_index` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `user_coupons`
@@ -1044,7 +962,8 @@ INSERT INTO `user_coupons` (`id`, `user_id`, `coupon_id`, `order_id`, `saved_at`
 (32, 1018, 7, 100106, '2025-08-13 11:04:23', '2025-08-13 13:31:56', 'used'),
 (33, 1018, 6, 100104, '2025-08-13 11:04:24', '2025-08-13 11:28:24', 'used'),
 (34, 1018, 1, 100105, '2025-08-13 13:02:24', '2025-08-13 13:02:45', 'used'),
-(40, 1018, 2, NULL, '2025-08-13 14:07:43', NULL, 'expired');
+(40, 1018, 2, NULL, '2025-08-13 14:07:43', NULL, 'expired'),
+(41, 1018, 4, NULL, '2025-08-25 02:59:34', NULL, 'saved');
 
 -- --------------------------------------------------------
 

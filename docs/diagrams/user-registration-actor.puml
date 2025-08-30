@@ -1,0 +1,20 @@
+@startuml User Registration Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title User Registration - Actors
+
+actor "Customer" as Customer
+usecase "Đăng ký tài khoản" as UC_Register
+
+Customer --> UC_Register
+
+note right of UC_Register
+  - Nhập thông tin cá nhân
+  - Xác thực email
+  - Tạo tài khoản mới
+  - Đăng nhập tự động
+end note
+
+@enduml

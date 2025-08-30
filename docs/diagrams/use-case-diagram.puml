@@ -1,0 +1,95 @@
+@startuml 5S-Fashion-Use-Case-Diagram
+
+' Set vertical layout
+left to right direction
+' Set vertical orientation for actors
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+' Title
+title "Biểu đồ Use Case - Hệ thống 5S Fashion"
+
+' Actors
+actor "Người dùng\n(Customer)" as Customer #lightblue
+actor "Quản trị viên\n(Admin)" as Admin #lightgreen
+actor "Nhà cung cấp\n(Vendor)" as Vendor #lightyellow
+
+rectangle "Hệ thống 5S Fashion" #FEFEFE {
+  ' Group use cases for better organization
+  together {
+  ' Customer Use Cases
+  usecase "Đăng ký/Đăng nhập" as UC1
+  usecase "Xem và tìm kiếm sản phẩm" as UC2
+  usecase "Quản lý giỏ hàng" as UC3
+  usecase "Thanh toán đơn hàng" as UC4
+  usecase "Quản lý danh sách yêu thích" as UC5
+  usecase "Cập nhật thông tin cá nhân" as UC6
+  usecase "Đánh giá sản phẩm" as UC7
+
+  ' Admin Use Cases
+  usecase "Quản lý sản phẩm" as UC8
+  usecase "Quản lý danh mục" as UC9
+  usecase "Quản lý người dùng" as UC10
+  usecase "Quản lý đơn hàng" as UC11
+  usecase "Xem thống kê và báo cáo" as UC12
+  usecase "Quản lý khuyến mãi" as UC13
+  usecase "Sao lưu và phục hồi dữ liệu" as UC14
+
+  ' Vendor Use Cases
+  usecase "Quản lý sản phẩm riêng" as UC15
+  usecase "Quản lý tồn kho" as UC16
+  usecase "Xử lý đơn hàng" as UC17
+  usecase "Xem báo cáo doanh số" as UC18
+  usecase "Quản lý khuyến mãi sản phẩm" as UC19
+
+  ' Extended Use Cases
+  usecase "Đăng nhập bằng Google" as UC1_1
+  usecase "Thêm sản phẩm vào giỏ hàng" as UC3_1
+  usecase "Cập nhật số lượng sản phẩm" as UC3_2
+  usecase "Xóa sản phẩm khỏi giỏ hàng" as UC3_3
+  usecase "Áp dụng mã giảm giá" as UC4_1
+
+  ' Customer Relationships
+  Customer --> UC1
+  Customer --> UC2
+  Customer --> UC3
+  Customer --> UC4
+  Customer --> UC5
+  Customer --> UC6
+  Customer --> UC7
+
+  ' Admin Relationships
+  Admin --> UC8
+  Admin --> UC9
+  Admin --> UC10
+  Admin --> UC11
+  Admin --> UC12
+  Admin --> UC13
+  Admin --> UC14
+
+  ' Vendor Relationships
+  Vendor --> UC15
+  Vendor --> UC16
+  Vendor --> UC17
+  Vendor --> UC18
+  Vendor --> UC19
+
+  ' Extended Relationships
+  UC1 <.. UC1_1 : <<extends>>
+  UC3 <.. UC3_1 : <<extends>>
+  UC3 <.. UC3_2 : <<extends>>
+  UC3 <.. UC3_3 : <<extends>>
+  UC4 <.. UC4_1 : <<extends>>
+
+  ' Relationships between admin and vendor for product management
+  UC8 ..> UC15 : <<includes>>
+
+  ' Relationships for order management
+  UC11 ..> UC17 : <<includes>>
+
+  ' Common use cases between actors
+  Vendor --> UC11
+  }
+}
+
+@enduml

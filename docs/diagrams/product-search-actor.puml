@@ -1,0 +1,23 @@
+@startuml Product Search Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Product Search - Actors
+
+actor "Customer" as Customer
+actor "Guest" as Guest
+usecase "Tìm kiếm sản phẩm" as UC_Search
+
+Customer --> UC_Search
+Guest --> UC_Search
+
+note right of UC_Search
+  - Tìm kiếm theo từ khóa
+  - Lọc theo danh mục
+  - Lọc theo giá
+  - Sắp xếp kết quả
+  - Xem chi tiết sản phẩm
+end note
+
+@enduml

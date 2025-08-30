@@ -1,0 +1,21 @@
+@startuml Product Management Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title Product Management - Actors
+
+actor "Admin" as Admin
+usecase "Quản lý sản phẩm" as UC_ProductMgmt
+
+Admin --> UC_ProductMgmt
+
+note right of UC_ProductMgmt
+  - Thêm sản phẩm mới
+  - Cập nhật thông tin sản phẩm
+  - Quản lý biến thể
+  - Quản lý kho hàng
+  - Xóa/vô hiệu hóa sản phẩm
+end note
+
+@enduml

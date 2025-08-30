@@ -1,0 +1,101 @@
+@startuml Add to Cart - Class Diagram
+
+!define ENTITY class
+!define CONTROLLER class
+
+package "Controllers" {
+    CONTROLLER CartController {
+        +add()
+        +update()
+        +remove()
+        +clear()
+        +getTotal()
+    }
+
+    CONTROLLER AjaxController {
+        +addToCart()
+        +updateCartQuantity()
+        +removeFromCart()
+    }
+}
+
+package "Models" {
+    ENTITY Cart {
+        -id: int
+        -userId: int
+        -productId: int
+        -variantId: int
+        -quantity: int
+        -price: decimal
+        -createdAt: datetime
+        +addItem()
+        +updateQuantity()
+        +removeItem()
+        +getByUser()
+        +getTotal()
+        +clearCart()
+    }
+
+    ENTITY Product {
+        -id: int
+        -name: string
+        -price: decimal
+        -status: string
+        +getById()
+        +checkAvailability()
+        +getPrice()
+    }
+
+    ENTITY ProductVariant {
+        -id: int
+        -productId: int
+        -sku: string
+        -price: decimal
+        -stock: int
+        -attributes: json
+        +getById()
+        +checkStock()
+        +updateStock()
+        +getPrice()
+    }
+
+    ENTITY User {
+        -id: int
+        -username: string
+        -email: string
+        +getById()
+        +isLoggedIn()
+    }
+}
+
+package "Helpers" {
+    ENTITY Validator {
+        +validateQuantity()
+        +validateProductId()
+        +validateVariantId()
+    }
+}
+
+package "Core" {
+    ENTITY Database {
+        +connect()
+        +query()
+        +prepare()
+        +beginTransaction()
+        +commit()
+        +rollback()
+    }
+}
+
+CartController --> Cart : manages
+CartController --> Product : validates
+CartController --> ProductVariant : checks stock
+CartController --> Validator : validates input
+AjaxController --> Cart : AJAX operations
+Cart --> Database : persists to
+Cart --> User : belongs to
+Cart --> Product : references
+Cart --> ProductVariant : references
+ProductVariant --> Product : belongs to
+
+@enduml

@@ -1,0 +1,253 @@
+@startuml Analytics and Reports - Sequence Diagram
+
+actor Admin
+participant "AuthMiddleware" as Auth
+participant "AnalyticsController" as Controller
+participant "Order Model" as OrderModel
+participant "Product Model" as ProductModel
+participant "User Model" as UserModel
+participant "OrderDetail Model" as DetailModel
+participant "ReportGenerator" as Report
+participant "ChartHelper" as Chart
+participant "Database" as DB
+
+== View Dashboard ==
+Admin -> Controller: GET /admin/analytics
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> OrderModel: getRevenueByPeriod('last_30_days')
+activate OrderModel
+OrderModel -> DB: SELECT DATE(created_at) as date, SUM(total_amount) as revenue FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND payment_status = 'paid' GROUP BY DATE(created_at)
+activate DB
+DB --> OrderModel: daily revenue data
+deactivate DB
+OrderModel --> Controller: revenue statistics
+deactivate OrderModel
+
+Controller -> OrderModel: getOrderStatistics()
+activate OrderModel
+OrderModel -> DB: SELECT COUNT(*) as total_orders, COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_orders, COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_orders FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+activate DB
+DB --> OrderModel: order statistics
+deactivate DB
+OrderModel --> Controller: order metrics
+deactivate OrderModel
+
+Controller -> ProductModel: getBestSellers(10)
+activate ProductModel
+ProductModel -> DB: SELECT p.id, p.name, SUM(od.quantity) as total_sold FROM products p JOIN order_details od ON p.id = od.product_id JOIN orders o ON od.order_id = o.id WHERE o.payment_status = 'paid' GROUP BY p.id ORDER BY total_sold DESC LIMIT 10
+activate DB
+DB --> ProductModel: best selling products
+deactivate DB
+ProductModel --> Controller: top products
+deactivate ProductModel
+
+Controller -> UserModel: getNewCustomers('last_30_days')
+activate UserModel
+UserModel -> DB: SELECT COUNT(*) as new_customers FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+activate DB
+DB --> UserModel: new customer count
+deactivate DB
+UserModel --> Controller: customer metrics
+deactivate UserModel
+
+Controller -> Chart: generateDashboardCharts(revenueData, orderData)
+activate Chart
+Chart -> Chart: formatChartData()
+Chart --> Controller: chart configurations
+deactivate Chart
+
+Controller --> Admin: HTTP 200 - Analytics dashboard with charts and metrics
+deactivate Controller
+
+== Generate Sales Report ==
+Admin -> Controller: GET /admin/analytics/sales-report?period=last_month&format=view
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> OrderModel: getSalesData('last_month')
+activate OrderModel
+OrderModel -> DB: SELECT DATE(o.created_at) as date, COUNT(o.id) as order_count, SUM(o.total_amount) as revenue, AVG(o.total_amount) as avg_order_value FROM orders o WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH) AND o.payment_status = 'paid' GROUP BY DATE(o.created_at) ORDER BY date
+activate DB
+DB --> OrderModel: sales data by date
+deactivate DB
+OrderModel --> Controller: daily sales statistics
+deactivate OrderModel
+
+Controller -> DetailModel: getCategorySales('last_month')
+activate DetailModel
+DetailModel -> DB: SELECT c.name as category, SUM(od.quantity * od.price) as revenue, SUM(od.quantity) as items_sold FROM order_details od JOIN products p ON od.product_id = p.id JOIN categories c ON p.category_id = c.id JOIN orders o ON od.order_id = o.id WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH) AND o.payment_status = 'paid' GROUP BY c.id ORDER BY revenue DESC
+activate DB
+DB --> DetailModel: category sales data
+deactivate DB
+DetailModel --> Controller: sales by category
+deactivate DetailModel
+
+Controller -> OrderModel: getTopCustomers('last_month', 10)
+activate OrderModel
+OrderModel -> DB: SELECT u.id, u.username, u.email, COUNT(o.id) as order_count, SUM(o.total_amount) as total_spent FROM users u JOIN orders o ON u.id = o.user_id WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH) AND o.payment_status = 'paid' GROUP BY u.id ORDER BY total_spent DESC LIMIT 10
+activate DB
+DB --> OrderModel: top customers data
+deactivate DB
+OrderModel --> Controller: customer rankings
+deactivate OrderModel
+
+Controller -> Chart: generateSalesCharts(salesData, categoryData)
+activate Chart
+Chart -> Chart: createLineChart(salesData)
+Chart -> Chart: createPieChart(categoryData)
+Chart --> Controller: sales charts
+deactivate Chart
+
+Controller --> Admin: HTTP 200 - Sales report page with charts and tables
+deactivate Controller
+
+== Export Report to PDF ==
+Admin -> Controller: GET /admin/analytics/sales-report?period=last_month&format=pdf
+activate Controller
+
+Controller -> Auth: checkReportPermission()
+activate Auth
+Auth --> Controller: permission granted
+deactivate Auth
+
+Controller -> OrderModel: getSalesData('last_month')
+activate OrderModel
+OrderModel -> DB: [Same query as above]
+activate DB
+DB --> OrderModel: sales data
+deactivate DB
+OrderModel --> Controller: report data
+deactivate OrderModel
+
+Controller -> DetailModel: getCategorySales('last_month')
+activate DetailModel
+DetailModel -> DB: [Same query as above]
+activate DB
+DB --> DetailModel: category data
+deactivate DB
+DetailModel --> Controller: category sales
+deactivate DetailModel
+
+Controller -> Report: generatePDF('sales_report', reportData)
+activate Report
+Report -> Report: setTemplate('sales_report_template')
+Report -> Report: addCharts(salesCharts)
+Report -> Report: addTables(salesData, categoryData)
+Report -> Report: addSummary(totals, averages)
+Report -> Report: createPDF()
+Report --> Controller: PDF file path
+deactivate Report
+
+Controller --> Admin: HTTP 200 - PDF download response
+deactivate Controller
+
+== Product Performance Report ==
+Admin -> Controller: GET /admin/analytics/products?period=last_quarter
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+Controller -> ProductModel: getProductPerformance('last_quarter')
+activate ProductModel
+ProductModel -> DB: SELECT p.id, p.name, p.price, SUM(od.quantity) as units_sold, SUM(od.quantity * od.price) as revenue, AVG(r.rating) as avg_rating, COUNT(r.id) as review_count FROM products p LEFT JOIN order_details od ON p.id = od.product_id LEFT JOIN orders o ON od.order_id = o.id LEFT JOIN reviews r ON p.id = r.product_id WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH) OR o.created_at IS NULL GROUP BY p.id ORDER BY revenue DESC
+activate DB
+DB --> ProductModel: product performance data
+deactivate DB
+ProductModel --> Controller: product metrics
+deactivate ProductModel
+
+Controller -> ProductModel: getLowStockProducts()
+activate ProductModel
+ProductModel -> DB: SELECT p.id, p.name, pv.stock, p.price FROM products p JOIN product_variants pv ON p.id = pv.product_id WHERE pv.stock <= 10 ORDER BY pv.stock ASC
+activate DB
+DB --> ProductModel: low stock products
+deactivate DB
+ProductModel --> Controller: inventory alerts
+deactivate ProductModel
+
+Controller -> ProductModel: getViewStatistics('last_quarter')
+activate ProductModel
+ProductModel -> DB: SELECT p.id, p.name, p.view_count FROM products p ORDER BY p.view_count DESC LIMIT 20
+activate DB
+DB --> ProductModel: most viewed products
+deactivate DB
+ProductModel --> Controller: view statistics
+deactivate ProductModel
+
+Controller --> Admin: HTTP 200 - Product performance report
+deactivate Controller
+
+== Custom Report ==
+Admin -> Controller: POST /admin/analytics/custom (date_from, date_to, metrics[], categories[], export_format)
+activate Controller
+
+Controller -> Auth: checkAdmin()
+activate Auth
+Auth --> Controller: admin verified
+deactivate Auth
+
+alt metrics includes 'sales'
+    Controller -> OrderModel: getSalesData(dateFrom, dateTo)
+    activate OrderModel
+    OrderModel -> DB: SELECT * FROM orders WHERE created_at BETWEEN ? AND ? AND payment_status = 'paid'
+    activate DB
+    DB --> OrderModel: filtered sales data
+    deactivate DB
+    OrderModel --> Controller: sales metrics
+    deactivate OrderModel
+end
+
+alt metrics includes 'products'
+    Controller -> ProductModel: getProductData(dateFrom, dateTo, categories)
+    activate ProductModel
+    ProductModel -> DB: SELECT p.*, SUM(od.quantity) as sales FROM products p LEFT JOIN order_details od ON p.id = od.product_id LEFT JOIN orders o ON od.order_id = o.id WHERE (o.created_at BETWEEN ? AND ? OR o.created_at IS NULL) AND p.category_id IN (?) GROUP BY p.id
+    activate DB
+    DB --> ProductModel: product metrics
+    deactivate DB
+    ProductModel --> Controller: product data
+    deactivate ProductModel
+end
+
+alt metrics includes 'customers'
+    Controller -> UserModel: getCustomerData(dateFrom, dateTo)
+    activate UserModel
+    UserModel -> DB: SELECT u.*, COUNT(o.id) as order_count, SUM(o.total_amount) as total_spent FROM users u LEFT JOIN orders o ON u.id = o.user_id WHERE o.created_at BETWEEN ? AND ? GROUP BY u.id
+    activate DB
+    DB --> UserModel: customer metrics
+    deactivate DB
+    UserModel --> Controller: customer data
+    deactivate UserModel
+end
+
+alt export_format is 'pdf'
+    Controller -> Report: generateCustomPDF(reportData, metrics)
+    activate Report
+    Report --> Controller: PDF file
+    deactivate Report
+    Controller --> Admin: HTTP 200 - PDF download
+else export_format is 'excel'
+    Controller -> Report: generateExcel(reportData, metrics)
+    activate Report
+    Report --> Controller: Excel file
+    deactivate Report
+    Controller --> Admin: HTTP 200 - Excel download
+else export_format is 'view'
+    Controller --> Admin: HTTP 200 - Custom report view
+end
+
+deactivate Controller
+
+@enduml

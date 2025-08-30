@@ -1,0 +1,22 @@
+@startuml User Login Actor
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title User Login - Actors
+
+actor "Customer" as Customer
+actor "Admin" as Admin
+usecase "Đăng nhập" as UC_Login
+
+Customer --> UC_Login
+Admin --> UC_Login
+
+note right of UC_Login
+  - Xác thực thông tin đăng nhập
+  - Phân quyền theo role
+  - Tạo session/token
+  - Chuyển hướng tương ứng
+end note
+
+@enduml

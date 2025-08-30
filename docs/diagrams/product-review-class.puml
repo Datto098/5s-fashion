@@ -1,0 +1,129 @@
+@startuml Product Review - Class Diagram
+
+!define ENTITY class
+!define CONTROLLER class
+!define SERVICE class
+
+package "Controllers" {
+    CONTROLLER ReviewController {
+        +create()
+        +store()
+        +like()
+        +unlike()
+        +report()
+    }
+}
+
+package "Admin Controllers" {
+    CONTROLLER ReviewsController {
+        +index()
+        +moderate()
+        +approve()
+        +reject()
+        +delete()
+    }
+}
+
+package "Models" {
+    ENTITY Review {
+        -id: int
+        -productId: int
+        -userId: int
+        -orderId: int
+        -rating: int
+        -comment: text
+        -images: json
+        -status: string
+        -likes: int
+        -createdAt: datetime
+        +create()
+        +getByProduct()
+        +getByUser()
+        +updateStatus()
+        +incrementLikes()
+        +getAverageRating()
+    }
+
+    ENTITY Product {
+        -id: int
+        -name: string
+        -averageRating: decimal
+        -reviewCount: int
+        +getById()
+        +updateRating()
+        +getReviews()
+    }
+
+    ENTITY User {
+        -id: int
+        -username: string
+        -email: string
+        +getById()
+        +canReview()
+    }
+
+    ENTITY Order {
+        -id: int
+        -userId: int
+        -status: string
+        +getById()
+        +isDelivered()
+        +hasProduct()
+    }
+
+    ENTITY OrderDetail {
+        -id: int
+        -orderId: int
+        -productId: int
+        +getByOrderAndProduct()
+    }
+
+    ENTITY ReviewLike {
+        -id: int
+        -reviewId: int
+        -userId: int
+        -createdAt: datetime
+        +create()
+        +delete()
+        +exists()
+    }
+}
+
+package "Helpers" {
+    SERVICE FileUploader {
+        +upload()
+        +resize()
+        +validate()
+        +delete()
+    }
+
+    SERVICE Validator {
+        +validateRating()
+        +validateComment()
+        +validateImages()
+        +checkPurchase()
+    }
+}
+
+package "Core" {
+    SERVICE Database {
+        +beginTransaction()
+        +commit()
+        +rollback()
+        +query()
+    }
+}
+
+ReviewController --> Review : creates
+ReviewController --> Product : updates rating
+ReviewController --> Order : validates purchase
+ReviewController --> FileUploader : uploads images
+ReviewController --> Validator : validates
+ReviewsController --> Review : moderates
+Review --> Product : belongs to
+Review --> User : belongs to
+Review --> Order : references
+Review --> ReviewLike : has many
+ReviewLike --> User : belongs to
+
+@enduml
