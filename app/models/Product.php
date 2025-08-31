@@ -535,8 +535,6 @@ class Product extends BaseModel
             // Get variants
             $product['variants'] = $this->getVariants($id);
 
-            // Get images
-            $product['images'] = $this->getImages($id);
 
             // Get attributes (commented out as getAttributes method may not exist)
             // $product['attributes'] = $this->getAttributes($id);
@@ -593,17 +591,6 @@ class Product extends BaseModel
         return $variants;
     }
 
-    /**
-     * Get product images
-     */
-    public function getImages($productId)
-    {
-        $sql = "SELECT * FROM product_images
-                WHERE product_id = ?
-                ORDER BY id ASC";
-
-        return $this->db->fetchAll($sql, [$productId]);
-    }
 
     /**
      * Get product attributes
@@ -891,7 +878,8 @@ class Product extends BaseModel
                         SUM(pv.stock_quantity) as total_stock_quantity
                      FROM {$this->table} p
                      INNER JOIN product_variants pv ON p.id = pv.product_id
-                     WHERE pv.stock_quantity > 0";        $stockStats = $this->db->fetchOne($stockSql);
+                     WHERE pv.stock_quantity > 0";
+        $stockStats = $this->db->fetchOne($stockSql);
 
         return array_merge($stats ?: [], $stockStats ?: []);
     }

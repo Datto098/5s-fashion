@@ -102,7 +102,7 @@ function getImageUrl($imagePath)
 <div class="modal" id="addVariantModal" tabindex="-1" style="display: none;">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="POST" action="/zone-fashion/admin/products/<?= $product['id'] ?>/variants/create">
+            <form id="addVariantForm" method="POST" action="/zone-fashion/admin/products/<?= $product['id'] ?>/variants/create">
                 <div class="modal-header">
                     <h5 class="modal-title">Thêm biến thể mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -220,6 +220,35 @@ function getImageUrl($imagePath)
                     <button type="submit" class="btn btn-success" id="createVariantBtn">Tạo biến thể</button>
                 </div>
             </form>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var form = document.getElementById('addVariantForm');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        var formData = new FormData(form);
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.reload();
+                            } else {
+                                alert(data.message || 'Có lỗi xảy ra khi tạo biến thể');
+                            }
+                        })
+                        .catch(() => {
+                            alert('Có lỗi xảy ra khi gửi request');
+                        });
+                    });
+                }
+            });
+            </script>
         </div>
     </div>
 </div>
