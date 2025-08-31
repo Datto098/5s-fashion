@@ -113,9 +113,11 @@ class ProductsController extends BaseController
         }
     }
 
-    public function store()
+    public function store(): void
     {
+        error_log('Vao ProductsController@store: ' . json_encode($_POST));
         try {
+                file_put_contents(__DIR__ . '/../../logs/debug.log', date('Y-m-d H:i:s') . ' Vao ProductsController@store: ' . json_encode($_POST) . "\n", FILE_APPEND);
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                 header('Location: /zone-fashion/admin/products');
                 exit;

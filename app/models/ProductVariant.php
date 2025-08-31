@@ -177,6 +177,27 @@ class ProductVariant extends BaseModel
                 $transactionStarted = true;
             }
 
+            // --- Bổ sung kiểm tra trùng tổ hợp thuộc tính ---
+            if (!empty($attributeValueIds)) {
+                // Lấy tất cả các variant của sản phẩm
+                $sql = "SELECT pv.id
+                        FROM product_variants pv
+                        JOIN product_variant_attributes pva ON pv.id = pva.variant_id
+                        WHERE pv.product_id = :product_id";
+                $variants = $db->fetchAll($sql, ['product_id' => $variantData['product_id']]);
+
+                foreach ($variants as $variant) {
+                    // Lấy các attribute_value_id của biến thể này
+                    $sql = "SELECT attribute_value_id FROM product_variant_attributes WHERE variant_id = :variant_id";
+                    $existingAttrIds = $db->fetchAll($sql, ['variant_id' => $variant['id']]);
+                    $existingAttrIds = array_map(function($row) { return (int)$row['attribute_value_id']; }, $existingAttrIds);
+                    // Nếu tổ hợp thuộc tính đã tồn tại thì báo lỗi
+                    if (count($existingAttrIds) === count($attributeValueIds) && empty(array_diff($existingAttrIds, $attributeValueIds)) && empty(array_diff($attributeValueIds, $existingAttrIds))) {
+                        throw new Exception('Tổ hợp thuộc tính này đã tồn tại cho biến thể khác');
+                    }
+                }
+            }
+
             // Create variant
             $sql = "INSERT INTO product_variants (product_id, sku, variant_name, price, sale_price, cost_price, stock_quantity, weight, dimensions, image, status, sort_order)
                     VALUES (:product_id, :sku, :variant_name, :price, :sale_price, :cost_price, :stock_quantity, :weight, :dimensions, :image, :status, :sort_order)";
