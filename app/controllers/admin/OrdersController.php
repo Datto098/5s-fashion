@@ -280,8 +280,23 @@ class OrdersController extends BaseController
                     try {
                         $this->orderModel->reinstateOrder($orderId);
                     } catch (Exception $e) {
-                        // Reinstate failed; prevent status change and report error
-                        throw new Exception('Không thể khôi phục trạng thái kho: ' . $e->getMessage());
+                        // Tạo thông báo người dùng thân thiện
+                        $errorMsg = 'Không thể khôi phục trạng thái kho: ' . $e->getMessage();
+                        $userMsg = 'Không thể trừ sản phẩm khỏi kho do số lượng không đủ. Bạn vẫn có thể cập nhật trạng thái đơn hàng, nhưng hãy kiểm tra lại tồn kho của sản phẩm.';
+                        
+                        if ($isAjax) {
+                            header('Content-Type: application/json');
+                            echo json_encode([
+                                'success' => false,
+                                'message' => $userMsg,
+                                'technical_error' => $errorMsg
+                            ]);
+                            exit;
+                        }
+                        
+                        // Append warning to adminNotes instead of throwing exception
+                        $adminNotes = ($adminNotes ? $adminNotes . "\n" : '') . 
+                            "[CẢNH BÁO] Không thể trừ sản phẩm khỏi kho: " . $e->getMessage();
                     }
                 }
 

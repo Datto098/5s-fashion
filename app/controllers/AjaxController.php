@@ -728,6 +728,32 @@ class AjaxController extends Controller
     /**
      * Get product details for quick view modal
      */
+    /**
+     * Check if a product has stock available
+     * Properly handles both variant and non-variant products
+     * 
+     * @param array $product The product data
+     * @param array $variants The product variants (if any)
+     * @return bool True if the product is in stock, false otherwise
+     */
+    private function checkProductStock($product, $variants = [])
+    {
+        // First check if product status is explicitly set to out of stock
+        if ($product['status'] === 'out_of_stock') {
+            return false;
+        }
+        
+        // For products with variants, check if any variant has stock
+        if (!empty($variants)) {
+            return count(array_filter($variants, function($v) {
+                return isset($v['stock_quantity']) && (int)$v['stock_quantity'] > 0;
+            })) > 0;
+        } 
+        
+        // For simple products, check the product's stock quantity
+        return isset($product['stock_quantity']) && (int)$product['stock_quantity'] > 0;
+    }
+
     public function getProductForQuickView()
     {
         try {
@@ -773,13 +799,22 @@ class AjaxController extends Controller
             foreach ($variants as &$v) {
                 $vid = $v['id'] ?? null;
                 $available = null;
+                $originalStock = isset($v['stock_quantity']) ? (int)$v['stock_quantity'] : (isset($v['stock']) ? (int)$v['stock'] : 0);
+                
                 if ($vid) {
                     $available = $cartModel->getAvailableStock($productId, $vid, null);
+                    
+                    // Debug logging for variant stock calculation
+                    error_log("Variant ID: $vid - Raw stock: $originalStock, Available after cart check: " . 
+                             ($available !== null ? $available : 'null'));
                 }
+                
                 // If we couldn't resolve available, fall back to provided stock_quantity
                 if (!is_numeric($available)) {
-                    $available = isset($v['stock_quantity']) ? (int)$v['stock_quantity'] : (isset($v['stock']) ? (int)$v['stock'] : 0);
+                    $available = $originalStock;
+                    error_log("Using fallback stock for variant $vid: $available");
                 }
+                
                 // Expose both fields for compatibility
                 $v['available_stock'] = (int)$available;
                 $v['stock_quantity'] = (int)$available; // overwrite so client uses available value
@@ -789,6 +824,19 @@ class AjaxController extends Controller
             // $images = $this->product->getImages($productId) ?? [];
 
             // Format response
+            // Get available stock for the main product (accounting for quantities in other carts)
+            $availableProductStock = $cartModel->getAvailableStock($productId, null, null);
+            
+            // Debug logging to understand stock calculation
+            error_log("Product ID: $productId - Raw stock: " . ($product['stock_quantity'] ?? 'null') . 
+                      ", Available after cart check: " . ($availableProductStock ?? 'null'));
+            
+            // If we couldn't resolve available, fall back to provided stock_quantity
+            if (!is_numeric($availableProductStock)) {
+                $availableProductStock = (int)($product['stock_quantity'] ?? 0);
+                error_log("Using fallback stock quantity: $availableProductStock");
+            }
+            
             $response = [
                 'id' => $product['id'],
                 'name' => $product['name'],
@@ -798,7 +846,9 @@ class AjaxController extends Controller
                 'featured_image' => $product['featured_image'],
                 'image' => $product['featured_image'],
                 'variants' => $variants,
-                'in_stock' => $product['status'] !== 'out_of_stock',
+                'in_stock' => $this->checkProductStock($product, $variants),
+                'stock_quantity' => (int)$availableProductStock, // Use available stock instead of raw stock
+                'available_stock' => (int)$availableProductStock, // Also include available_stock field for consistency
                 'category_name' => $product['category_name'] ?? null,
                 'rating' => $product['rating'] ?? 0,
                 'review_count' => $product['review_count'] ?? 0

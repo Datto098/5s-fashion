@@ -154,24 +154,7 @@
             }
             ?>
 
-            <?php if ($hasStock): ?>
-                <?php if ($lowStock): ?>
-                    <small class="text-warning">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        Chỉ còn <?= $totalStock ?> sản phẩm
-                    </small>
-                <?php else: ?>
-                    <small class="text-success">
-                        <i class="fas fa-check-circle me-1"></i>
-                        Còn hàng
-                    </small>
-                <?php endif; ?>
-            <?php else: ?>
-                <small class="text-danger">
-                    <i class="fas fa-times-circle me-1"></i>
-                    Hết hàng
-                </small>
-            <?php endif; ?>
+          
         </div>
     </div>
 </div>

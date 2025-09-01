@@ -1,4 +1,55 @@
 <script>
+// Helper function to update availability display based on stock in cart
+function updateStockDisplay(stockElement, totalStock, cartQty) {
+    if (!stockElement) return;
+    
+    // Ensure inputs are numbers
+    totalStock = parseInt(totalStock || 0, 10);
+    cartQty = parseInt(cartQty || 0, 10);
+    
+    // Prevent negative cart quantities
+    if (isNaN(cartQty) || cartQty < 0) cartQty = 0;
+    
+    // Calculate available stock
+    const availableStock = Math.max(0, totalStock - cartQty);
+    const statusText = stockElement.querySelector('.product-availability-status');
+    
+    // Update data attribute
+    stockElement.setAttribute('data-stock', totalStock);
+    stockElement.setAttribute('data-available', availableStock);
+    
+    console.log(`UpdateStockDisplay: totalStock=${totalStock}, cartQty=${cartQty}, availableStock=${availableStock}, timestamp=${new Date().toISOString()}`);
+    
+    // Update visual display
+    if (availableStock <= 0) {
+        stockElement.classList.add('out-of-stock');
+        stockElement.classList.remove('in-stock');
+        if (statusText) {
+            statusText.textContent = 'Hết hàng (đã trong giỏ hàng)';
+            statusText.classList.add('text-danger');
+            statusText.classList.remove('text-success');
+        }
+    } else if (cartQty > 0) {
+        stockElement.classList.add('in-stock');
+        stockElement.classList.remove('out-of-stock');
+        if (statusText) {
+            statusText.textContent = `Còn hàng (Còn ${availableStock} sản phẩm, ${cartQty} đã trong giỏ)`;
+            statusText.classList.add('text-success');
+            statusText.classList.remove('text-danger');
+        }
+    } else {
+        stockElement.classList.add('in-stock');
+        stockElement.classList.remove('out-of-stock');
+        if (statusText) {
+            statusText.textContent = `Còn hàng (Còn ${availableStock} sản phẩm)`;
+            statusText.classList.add('text-success');
+            statusText.classList.remove('text-danger');
+        }
+    }
+    
+    return availableStock;
+}
+
 // Đảm bảo disable nút tăng khi đạt max, disable input khi hết hàng
 document.addEventListener('DOMContentLoaded', function() {
     function syncQuantityInputState() {
@@ -75,6 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const sizeOptionsDiv = document.getElementById('sizeOptionsDetail');
             function renderSizeOptions(selectedColor) {
                 const variants = sizesByColor[selectedColor] || [];
+                const productId = <?= (int)$product['id'] ?>;
                 let html = '';
                 let firstAvailableIdx = -1;
                 let sizeSet = [];
@@ -82,14 +134,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     const size = variant.size || 'One Size';
                     if (sizeSet.includes(size)) return;
                     sizeSet.push(size);
-                    const outOfStock = !((variant.stock_quantity || variant.stock) > 0);
+                    
+                    // Get total stock from API
+                    const totalStock = variant.stock_quantity || variant.stock || 0;
+                    
+                    // Get current user's cart quantity for this variant
+                    const cartQty = getCurrentCartQuantity(productId, variant.id);
+                    
+                    // Calculate available stock after considering cart
+                    const availableStock = Math.max(0, totalStock - cartQty);
+                    
+                    // A variant is out of stock if available stock is 0
+                    const outOfStock = availableStock <= 0;
+                    
                     if (!outOfStock && firstAvailableIdx === -1) firstAvailableIdx = idx;
+                    
                     html += `<button type="button" class="btn btn-outline-secondary size-option${(!outOfStock && firstAvailableIdx === idx) ? ' active' : ''}"
                         data-variant-id="${variant.id}"
                         data-size="${size}"
                         data-price="${variant.price}"
                         data-color="${variant.color}"
-                        data-stock="${variant.stock_quantity || variant.stock || 0}"
+                        data-stock="${totalStock}"
+                        data-available-stock="${availableStock}"
                         ${outOfStock ? 'disabled style=\'opacity:0.5;cursor:not-allowed;\'' : ''}>
                         ${size}
                     </button> `;
@@ -172,6 +238,61 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!variantId) return null;
         const variants = await fetchQuickviewVariants(productId);
         return variants.find(v => String(v.id) === String(variantId)) || null;
+    }
+    
+    // Function to get current quantity in cart for a specific product/variant
+    function getCurrentCartQuantity(productId, variantId = null) {
+        let cartQuantity = 0;
+        
+        try {
+            // Try to get cart from localStorage (more reliable than cookies)
+            const cartStr = localStorage.getItem('cart');
+            if (!cartStr) return 0;
+            
+            // Add additional safety checks
+            if (cartStr === 'undefined' || cartStr === 'null') return 0;
+            
+            // Try to parse JSON with extra error handling
+            let cart;
+            try {
+                cart = JSON.parse(cartStr);
+            } catch (parseError) {
+                console.error('Error parsing cart JSON:', parseError, 'Cart string:', cartStr);
+                return 0;
+            }
+            
+            if (!cart || !Array.isArray(cart.items)) {
+                console.warn('Cart structure invalid:', cart);
+                return 0;
+            }
+            
+            // For non-variant products
+            if (!variantId) {
+                const item = cart.items.find(item => 
+                    item && 
+                    String(item.product_id) === String(productId) && 
+                    (!item.variant_id || item.variant_id === null || item.variant_id === 'null')
+                );
+                if (item) cartQuantity = parseInt(item.quantity || 0, 10);
+            } 
+            // For variant products
+            else {
+                const item = cart.items.find(item => 
+                    item &&
+                    String(item.product_id) === String(productId) && 
+                    String(item.variant_id) === String(variantId)
+                );
+                if (item) cartQuantity = parseInt(item.quantity || 0, 10);
+            }
+            
+            // Ensure we return a number
+            return isNaN(cartQuantity) ? 0 : cartQuantity;
+            
+        } catch (e) {
+            console.error('Error getting cart quantity:', e);
+        }
+        
+        return cartQuantity;
     }
 // Hàm đồng bộ variant đang chọn giống modal
 function updateSelectedVariantDetail() {
@@ -263,43 +384,142 @@ function updateSelectedVariantDetail() {
 }
 // Update add-to-cart button on detail page based on selected variant availability
 function updateDetailAddToCartState() {
+    console.log('Running updateDetailAddToCartState...');
+    
     const btn = document.querySelector('.action-buttons .btn-add-cart') ||
                 document.querySelector('.action-buttons button[onclick^="handleAddToCart("]') ||
+                document.querySelector('.action-buttons button[onclick^="buyNow("]') ||
                 document.querySelector('.action-buttons button');
-    if (!btn) return;
-
-    // Prefer DOM data-stock values when available (more authoritative for rendered buttons)
+    if (!btn) {
+        console.log('No add-to-cart button found');
+        return;
+    }
+    
+    const productId = <?= (int)$product['id'] ?>;
+    
+    // Check if this product has color and size options
+    const hasVariantOptions = document.querySelector('.color-options') || document.getElementById('sizeOptionsDetail');
+    
+    // For products without variants, check if the product is available
+    if (!hasVariantOptions) {
+        // Check if there's product availability info in the DOM
+        const stockElement = document.querySelector('.product-availability');
+        if (!stockElement) return;
+        
+        // Get total stock and current cart quantity
+        const stockAttr = stockElement.getAttribute('data-stock');
+        const stock = parseInt(stockAttr || '0', 10);
+        const cartQty = getCurrentCartQuantity(productId);
+        const availableStock = Math.max(0, stock - cartQty);
+        
+        // Update stock display with cart quantity considered
+        updateStockDisplay(stockElement, stock, cartQty);
+        
+        // Update button state based on available stock
+        if (availableStock <= 0) {
+            btn.classList.add('out-of-stock');
+            btn.disabled = true;
+            btn.setAttribute('aria-disabled', 'true');
+            btn.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
+        } else {
+            btn.classList.remove('out-of-stock');
+            btn.disabled = false;
+            btn.removeAttribute('aria-disabled');
+            btn.innerHTML = '<i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ';
+            // Make sure the onclick is correct
+            btn.setAttribute('onclick', `buyNow(${productId})`);
+        }
+        
+        // Update quantity input state
+        const qtyInput = document.getElementById('quantity');
+        if (qtyInput) {
+            qtyInput.disabled = availableStock <= 0;
+            qtyInput.max = availableStock;
+            if (+qtyInput.value > availableStock) qtyInput.value = availableStock;
+        }
+        
+        return;
+    }
+    
+    // For products with variants
     let available = false;
 
     try {
         // 1) Check active size button first
         const activeSize = document.querySelector('.size-option.active');
         if (activeSize) {
-            const stockAttr = activeSize.getAttribute('data-stock');
-            const stock = parseInt(stockAttr || '0', 10);
-            if (stock > 0) available = true;
+            // First try to use data-available-stock if available (already calculated)
+            const availableStockAttr = activeSize.getAttribute('data-available-stock');
+            if (availableStockAttr !== null) {
+                const availableStock = parseInt(availableStockAttr || '0', 10);
+                const variantId = activeSize.getAttribute('data-variant-id');
+                
+                console.log(`Variant check using data-available-stock: availableStock=${availableStock}, variantId=${variantId}`);
+                
+                if (availableStock > 0) available = true;
+            } else {
+                // Fallback to calculating it
+                const stockAttr = activeSize.getAttribute('data-stock');
+                const stock = parseInt(stockAttr || '0', 10);
+                const variantId = activeSize.getAttribute('data-variant-id');
+                const cartQty = variantId ? getCurrentCartQuantity(productId, variantId) : 0;
+                const availableStock = Math.max(0, stock - cartQty);
+                
+                console.log(`Variant check calculating: stock=${stock}, cartQty=${cartQty}, availableStock=${availableStock}, variantId=${variantId}`);
+                
+                if (availableStock > 0) available = true;
+            }
         }
-        // 2) If still unknown, check any size-option with data-stock > 0
+        // 2) If still unknown, check any size-option with data-available-stock > 0
         if (!available) {
-            const any = Array.from(document.querySelectorAll('.size-option')).some(el => parseInt(el.getAttribute('data-stock') || '0', 10) > 0);
-            if (any) available = true;
+            const availableSizes = Array.from(document.querySelectorAll('.size-option')).filter(el => {
+                // First check data-available-stock if it exists
+                const availableStockAttr = el.getAttribute('data-available-stock');
+                if (availableStockAttr !== null) {
+                    return parseInt(availableStockAttr || '0', 10) > 0;
+                }
+                
+                // Otherwise calculate it
+                const stock = parseInt(el.getAttribute('data-stock') || '0', 10);
+                const variantId = el.getAttribute('data-variant-id');
+                const cartQty = variantId ? getCurrentCartQuantity(productId, variantId) : 0;
+                const availableStock = Math.max(0, stock - cartQty);
+                return availableStock > 0;
+            });
+            if (availableSizes.length > 0) available = true;
         }
     } catch(e) {
-        // swallow and fallback
+        console.error('Error checking variant availability:', e);
     }
 
     // 3) Fallback to selectedVariantDetail if DOM didn't indicate availability
     if (!available && window.selectedVariantDetail) {
-        available = (window.selectedVariantDetail.maxQty || 0) > 0;
+        const variantId = window.selectedVariantDetail.id; // Fix: changed from variantId to id
+        const stock = window.selectedVariantDetail.maxQty || 0;
+        const cartQty = variantId ? getCurrentCartQuantity(productId, variantId) : 0;
+        const availableStock = Math.max(0, stock - cartQty);
+        available = availableStock > 0;
+        
+        console.log('Fallback variant check:', {
+            variantId,
+            stock,
+            cartQty,
+            availableStock,
+            available
+        });
     }
 
+    console.log('Variant product availability check result:', { available });
+    
     if (!available) {
         // keep .btn-add-cart but add out-of-stock modifier so layout is preserved
+        console.log('Setting button to out of stock');
         btn.classList.add('out-of-stock');
         btn.disabled = true;
         btn.setAttribute('aria-disabled', 'true');
         btn.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
     } else {
+        console.log('Setting button to in stock');
         btn.classList.remove('out-of-stock');
         btn.disabled = false;
         btn.removeAttribute('aria-disabled');
@@ -478,9 +698,42 @@ ob_start();
                         <div class="product-sku">
                             Mã sản phẩm: <span class="sku-code"><?= $product['sku'] ?? 'N/A' ?></span>
                         </div>
-                        <div class="product-availability">
-                            Trạng thái: <span class="text-success">Còn hàng</span>
+                        <?php
+                        // Get stock info for non-variant product
+                        // Note: Unlike variant products, the product's stock_quantity from API doesn't account for other carts
+                        // So we need to rely on our JavaScript to handle the cart quantities
+                        $stockQuantity = isset($product['stock_quantity']) ? (int)$product['stock_quantity'] : (isset($product['stock']) ? (int)$product['stock'] : 0);
+                        
+                        // We won't get cart quantity here in PHP, as we'll handle it in JavaScript to ensure consistency
+                        // JS will read from localStorage which is more reliable than PHP cookies
+                        $inCartCount = 0;
+                        
+                        // We'll update this display via JavaScript to account for items already in the cart
+                        ?>
+                        <div hidden class="product-availability in-stock "
+                             data-stock="<?= $stockQuantity ?>" 
+                             data-available="<?= $stockQuantity ?>">
+                            Trạng thái: 
+                            <span class="product-availability-status text-success">
+                                <!-- Initial text will be replaced by JavaScript -->
+                                <span class="loading-indicator"><i class="fas fa-spinner fa-spin me-1"></i> Đang kiểm tra tồn kho...</span>
+                            </span>
                         </div>
+                        
+                        <script>
+                        // Immediately update stock display on page load
+                        document.addEventListener('DOMContentLoaded', function() {
+                            setTimeout(function() {
+                                const stockElement = document.querySelector('.product-availability');
+                                if (stockElement) {
+                                    const productId = <?= (int)$product['id'] ?>;
+                                    const stockCount = parseInt(stockElement.getAttribute('data-stock') || '0', 10);
+                                    const cartQty = getCurrentCartQuantity(productId);
+                                    updateStockDisplay(stockElement, stockCount, cartQty);
+                                }
+                            }, 50); // Short timeout to ensure getCurrentCartQuantity is defined
+                        });
+                        </script>
                     </div>
 
                     <!-- Product Price -->
@@ -587,7 +840,9 @@ ob_start();
                                 <button type="button" class="quantity-btn btn-minus">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <input type="number" class="quantity-input" value="1" min="1" max="99" id="quantity">
+                                <input type="number" class="quantity-input" value="1" min="1" 
+                                       max="<?= isset($availableStock) ? $availableStock : (isset($product['stock_quantity']) && $product['stock_quantity'] > 0 ? (int)$product['stock_quantity'] : 99) ?>" 
+                                       id="quantity" <?= isset($isOutOfStock) && $isOutOfStock ? 'disabled' : '' ?>>
                                 <button type="button" class="quantity-btn btn-plus">
                                     <i class="fas fa-plus"></i>
                                 </button>
@@ -595,9 +850,15 @@ ob_start();
                         </div>
 
                         <div class="action-buttons">
+                            <?php if (isset($isOutOfStock) && $isOutOfStock): ?>
+                            <button class="btn btn-add-cart out-of-stock" disabled aria-disabled="true">
+                                <i class="fas fa-times me-2"></i>Hết Hàng
+                            </button>
+                            <?php else: ?>
                             <button class="btn btn-add-cart" onclick="buyNow(<?= $product['id'] ?>)">
                                 <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ
                             </button>
+                            <?php endif; ?>
                             <!-- <button class="btn btn-buy-now" onclick="buyNow(<?= $product['id'] ?>)">
                                 <i class="fas fa-bolt me-2"></i>Mua ngay
                             </button> -->
@@ -1053,6 +1314,63 @@ ob_start();
         }
         const quantity = window.currentQuantity || parseInt(quantityInput ? quantityInput.value : 1) || 1;
 
+        // Check if this product has color and size options
+        const hasVariantOptions = document.querySelector('.color-options') || document.getElementById('sizeOptionsDetail');
+        
+        // For products without variants, directly add to cart
+        if (!hasVariantOptions) {
+            // Check stock for non-variant product
+            const stockElement = document.querySelector('.product-availability');
+            if (!stockElement) {
+                alert('Không thể xác định trạng thái tồn kho!');
+                return;
+            }
+            
+            const stockCount = parseInt(stockElement.getAttribute('data-stock') || '0', 10);
+            
+            if (stockCount <= 0) {
+                alert('Sản phẩm hiện đã hết hàng.');
+                return;
+            }
+            
+            // Get current quantity in cart
+            const currentCartQty = getCurrentCartQuantity(productId);
+            const availableStock = Math.max(0, stockCount - currentCartQty);
+            
+            // Update stock display to be safe
+            try { updateStockDisplay(stockElement, stockCount, currentCartQty); } catch(e) {}
+            
+            // If the cart already has all the available stock
+            if (currentCartQty >= stockCount) {
+                alert(`Bạn đã thêm tối đa ${stockCount} sản phẩm này vào giỏ hàng!`);
+                return;
+            }
+            
+            // Validate quantity against remaining stock
+            if (quantity > availableStock) {
+                alert(`Chỉ còn ${availableStock} sản phẩm trong kho! `);
+                return;
+            }
+            
+            // Add to cart
+            if (window.cartManager && typeof window.cartManager.addToCart === 'function') {
+                // Create a variant-like object with stock info
+                const simpleProduct = {
+                    id: null,
+                    stock: stockCount,
+                    stock_quantity: stockCount,
+                    maxQty: availableStock
+                };
+                
+                window.cartManager.addToCart(productId, quantity, simpleProduct);
+                return;
+            } else {
+                addToCartFallback(productId, quantity);
+                return;
+            }
+        }
+        
+        // For variant products
         // Prefer authoritative selected variant id
         const selected = window.selectedVariantDetail;
         if (!selected || !selected.id) {
@@ -1091,8 +1409,16 @@ ob_start();
 
         if (window.cartManager && typeof window.cartManager.addToCart === 'function') {
             window.cartManager.addToCart(productId, quantity, fullVariant);
+            // Dispatch custom event to update the page
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent('cartUpdated'));
+            }, 100);
         } else {
             addToCartFallback(productId, quantity);
+            // Dispatch custom event to update the page
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent('cartUpdated'));
+            }, 100);
         }
     }
 
@@ -1157,6 +1483,10 @@ ob_start();
             .then(data => {
                 if (data.success) {
                     alert('Đã thêm sản phẩm vào giỏ hàng!');
+                    // Dispatch custom event to update the page
+                    setTimeout(() => {
+                        document.dispatchEvent(new CustomEvent('cartUpdated'));
+                    }, 100);
                 } else {
                     alert(data.message || 'Có lỗi xảy ra');
                 }
@@ -1171,6 +1501,62 @@ ob_start();
         const quantity = parseInt(document.getElementById('quantity').value) || 1;
         const selected = window.selectedVariantDetail;
 
+        // Check if this product has color and size options
+        const hasVariantOptions = document.querySelector('.color-options') || document.getElementById('sizeOptionsDetail');
+        
+        // For products without variants, directly add to cart
+        if (!hasVariantOptions) {
+            // Check stock for non-variant product
+            const stockElement = document.querySelector('.product-availability');
+            if (!stockElement) {
+                alert('Không thể xác định trạng thái tồn kho!');
+                return;
+            }
+            
+            const stockCount = parseInt(stockElement.getAttribute('data-stock') || '0', 10);
+            console.log("Buy now - Non-variant product:", { productId, stockCount, quantity });
+            
+            if (stockCount <= 0) {
+                alert('Sản phẩm hiện đã hết hàng.');
+                return;
+            }
+            
+            // Get current quantity in cart
+            const currentCartQty = getCurrentCartQuantity(productId);
+            console.log("Current cart quantity:", currentCartQty, "Cart data:", localStorage.getItem('cart'));
+            const availableStock = Math.max(0, stockCount - currentCartQty);
+            
+            // If the cart already has all the available stock
+            if (currentCartQty >= stockCount) {
+                alert(`Bạn đã thêm tối đa ${stockCount} sản phẩm này vào giỏ hàng!`);
+                return;
+            }
+            
+            // Validate quantity against remaining stock
+            if (quantity > availableStock) {
+                alert(`Chỉ còn ${availableStock} sản phẩm trong kho! (${currentCartQty} đã trong giỏ hàng)`);
+                return;
+            }
+            
+            // Add to cart
+            if (window.cartManager && typeof window.cartManager.addToCart === 'function') {
+                // Create a variant-like object with stock info
+                const simpleProduct = {
+                    id: null,
+                    stock: stockCount,
+                    stock_quantity: stockCount,
+                    maxQty: availableStock
+                };
+                
+                window.cartManager.addToCart(productId, quantity, simpleProduct);
+                return;
+            } else {
+                addToCartFallback(productId, quantity);
+                return;
+            }
+        }
+        
+        // For variant products
         if (!selected || !selected.id) {
             alert('Vui lòng chọn màu sắc và kích thước!');
             return;
@@ -1274,6 +1660,135 @@ ob_start();
 
     // Handle review form submission
     document.addEventListener('DOMContentLoaded', function() {
+        // Function to update stock display for current product
+        function updateCurrentProductStock() {
+            try {
+                const hasVariantOptions = document.querySelector('.color-options') || document.getElementById('sizeOptionsDetail');
+                if (!hasVariantOptions) {
+                    const stockElement = document.querySelector('.product-availability');
+                    const productId = <?= (int)$product['id'] ?>;
+                    
+                    if (stockElement) {
+                        // Make sure localStorage is fully loaded before checking cart
+                        // Get the latest stock count - first try to fetch from API for most updated data
+                        // This will help ensure we're using the correct stock quantity that accounts for other users' carts
+                        let stockCount = parseInt(stockElement.getAttribute('data-stock') || '0', 10);
+                        
+                        // For non-variant products, let's also try to get the latest stock via API
+                        // This ensures we account for items in other carts (reserved quantities)
+                        fetch(`/zone-fashion/ajax/product/quickview?id=${productId}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                try {
+                                    // Get updated stock from API response
+                                    const apiProduct = data.product || data || {};
+                                    if (apiProduct && typeof apiProduct.stock_quantity === 'number') {
+                                        stockCount = parseInt(apiProduct.stock_quantity, 10);
+                                        
+                                        // Update the data-stock attribute to ensure future calculations use this value
+                                        stockElement.setAttribute('data-stock', stockCount);
+                                        
+                                        console.log(`Updated stock count from API: ${stockCount}`);
+                                        
+                                        // Re-update the display with the new stock count
+                                        const cartQty = getCurrentCartQuantity(productId);
+                                        updateStockDisplay(stockElement, stockCount, cartQty);
+                                    }
+                                } catch (e) {
+                                    console.error('Error fetching stock from API:', e);
+                                }
+                            })
+                            .catch(e => {
+                                console.error('Error fetching product data:', e);
+                            });
+                        
+                        // Ensure cart is properly loaded from localStorage
+                        let cartQty = 0;
+                        const cartStr = localStorage.getItem('cart');
+                        if (cartStr) {
+                            try {
+                                const cart = JSON.parse(cartStr);
+                                if (cart && Array.isArray(cart.items)) {
+                                    const item = cart.items.find(item => 
+                                        String(item.product_id) === String(productId) && 
+                                        (!item.variant_id || item.variant_id === null || item.variant_id === 'null')
+                                    );
+                                    if (item) cartQty = item.quantity || 0;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing cart data:', e);
+                            }
+                        }
+                        
+                        console.log("Updating non-variant product:", { 
+                            productId, 
+                            stockCount, 
+                            cartQty,
+                            cart: cartStr
+                        });
+                        
+                        // Update stock display
+                        updateStockDisplay(stockElement, stockCount, cartQty);
+                        
+                        // Update button state
+                        updateDetailAddToCartState();
+                    }
+                } else {
+                    // For variant products, update via variant detail
+                    updateSelectedVariantDetail();
+                }
+            } catch(e) {
+                console.error("Error updating stock display:", e);
+            }
+        }
+        
+        // Initialize stock display right away and again after a delay to ensure it's done
+        // First attempt - immediate execution
+        try { 
+            updateCurrentProductStock(); 
+        } catch(e) {
+            console.error("First stock update attempt failed:", e);
+        }
+        
+        // Second attempt - with delay to ensure all resources are loaded
+        setTimeout(updateCurrentProductStock, 100);
+        
+        // Third attempt - with longer delay as final fallback
+        setTimeout(updateCurrentProductStock, 400);
+        
+        // Make the function available globally for other scripts to call
+        window.updateCurrentProductStock = updateCurrentProductStock; // Longer delay for localStorage to be fully available
+        
+        // Add listener for cart changes from other tabs/windows
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'cart') {
+                console.log('Storage event - cart changed, updating display');
+                setTimeout(updateCurrentProductStock, 100);
+            }
+        });
+        
+        // Add custom event listener for cart updates on same page
+        document.addEventListener('cartUpdated', function() {
+            console.log('Custom event - cart updated, updating display');
+            setTimeout(updateCurrentProductStock, 100);
+        });
+        
+        // Add event listeners for user interactions that might happen before our other code runs
+        document.addEventListener('click', function() {
+            // Update stock display on any click, but only once
+            if (!window._stockDisplayUpdatedOnInteraction) {
+                window._stockDisplayUpdatedOnInteraction = true;
+                console.log('User interaction - updating stock display');
+                setTimeout(updateCurrentProductStock, 50);
+            }
+        }, { once: true });
+        
+        // Listen for the window load event (all resources loaded) as a final fallback
+        window.addEventListener('load', function() {
+            console.log('Window fully loaded - final stock display update');
+            setTimeout(updateCurrentProductStock, 50);
+        });
+        
         const reviewForm = document.getElementById('submitReviewForm');
         if (reviewForm) {
             reviewForm.addEventListener('submit', function(e) {
@@ -1357,6 +1872,44 @@ ob_start();
                     alert('Có lỗi xảy ra, vui lòng thử lại');
                 });
         }
+        
+        // Set up cart change monitoring to update stock display
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'cart') {
+                console.log("Cart changed in storage, updating display");
+                // Update stock display when cart changes
+                setTimeout(() => {
+                    try { 
+                        updateDetailAddToCartState();
+                    } catch(err) { 
+                        console.error("Error updating cart display:", err); 
+                    }
+                }, 100);
+            }
+        });
+        
+        // Also monitor cart changes from current window
+        const originalSetItem = localStorage.setItem;
+        localStorage.setItem = function(key, value) {
+            const event = new Event('itemInserted');
+            event.key = key;
+            event.value = value;
+            document.dispatchEvent(event);
+            originalSetItem.apply(this, arguments);
+        };
+        
+        document.addEventListener("itemInserted", function(e) {
+            if (e.key === 'cart') {
+                console.log("Cart updated in current window");
+                setTimeout(() => {
+                    try { 
+                        updateDetailAddToCartState();
+                    } catch(err) { 
+                        console.error("Error updating cart display on local change:", err); 
+                    }
+                }, 100);
+            }
+        });
     });
 </script>
 
