@@ -464,6 +464,21 @@ class Order extends BaseModel
             }
 
             $currentStatus = $currentOrder['status'];
+            
+            // If changing from cancelled to an active status, handle inventory reinstatement
+            if ($currentStatus === 'cancelled' && $status !== 'cancelled') {
+                error_log("[ORDER STATUS] Transitioning from cancelled to {$status} for order {$id}");
+                try {
+                    // This call will decrement stock or reserve quantities as needed
+                    $this->reinstateOrder($id);
+                } catch (Exception $e) {
+                    // Nếu không đủ tồn kho, vẫn cho phép chuyển trạng thái nhưng ghi log lỗi
+                    error_log("[ORDER STATUS WARNING] Could not reinstate inventory for order {$id}: " . $e->getMessage());
+                    // Add a note to the order about the inventory issue
+                    $adminNotes = ($adminNotes ? $adminNotes . "\n" : '') . 
+                        "CHÚ Ý: Đơn hàng được khôi phục nhưng không thể trừ tồn kho do số lượng không đủ. Vui lòng kiểm tra tồn kho sản phẩm.";
+                }
+            }
 
             // Update order status
             $sql = "UPDATE {$this->table} SET status = ?, updated_at = NOW()";
@@ -579,38 +594,34 @@ class Order extends BaseModel
                     // Debug log current variant state
                     error_log(sprintf("[ORDER CANCEL] Item order_id=%s, variant_id=%s, product_id=%s, qty=%s, current_stock=%s, current_reserved=%s", $id, $item['variant_id'], $item['product_id'], $item['quantity'], $row['stock_quantity'] ?? 'NULL', $row['reserved_quantity'] ?? 'NULL'));
 
-                    if ($isPrepaid) {
-                        // If stock was decremented at order creation, increment it back
-                        $sql = "UPDATE product_variants SET stock_quantity = stock_quantity + ?, updated_at = NOW() WHERE id = ? AND product_id = ?";
-                        $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
-
-                        error_log(sprintf("[ORDER CANCEL] Restored stock for variant_id=%s by %s", $item['variant_id'], $item['quantity']));
-                    } else {
-                        // COD/unpaid: release reserved quantity
+                    // Always restore the stock quantity regardless of payment method
+                    // This ensures products return to inventory when an admin cancels an order
+                    $sql = "UPDATE product_variants SET stock_quantity = stock_quantity + ?, updated_at = NOW() WHERE id = ? AND product_id = ?";
+                    $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
+                    
+                    error_log(sprintf("[ORDER CANCEL] Restored stock for variant_id=%s by %s", $item['variant_id'], $item['quantity']));
+                    
+                    // If order was COD/unpaid, also release any reserved quantity
+                    if (!$isPrepaid) {
                         $sql = "UPDATE product_variants SET reserved_quantity = GREATEST(0, reserved_quantity - ?), updated_at = NOW() WHERE id = ? AND product_id = ?";
                         $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
-
+                        
                         error_log(sprintf("[ORDER CANCEL] Released reserved for variant_id=%s by %s", $item['variant_id'], $item['quantity']));
                     }
-
                 } else {
                     // Product-level handling
-                    // Some configurations use product-level stock (STOCK_MODE === 'product') where stock was decremented on create
-                    if ($isPrepaid || (defined('STOCK_MODE') && STOCK_MODE === 'product')) {
-                        // Lock product row
-                        $select = $pdo->prepare("SELECT stock_quantity FROM products WHERE id = ? FOR UPDATE");
-                        $select->execute([$item['product_id']]);
-                        $row = $select->fetch(PDO::FETCH_ASSOC);
+                    // Always restore stock for products when canceling orders
+                    // Lock product row
+                    $select = $pdo->prepare("SELECT stock_quantity FROM products WHERE id = ? FOR UPDATE");
+                    $select->execute([$item['product_id']]);
+                    $row = $select->fetch(PDO::FETCH_ASSOC);
 
-                        error_log(sprintf("[ORDER CANCEL] Item order_id=%s, product_id=%s, qty=%s, current_stock=%s", $id, $item['product_id'], $item['quantity'], $row['stock_quantity'] ?? 'NULL'));
+                    error_log(sprintf("[ORDER CANCEL] Item order_id=%s, product_id=%s, qty=%s, current_stock=%s", $id, $item['product_id'], $item['quantity'], $row['stock_quantity'] ?? 'NULL'));
 
-                        $sql = "UPDATE products SET stock_quantity = stock_quantity + ?, updated_at = NOW() WHERE id = ?";
-                        $this->db->execute($sql, [$item['quantity'], $item['product_id']]);
+                    $sql = "UPDATE products SET stock_quantity = stock_quantity + ?, updated_at = NOW() WHERE id = ?";
+                    $this->db->execute($sql, [$item['quantity'], $item['product_id']]);
 
-                        error_log(sprintf("[ORDER CANCEL] Restored stock for product_id=%s by %s", $item['product_id'], $item['quantity']));
-                    } else {
-                        // No reserved quantity for product-level items when unpaid; nothing to do
-                    }
+                    error_log(sprintf("[ORDER CANCEL] Restored stock for product_id=%s by %s", $item['product_id'], $item['quantity']));
                 }
             }
 
@@ -681,42 +692,53 @@ class Order extends BaseModel
                     $stockQty = isset($row['stock_quantity']) ? (int)$row['stock_quantity'] : 0;
                     $reservedQty = isset($row['reserved_quantity']) ? (int)$row['reserved_quantity'] : 0;
 
-                    if ($isPrepaid) {
-                        // Need to decrement stock again - ensure enough stock exists
-                        if ($stockQty >= $item['quantity']) {
-                            $sql = "UPDATE product_variants SET stock_quantity = GREATEST(0, stock_quantity - ?), updated_at = NOW() WHERE id = ? AND product_id = ?";
-                            $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
-                        } else {
-                            throw new Exception('Insufficient stock to reinstate prepaid item for variant ' . $item['variant_id']);
-                        }
+                    // Always decrement stock quantity when reinstating (opposite of cancelOrder)
+                    if ($stockQty >= $item['quantity']) {
+                        $sql = "UPDATE product_variants SET stock_quantity = GREATEST(0, stock_quantity - ?), updated_at = NOW() WHERE id = ? AND product_id = ?";
+                        $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
+                        error_log(sprintf("[ORDER REINSTATE] Deducted stock for variant_id=%s by %s", $item['variant_id'], $item['quantity']));
                     } else {
-                        // Unpaid/COD: re-reserve if available
+                        // Trừ số lượng có sẵn trong kho (nếu có) và ghi log
+                        if ($stockQty > 0) {
+                            $sql = "UPDATE product_variants SET stock_quantity = 0, updated_at = NOW() WHERE id = ? AND product_id = ?";
+                            $this->db->execute($sql, [$item['variant_id'], $item['product_id']]);
+                            error_log(sprintf("[ORDER REINSTATE WARNING] Partially deducted stock for variant_id=%s by %s (available: %s)", $item['variant_id'], $item['quantity'], $stockQty));
+                        }
+                        throw new Exception('Insufficient stock to reinstate item for variant ' . $item['variant_id']);
+                    }
+                    
+                    // Additionally, for unpaid orders (COD), re-reserve the quantity
+                    if (!$isPrepaid) {
                         $available = $stockQty - $reservedQty;
                         if ($available >= $item['quantity']) {
                             $sql = "UPDATE product_variants SET reserved_quantity = reserved_quantity + ?, updated_at = NOW() WHERE id = ? AND product_id = ?";
                             $this->db->execute($sql, [$item['quantity'], $item['variant_id'], $item['product_id']]);
+                            error_log(sprintf("[ORDER REINSTATE] Reserved quantity for variant_id=%s by %s", $item['variant_id'], $item['quantity']));
                         } else {
                             throw new Exception('Insufficient available stock to re-reserve variant ' . $item['variant_id']);
                         }
                     }
 
                 } else {
-                    // Product-level handling
-                    if ($isPrepaid || (defined('STOCK_MODE') && STOCK_MODE === 'product')) {
-                        // Decrement product stock (ensure enough exists)
-                        $select = $pdo->prepare("SELECT stock_quantity FROM products WHERE id = ? FOR UPDATE");
-                        $select->execute([$item['product_id']]);
-                        $row = $select->fetch(PDO::FETCH_ASSOC);
-                        $stockQty = isset($row['stock_quantity']) ? (int)$row['stock_quantity'] : 0;
+                    // Product-level handling - always decrement stock regardless of payment method
+                    // Decrement product stock (ensure enough exists)
+                    $select = $pdo->prepare("SELECT stock_quantity FROM products WHERE id = ? FOR UPDATE");
+                    $select->execute([$item['product_id']]);
+                    $row = $select->fetch(PDO::FETCH_ASSOC);
+                    $stockQty = isset($row['stock_quantity']) ? (int)$row['stock_quantity'] : 0;
 
-                        if ($stockQty >= $item['quantity']) {
-                            $sql = "UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - ?), updated_at = NOW() WHERE id = ?";
-                            $this->db->execute($sql, [$item['quantity'], $item['product_id']]);
-                        } else {
-                            throw new Exception('Insufficient product stock to reinstate item for product ' . $item['product_id']);
-                        }
+                    if ($stockQty >= $item['quantity']) {
+                        $sql = "UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - ?), updated_at = NOW() WHERE id = ?";
+                        $this->db->execute($sql, [$item['quantity'], $item['product_id']]);
+                        error_log(sprintf("[ORDER REINSTATE] Deducted stock for product_id=%s by %s", $item['product_id'], $item['quantity']));
                     } else {
-                        // No reserved handling for product-level unpaid orders - nothing to do
+                        // Trừ số lượng có sẵn trong kho (nếu có) và ghi log
+                        if ($stockQty > 0) {
+                            $sql = "UPDATE products SET stock_quantity = 0, updated_at = NOW() WHERE id = ?";
+                            $this->db->execute($sql, [$item['product_id']]);
+                            error_log(sprintf("[ORDER REINSTATE WARNING] Partially deducted stock for product_id=%s by %s (available: %s)", $item['product_id'], $item['quantity'], $stockQty));
+                        }
+                        throw new Exception('Insufficient product stock to reinstate item for product ' . $item['product_id']);
                     }
                 }
             }
