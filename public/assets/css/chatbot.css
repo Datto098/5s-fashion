@@ -1,3 +1,130 @@
+/* Order Info Block (Chatbot) */
+.order-info-block {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    font-size: 15px;
+}
+
+.order-info-block h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #007bff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.order-info-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 8px 0;
+}
+
+.order-info-list li {
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 15px;
+}
+
+.order-info-list a {
+    color: #e83e8c;
+    text-decoration: underline;
+}
+
+.order-info-note {
+    font-size: 13px;
+    color: #888;
+    margin-top: 6px;
+}
+
+/* Chatbot Welcome Block */
+.chatbot-welcome {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 18px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    font-size: 15px;
+}
+
+.chatbot-welcome-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.chatbot-icon {
+    font-size: 22px;
+    color: #e83e8c;
+    background: #fff;
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.chatbot-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #333;
+}
+
+.chatbot-welcome-body p {
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+.chatbot-feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+}
+
+.chatbot-feature-list li {
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+}
+
+.chatbot-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.chatbot-btn {
+    background: #e83e8c;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.chatbot-btn:hover {
+    background: #c8236c;
+}
+
+.chatbot-note {
+    font-size: 13px;
+    color: #888;
+    margin-top: 6px;
+}
+
 /**
  * zone Fashion Chatbot Styles
  * Modern chatbot interface with smooth animations
@@ -77,8 +204,8 @@
     bottom: 100px;
     left: 30px;
     /* Đã đổi từ left thành right */
-    width: 350px;
-    height: 500px;
+    width: 400px;
+    height: 70vh;
     background: white;
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -355,9 +482,11 @@
 
 .product-card-mini .product-price {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: start;
     gap: 6px;
     margin-bottom: 6px;
+    justify-content: center;
 }
 
 .product-card-mini .current-price {

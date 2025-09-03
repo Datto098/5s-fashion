@@ -91,7 +91,7 @@ class FSFashionChatbot {
 			});
 		}
 
-		// Quick action buttons - xử lý cả click vào button và icon trong button
+		// Quick action buttons - chỉ xử lý click vào button
 		document.querySelectorAll('.quick-action').forEach((btn) => {
 			btn.addEventListener('click', (e) => {
 				const message = btn.dataset.message;
@@ -99,18 +99,6 @@ class FSFashionChatbot {
 					this.sendUserMessage(message);
 				}
 			});
-
-			// Xử lý click vào icon trong button
-			const icon = btn.querySelector('i');
-			if (icon) {
-				icon.addEventListener('click', (e) => {
-					e.stopPropagation(); // Ngăn event bubbling
-					const message = btn.dataset.message;
-					if (message) {
-						this.sendUserMessage(message);
-					}
-				});
-			}
 		});
 	}
 
