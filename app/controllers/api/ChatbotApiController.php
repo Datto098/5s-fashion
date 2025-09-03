@@ -200,7 +200,7 @@ class ChatbotApiController extends ApiController
 
         // Default response
         $response = [
-            'message' => 'Cảm ơn bạn đã liên hệ! Tôi có thể giúp bạn:\n• Xem sản phẩm bán chạy, giảm giá, mới\n• Thông tin về đơn hàng, thanh toán\n• Hướng dẫn đổi trả, vận chuyển\n• Tư vấn size\n• Tìm kiếm sản phẩm theo từ khóa\n\nBạn có thể hỏi cụ thể hơn nhé!',
+            'message' => "Xin chào! Rất vui được hỗ trợ bạn. Tôi là trợ lý ảo của zone Fashion. Bạn cần tôi giúp gì hôm nay?",
             'type' => 'default',
             'context' => $context
         ];
@@ -290,7 +290,15 @@ class ChatbotApiController extends ApiController
             '/(?:đơn hàng|order|kiểm tra.*đơn|theo dõi.*đơn|tình trạng.*đơn|trạng thái.*đơn|đơn.*mua|mua hàng|đặt hàng)/i' => [
                 'type' => 'order_info',
                 'intent' => 'order_information',
-                'response' => 'Để kiểm tra đơn hàng, bạn có thể:\n• Đăng nhập vào tài khoản và xem phần "Đơn hàng của tôi"\n• Liên hệ hotline: 1900-xxxx với mã đơn hàng\n• Email: support@zonefashion.com'
+                'response' => "<div class='order-info-block'>
+                    <h4><i class='fas fa-box'></i> Hướng dẫn kiểm tra đơn hàng</h4>
+                    <ul class='order-info-list'>
+                        <li><i class='fas fa-user-circle'></i> <b>Đăng nhập</b> vào tài khoản và xem mục <b>Đơn hàng của tôi</b></li>
+                        <li><i class='fas fa-phone'></i> Gọi <b>Hotline: <a href='tel:1900xxxx'>1900-xxxx</a></b> (cung cấp mã đơn hàng)</li>
+                        <li><i class='fas fa-envelope'></i> Email: <a href='mailto:support@zonefashion.com'>support@zonefashion.com</a></li>
+                    </ul>
+                    <p class='order-info-note'>Nếu cần hỗ trợ nhanh, hãy gửi mã đơn hàng qua hotline hoặc email trên!</p>
+                </div>"
             ],
 
             // Thanh toán - extended patterns
@@ -412,8 +420,59 @@ class ChatbotApiController extends ApiController
             }
         }
 
-        // If no pattern matched, return default response
+        // If no pattern matched, call Gemini API for general questions
+        $geminiAnswer = $this->askGemini($message);
+        if ($geminiAnswer) {
+            $response = [
+                'message' => $geminiAnswer,
+                'type' => 'gemini_answer',
+                'context' => $context
+            ];
+        }
         return $response;
+    }
+
+    /**
+     * Ask Gemini API for general knowledge questions
+     */
+    private function askGemini($question)
+    {
+        $apiKey = 'AIzaSyBAxOjWMaDhompXWC-VD0QQCfYthnVdRPM'; // Replace with your actual Gemini API key
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey;
+        $postData = [
+            'contents' => [
+                [
+                    'parts' => [
+                        ['text' => $question]
+                    ]
+                ]
+            ]
+        ];
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+    curl_setopt($ch, CURLOPT_CAINFO, __DIR__ . '/../../certs/cacert.pem');
+    $result = curl_exec($ch);
+        $curlError = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $logMsg = date('Y-m-d H:i:s') . " [Gemini API Debug]\n";
+        $logMsg .= "Request: " . json_encode($postData, JSON_UNESCAPED_UNICODE) . "\n";
+        $logMsg .= "HTTP Code: $httpCode\n";
+        $logMsg .= "cURL Error: $curlError\n";
+        $logMsg .= "Response: $result\n";
+        file_put_contents(__DIR__ . '/../../logs/debug.log', $logMsg, FILE_APPEND);
+        if ($result) {
+            $data = json_decode($result, true);
+            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                return nl2br(htmlspecialchars($data['candidates'][0]['content']['parts'][0]['text']));
+            }
+        }
+        return null;
     }
 
     /**
