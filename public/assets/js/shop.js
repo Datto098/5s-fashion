@@ -43,6 +43,13 @@ class ShopManager {
 			});
 		}
 
+		// Filter group toggles
+		document.querySelectorAll('.filter-title').forEach(title => {
+			title.addEventListener('click', (e) => {
+				this.toggleFilterGroup(e.currentTarget);
+			});
+		});
+
 		// Filter checkboxes
 		document
 			.querySelectorAll('input[name="category"], input[name="brand"]')
@@ -217,6 +224,28 @@ class ShopManager {
 		}, 500);
 	}
 
+	toggleFilterGroup(titleElement) {
+		const filterGroup = titleElement.closest('.filter-group');
+		const content = filterGroup.querySelector('.filter-content');
+		const toggleIcon = titleElement.querySelector('.toggle-icon');
+		
+		if (!content || !toggleIcon) return;
+		
+		const isCollapsed = content.classList.contains('collapsed');
+		
+		if (isCollapsed) {
+			// Expand
+			content.classList.remove('collapsed');
+			toggleIcon.classList.remove('collapsed');
+			toggleIcon.style.transform = 'rotate(0deg)';
+		} else {
+			// Collapse
+			content.classList.add('collapsed');
+			toggleIcon.classList.add('collapsed');
+			toggleIcon.style.transform = 'rotate(-90deg)';
+		}
+	}
+
 	updatePriceDisplay() {
 		const slider = document.getElementById('price-slider');
 		const maxPrice = slider ? slider.value : 5000000;
@@ -290,22 +319,13 @@ class ShopManager {
 				}
 			}
 
-			// Category filter - handle both single category and categories array
-			if (this.currentFilters.category) {
-				// Single category parameter handling
-				const productCategorySlug = product.dataset.categorySlug;
-				if (productCategorySlug !== this.currentFilters.category) {
-					isVisible = false;
-				}
-			} else if (this.currentFilters.categories.length > 0) {
-				// Multiple categories handling
-				const productCategory = product.dataset.category;
-				if (!this.currentFilters.categories.includes(productCategory)) {
-					isVisible = false;
-				}
-			}
-
-			// Brand filter
+            // Category filter - handle multiple categories with IDs
+            if (this.currentFilters.categories.length > 0) {
+                const productCategory = product.dataset.category;
+                if (!this.currentFilters.categories.includes(productCategory)) {
+                    isVisible = false;
+                }
+            }			// Brand filter
 			if (this.currentFilters.brands.length > 0) {
 				const productBrand = product.dataset.brand;
 				if (!this.currentFilters.brands.includes(productBrand)) {
@@ -540,21 +560,10 @@ class ShopManager {
 			params.set('search', this.currentFilters.search);
 		}
 
-		// Preserve single category parameter if it exists
-		if (this.currentFilters.category) {
-			params.set('category', this.currentFilters.category);
-		}
-
-		// Preserve featured parameter if it exists
-		if (this.currentFilters.featured) {
-			params.set('featured', this.currentFilters.featured);
-		}
-
-		if (this.currentFilters.categories.length > 0) {
-			params.set('categories', this.currentFilters.categories.join(','));
-		}
-
-		if (this.currentFilters.brands.length > 0) {
+        if (this.currentFilters.categories.length > 0) {
+            // Sử dụng categories parameter với ID của danh mục
+            params.set('categories', this.currentFilters.categories.join(','));
+        }		if (this.currentFilters.brands.length > 0) {
 			params.set('brands', this.currentFilters.brands.join(','));
 		}
 
@@ -601,32 +610,18 @@ class ShopManager {
 			console.log('Featured parameter found:', featured);
 		}
 
-		// Load category from both category and categories parameters
-		const category = params.get('category');
-		if (category) {
-			// Save single category parameter
-			this.currentFilters.category = category;
-			// Mark checkbox for this category if it exists
-			const categoryCheckbox = document.querySelector(
-				`input[name="category"][value="${category}"]`
-			);
-			if (categoryCheckbox) categoryCheckbox.checked = true;
-			console.log('Category parameter found:', category);
-		}
-
-		// Also support multiple categories format
-		const categories = params.get('categories');
-		if (categories) {
-			this.currentFilters.categories = categories.split(',');
-			this.currentFilters.categories.forEach((categoryId) => {
-				const checkbox = document.querySelector(
-					`input[name="category"][value="${categoryId}"]`
-				);
-				if (checkbox) checkbox.checked = true;
-			});
-		}
-
-		// Load brands
+        // Load categories parameter
+        const categories = params.get('categories');
+        if (categories) {
+            this.currentFilters.categories = categories.split(',');
+            this.currentFilters.categories.forEach((categoryId) => {
+                const checkbox = document.querySelector(
+                    `input[name="category"][value="${categoryId}"]`
+                );
+                if (checkbox) checkbox.checked = true;
+            });
+            console.log('Categories parameter found:', categories);
+        }		// Load brands
 		const brands = params.get('brands');
 		if (brands) {
 			this.currentFilters.brands = brands.split(',');

@@ -94,10 +94,45 @@
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    user-select: none;
+}
+
+.filter-title:hover {
+    color: var(--primary-color);
+}
+
+.filter-title .title-text {
+    display: flex;
+    align-items: center;
 }
 
 .filter-title i {
     color: var(--primary-color);
+}
+
+.filter-title .toggle-icon {
+    font-size: 0.9rem;
+    color: #666;
+    transition: transform 0.3s ease;
+}
+
+.filter-title .toggle-icon.collapsed {
+    transform: rotate(-90deg);
+}
+
+.filter-content {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.filter-content.collapsed {
+    height: 0 !important;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
 }
 
 /* Search Filter */

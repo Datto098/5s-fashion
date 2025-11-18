@@ -89,7 +89,10 @@ ob_start();
                         <!-- Search Filter -->
                         <div class="filter-group">
                             <h5 class="filter-title">
-                                <i class="fas fa-search me-2"></i>Tìm kiếm
+                                <span class="title-text">
+                                    <i class="fas fa-search me-2"></i>Tìm kiếm
+                                </span>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
                             </h5>
                             <div class="filter-content">
                                 <div class="search-box">
@@ -104,7 +107,10 @@ ob_start();
                         <!-- Category Filter -->
                         <div class="filter-group">
                             <h5 class="filter-title">
-                                <i class="fas fa-list me-2"></i>Danh mục
+                                <span class="title-text">
+                                    <i class="fas fa-list me-2"></i>Danh mục
+                                </span>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
                             </h5>
                             <div class="filter-content">
                                 <div class="category-list">
@@ -129,7 +135,10 @@ ob_start();
                         <!-- Price Filter -->
                         <div class="filter-group">
                             <h5 class="filter-title">
-                                <i class="fas fa-dollar-sign me-2"></i>Khoảng giá
+                                <span class="title-text">
+                                    <i class="fas fa-dollar-sign me-2"></i>Khoảng giá
+                                </span>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
                             </h5>
                             <div class="filter-content">
                                 <div class="price-range">
@@ -158,7 +167,10 @@ ob_start();
                         <!-- Brand Filter -->
                         <div class="filter-group">
                             <h5 class="filter-title">
-                                <i class="fas fa-tags me-2"></i>Thương hiệu
+                                <span class="title-text">
+                                    <i class="fas fa-tags me-2"></i>Thương hiệu
+                                </span>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
                             </h5>
                             <div class="filter-content">
                                 <div class="brand-list">

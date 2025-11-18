@@ -65,6 +65,21 @@ class Category extends BaseModel
     }
 
     /**
+     * Get all active categories with product count
+     */
+    public function getActiveCategoriesWithProductCount()
+    {
+        $sql = "SELECT c.*, COUNT(DISTINCT p.id) as product_count
+                FROM {$this->table} c
+                LEFT JOIN products p ON c.id = p.category_id AND p.status = 'published'
+                WHERE c.status = 'active'
+                GROUP BY c.id
+                ORDER BY c.sort_order ASC";
+        
+        return $this->db->fetchAll($sql);
+    }
+
+    /**
      * Get all active categories
      */
     public function getActive()

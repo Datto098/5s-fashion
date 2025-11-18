@@ -102,7 +102,7 @@ class HomeController extends BaseController
     {
         $page = $_GET['page'] ?? 1;
         $limit = $_GET['limit'] ?? 12;
-        $category = $_GET['category'] ?? null;
+        $categories = $_GET['categories'] ?? null;
         $search = $_GET['q'] ?? $_GET['search'] ?? null;
         $sort = $_GET['sort'] ?? 'latest';
         $minPrice = $_GET['min_price'] ?? null;
@@ -112,7 +112,7 @@ class HomeController extends BaseController
 
         // Get filters
         $filters = [
-            'category' => $category,
+            'categories' => $categories,
             'search' => $search,
             'sort' => $sort,
             'min_price' => $minPrice,
@@ -124,8 +124,8 @@ class HomeController extends BaseController
         // Get products with pagination
         $result = $this->productModel->getProductsWithFilters($filters, $page, $limit);
 
-        // Get categories for filter
-        $categories = $this->categoryModel->getActiveCategories();
+        // Get categories for filter with product count
+        $categories = $this->categoryModel->getActiveCategoriesWithProductCount();
 
         // Get brands for filter
         $brands = $this->productModel->getAllBrands();
@@ -137,7 +137,7 @@ class HomeController extends BaseController
 
         // Build query string for pagination
         $queryParams = array_filter([
-            'category' => $category,
+            'categories' => $categories,
             'brand' => $brand,
             'min_price' => $minPrice,
             'max_price' => $maxPrice,
@@ -454,8 +454,8 @@ class HomeController extends BaseController
         // Get products with pagination
         $result = $this->productModel->getProductsWithFilters($filters, $page, $limit);
 
-        // Get categories for filter
-        $categories = $this->categoryModel->getActiveCategories();
+        // Get categories for filter with product count
+        $categories = $this->categoryModel->getActiveCategoriesWithProductCount();
 
         // Get brands for filter
         $brands = $this->productModel->getAllBrands();

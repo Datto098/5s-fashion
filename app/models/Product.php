@@ -215,9 +215,12 @@ class Product extends BaseModel
         $params = [];
 
         // Apply filters
-        if (!empty($filters['category'])) {
-            $whereConditions[] = "c.slug = ?";
-            $params[] = $filters['category'];
+        if (!empty($filters['categories'])) {
+            // Xử lý nhiều danh mục với ID
+            $categoryIds = explode(',', $filters['categories']);
+            $placeholders = str_repeat('?,', count($categoryIds) - 1) . '?';
+            $whereConditions[] = "p.category_id IN ($placeholders)";
+            $params = array_merge($params, $categoryIds);
         }
 
         if (!empty($filters['brand'])) {
