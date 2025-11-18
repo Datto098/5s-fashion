@@ -181,9 +181,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Sự kiện chọn màu
             if (colorOptionsDiv) {
                 colorOptionsDiv.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     const colorButton = e.target.closest('.color-option');
-                    if (!colorButton) return;
+                    if (!colorButton || colorButton.disabled) return;
                     const selectedColor = colorButton.getAttribute('data-color');
+                    console.log('Color selected:', selectedColor);
                     colorOptionsDiv.querySelectorAll('.color-option').forEach(btn => {
                         btn.classList.remove('active');
                         btn.style.border = '';
@@ -200,8 +203,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Sự kiện chọn size
             if (sizeOptionsDiv) {
                 sizeOptionsDiv.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     const sizeButton = e.target.closest('.size-option');
                     if (sizeButton && !sizeButton.disabled) {
+                        console.log('Size selected:', sizeButton.getAttribute('data-size'));
                         sizeOptionsDiv.querySelectorAll('.size-option').forEach(btn => btn.classList.remove('active'));
                         sizeButton.classList.add('active');
                             setTimeout(updateSelectedVariantDetail, 10);
@@ -386,11 +392,10 @@ function updateSelectedVariantDetail() {
 function updateDetailAddToCartState() {
     console.log('Running updateDetailAddToCartState...');
     
-    const btn = document.querySelector('.action-buttons .btn-add-cart') ||
-                document.querySelector('.action-buttons button[onclick^="handleAddToCart("]') ||
-                document.querySelector('.action-buttons button[onclick^="buyNow("]') ||
-                document.querySelector('.action-buttons button');
-    if (!btn) {
+    const addToCartBtn = document.querySelector('.action-buttons .btn-add-cart');
+    const buyNowBtn = document.querySelector('.action-buttons .btn-buy-now');
+    
+    if (!addToCartBtn) {
         console.log('No add-to-cart button found');
         return;
     }
@@ -415,19 +420,29 @@ function updateDetailAddToCartState() {
         // Update stock display with cart quantity considered
         updateStockDisplay(stockElement, stock, cartQty);
         
-        // Update button state based on available stock
+        // Update both buttons based on available stock
         if (availableStock <= 0) {
-            btn.classList.add('out-of-stock');
-            btn.disabled = true;
-            btn.setAttribute('aria-disabled', 'true');
-            btn.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
+            addToCartBtn.classList.add('out-of-stock');
+            addToCartBtn.disabled = true;
+            addToCartBtn.setAttribute('aria-disabled', 'true');
+            addToCartBtn.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
+            
+            if (buyNowBtn) {
+                buyNowBtn.disabled = true;
+                buyNowBtn.setAttribute('aria-disabled', 'true');
+                buyNowBtn.style.display = 'none';
+            }
         } else {
-            btn.classList.remove('out-of-stock');
-            btn.disabled = false;
-            btn.removeAttribute('aria-disabled');
-            btn.innerHTML = '<i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ';
-            // Make sure the onclick is correct
-            btn.setAttribute('onclick', `buyNow(${productId})`);
+            addToCartBtn.classList.remove('out-of-stock');
+            addToCartBtn.disabled = false;
+            addToCartBtn.removeAttribute('aria-disabled');
+            addToCartBtn.innerHTML = '<i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ';
+            
+            if (buyNowBtn) {
+                buyNowBtn.disabled = false;
+                buyNowBtn.removeAttribute('aria-disabled');
+                buyNowBtn.style.display = 'inline-block';
+            }
         }
         
         // Update quantity input state
@@ -513,17 +528,31 @@ function updateDetailAddToCartState() {
     
     if (!available) {
         // keep .btn-add-cart but add out-of-stock modifier so layout is preserved
-        console.log('Setting button to out of stock');
-        btn.classList.add('out-of-stock');
-        btn.disabled = true;
-        btn.setAttribute('aria-disabled', 'true');
-        btn.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
+        console.log('Setting buttons to out of stock');
+        if (addToCartBtn) {
+            addToCartBtn.classList.add('out-of-stock');
+            addToCartBtn.disabled = true;
+            addToCartBtn.setAttribute('aria-disabled', 'true');
+            addToCartBtn.innerHTML = '<i class="fas fa-times me-2"></i>Hết Hàng';
+        }
+        if (buyNowBtn) {
+            buyNowBtn.disabled = true;
+            buyNowBtn.setAttribute('aria-disabled', 'true');
+            buyNowBtn.style.display = 'none';
+        }
     } else {
-        console.log('Setting button to in stock');
-        btn.classList.remove('out-of-stock');
-        btn.disabled = false;
-        btn.removeAttribute('aria-disabled');
-        btn.innerHTML = '<i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ';
+        console.log('Setting buttons to in stock');
+        if (addToCartBtn) {
+            addToCartBtn.classList.remove('out-of-stock');
+            addToCartBtn.disabled = false;
+            addToCartBtn.removeAttribute('aria-disabled');
+            addToCartBtn.innerHTML = '<i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ';
+        }
+        if (buyNowBtn) {
+            buyNowBtn.disabled = false;
+            buyNowBtn.removeAttribute('aria-disabled');
+            buyNowBtn.style.display = 'inline-block';
+        }
     }
 }
 
@@ -855,13 +884,13 @@ ob_start();
                                 <i class="fas fa-times me-2"></i>Hết Hàng
                             </button>
                             <?php else: ?>
-                            <button class="btn btn-add-cart" onclick="buyNow(<?= $product['id'] ?>)">
+                            <button class="btn btn-add-cart" onclick="handleAddToCart(<?= $product['id'] ?>)">
                                 <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ
                             </button>
-                            <?php endif; ?>
-                            <!-- <button class="btn btn-buy-now" onclick="buyNow(<?= $product['id'] ?>)">
+                            <button class="btn btn-buy-now" onclick="buyNow(<?= $product['id'] ?>)">
                                 <i class="fas fa-bolt me-2"></i>Mua ngay
-                            </button> -->
+                            </button>
+                            <?php endif; ?>
                             <button class="wishlist-btn" onclick="toggleWishlist(<?= $product['id'] ?>)" title="Thêm vào yêu thích">
                                 <i class="far fa-heart"></i>
                             </button>
@@ -1538,22 +1567,61 @@ ob_start();
                 return;
             }
             
-            // Add to cart
-            if (window.cartManager && typeof window.cartManager.addToCart === 'function') {
-                // Create a variant-like object with stock info
-                const simpleProduct = {
-                    id: null,
-                    stock: stockCount,
-                    stock_quantity: stockCount,
-                    maxQty: availableStock
-                };
+            // Add to cart for non-variant product, then redirect
+            try {
+                let addResult;
+                if (window.cartManager && typeof window.cartManager.addToCart === 'function') {
+                    // Create a variant-like object with stock info
+                    const simpleProduct = {
+                        id: null,
+                        stock: stockCount,
+                        stock_quantity: stockCount,
+                        maxQty: availableStock
+                    };
+                    
+                    addResult = await window.cartManager.addToCart(productId, quantity, simpleProduct);
+                } else {
+                    // Fallback method for non-variant products
+                    addResult = await new Promise((resolve, reject) => {
+                        const payload = {
+                            product_id: productId,
+                            quantity: quantity
+                        };
+
+                        fetch('/zone-fashion/ajax/cart/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                resolve(data);
+                            } else {
+                                reject(new Error(data.message || 'Có lỗi xảy ra'));
+                            }
+                        })
+                        .catch(reject);
+                    });
+                }
+
+                // Show loading message
+                const notification = document.createElement('div');
+                notification.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#28a745;color:white;padding:15px 25px;border-radius:5px;z-index:10000;font-size:16px;';
+                notification.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang chuyển đến trang thanh toán...';
+                document.body.appendChild(notification);
                 
-                window.cartManager.addToCart(productId, quantity, simpleProduct);
-                return;
-            } else {
-                addToCartFallback(productId, quantity);
-                return;
+                setTimeout(() => {
+                    window.location.href = '/zone-fashion/checkout';
+                }, 1000);
+                
+            } catch(error) {
+                console.error('Buy now error:', error);
+                alert(error.message || 'Có lỗi xảy ra khi mua hàng');
             }
+            return;
         }
         
         // For variant products
@@ -1576,20 +1644,79 @@ ob_start();
             return;
         }
 
+        // Build full variant data for buy now
+        let fullVariant = null;
+        try {
+            if (window.sizesByColor && selected.color && window.sizesByColor[selected.color]) {
+                fullVariant = window.sizesByColor[selected.color].find(v => String(v.id) === String(selected.id));
+            }
+        } catch(e) {}
+        if (!fullVariant && apiVariant) fullVariant = apiVariant;
+
+        if (!fullVariant) {
+            alert('Không tìm thấy biến thể sản phẩm!');
+            return;
+        }
+
+        // Add to cart first, then redirect to checkout
         if (window.cartManager && typeof window.cartManager.addToCart === 'function') {
-            const selectedVariant = getSelectedVariant();
-            window.cartManager.addToCart(productId, quantity, selectedVariant).then((result) => {
-                if (result && result.success) {
-                    setTimeout(() => {
-                        window.location.href = '/zone-fashion/checkout';
-                    }, 1000);
-                }
-            });
+            try {
+                await window.cartManager.addToCart(productId, quantity, fullVariant);
+                // Show loading message
+                const notification = document.createElement('div');
+                notification.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#28a745;color:white;padding:15px 25px;border-radius:5px;z-index:10000;font-size:16px;';
+                notification.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang chuyển đến trang thanh toán...';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    window.location.href = '/zone-fashion/checkout';
+                }, 1000);
+            } catch(error) {
+                console.error('Add to cart error:', error);
+                alert('Có lỗi xảy ra khi thêm vào giỏ hàng');
+            }
         } else {
-            addToCartFallback(productId, quantity);
-            setTimeout(() => {
-                window.location.href = '/zone-fashion/checkout';
-            }, 1000);
+            // Fallback method
+            try {
+                await new Promise((resolve, reject) => {
+                    const payload = {
+                        product_id: productId,
+                        quantity: quantity,
+                        variant_id: selected.id,
+                        variant: fullVariant
+                    };
+
+                    fetch('/zone-fashion/ajax/cart/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            resolve(data);
+                        } else {
+                            reject(new Error(data.message || 'Có lỗi xảy ra'));
+                        }
+                    })
+                    .catch(reject);
+                });
+
+                // Show loading message
+                const notification = document.createElement('div');
+                notification.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#28a745;color:white;padding:15px 25px;border-radius:5px;z-index:10000;font-size:16px;';
+                notification.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang chuyển đến trang thanh toán...';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    window.location.href = '/zone-fashion/checkout';
+                }, 1000);
+            } catch(error) {
+                console.error('Buy now error:', error);
+                alert(error.message || 'Có lỗi xảy ra khi mua hàng');
+            }
         }
     }
 

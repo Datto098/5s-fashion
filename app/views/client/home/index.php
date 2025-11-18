@@ -1,6 +1,20 @@
 <?php
 // Start output buffering for content
 ob_start();
+
+function getPostImageUrl($thumbnail) {
+    if (!empty($thumbnail)) {
+        if (strpos($thumbnail, '/uploads/') === 0) {
+            $cleanPath = substr($thumbnail, 9);
+        } elseif (strpos($thumbnail, 'uploads/') === 0) {
+            $cleanPath = substr($thumbnail, 8);
+        } else {
+            $cleanPath = ltrim($thumbnail, '/');
+        }
+        return '/zone-fashion/serve-file.php?file=' . urlencode($cleanPath);
+    }
+    return '/zone-fashion/public/assets/images/default-post.jpg';
+}
 ?>
 
 <!-- Hero Section -->
@@ -373,18 +387,15 @@ ob_start();
                 <?php $featured_post = $latest_posts[0]; ?>
                 <div class="featured-article">
                     <div class="article-image">
-                        <img src="<?= !empty($featured_post['thumbnail']) ? asset('uploads/posts/' . $featured_post['thumbnail']) : asset('images/blog/default-post.jpg') ?>" 
-                             alt="<?= htmlspecialchars($featured_post['title']) ?>" class="img-fluid">
+                        <img src="<?= htmlspecialchars(getPostImageUrl($featured_post['thumbnail'] ?? null)) ?>" 
+                             alt="<?= htmlspecialchars($featured_post['title']) ?>" class="img-fluid" style="height:250px; object-fit:cover;">
                         <div class="article-overlay">
                             <div class="article-meta">
                                 <span class="article-date">
                                     <i class="fas fa-calendar-alt"></i>
                                     <?= date('d/m/Y', strtotime($featured_post['created_at'])) ?>
                                 </span>
-                                <span class="article-views">
-                                    <i class="fas fa-eye"></i>
-                                    Mới đăng
-                                </span>
+                               
                             </div>
                         </div>
                     </div>
@@ -422,8 +433,8 @@ ob_start();
                             <div class="row align-items-center">
                                 <div class="col-4">
                                     <div class="article-thumbnail">
-                                        <img src="<?= !empty($post['thumbnail']) ? asset('uploads/posts/' . $post['thumbnail']) : asset('images/blog/default-post-thumb.jpg') ?>" 
-                                             alt="<?= htmlspecialchars($post['title']) ?>" class="img-fluid">
+                                        <img src="<?= htmlspecialchars(getPostImageUrl($post['thumbnail'] ?? null, true)) ?>" 
+                                             alt="<?= htmlspecialchars($post['title']) ?>" class="img-fluid" style="object-fit:cover; border-radius:8px;">
                                     </div>
                                 </div>
                                 <div class="col-8">
@@ -613,7 +624,6 @@ $inline_css = "
 .article-thumbnail {
     border-radius: 10px;
     overflow: hidden;
-    height: 80px;
 }
 
 .article-thumbnail img {
