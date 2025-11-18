@@ -320,7 +320,7 @@ ob_start();
     $custom_css = ['css/cart.css'];
 
     // Custom JS for cart functionality
-    $custom_js = ['js/cart-page.js'];
+    $custom_js = ['js/cart-page.js?v=' . time()];
 
     // Include main layout
     include VIEW_PATH . '/client/layouts/app.php';

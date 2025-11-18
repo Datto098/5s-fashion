@@ -100,7 +100,20 @@ class Cart extends BaseModel {
                 GROUP_CONCAT(
                     CONCAT(pa.name, ': ', pav.value)
                     ORDER BY pa.sort_order SEPARATOR ', '
-                ) as variant_attributes
+                ) as variant_attributes,
+                -- Tính giá hiện tại (ưu tiên sale_price nếu có)
+                CASE 
+                    WHEN c.variant_id IS NOT NULL THEN
+                        CASE 
+                            WHEN pv.sale_price > 0 THEN pv.sale_price
+                            ELSE pv.price
+                        END
+                    ELSE
+                        CASE 
+                            WHEN p.sale_price > 0 THEN p.sale_price
+                            ELSE p.price
+                        END
+                END as current_price
             FROM {$this->table} c
             JOIN products p ON c.product_id = p.id
             LEFT JOIN product_variants pv ON c.variant_id = pv.id
@@ -109,7 +122,7 @@ class Cart extends BaseModel {
             LEFT JOIN product_attributes pa ON pav.attribute_id = pa.id
             WHERE " . $this->getCartCondition($userId, $sessionId) . "
             GROUP BY c.id
-            ORDER BY c.created_at DESC
+            ORDER BY current_price ASC, c.created_at DESC
         ";
 
         return $this->db->query($sql, $this->getCartParams($userId, $sessionId))->fetchAll();

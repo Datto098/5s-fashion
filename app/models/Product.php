@@ -233,12 +233,12 @@ class Product extends BaseModel
         }
 
         if (!empty($filters['min_price'])) {
-            $whereConditions[] = "COALESCE(p.sale_price, p.price) >= ?";
+            $whereConditions[] = "(CASE WHEN p.sale_price > 0 THEN p.sale_price ELSE p.price END) >= ?";
             $params[] = $filters['min_price'];
         }
 
         if (!empty($filters['max_price'])) {
-            $whereConditions[] = "COALESCE(p.sale_price, p.price) <= ?";
+            $whereConditions[] = "(CASE WHEN p.sale_price > 0 THEN p.sale_price ELSE p.price END) <= ?";
             $params[] = $filters['max_price'];
         }
 
@@ -251,10 +251,12 @@ class Product extends BaseModel
         $orderBy = "p.created_at DESC";
         switch ($filters['sort'] ?? 'latest') {
             case 'price_asc':
-                $orderBy = "COALESCE(p.sale_price, p.price) ASC";
+            case 'price-asc':
+                $orderBy = "(CASE WHEN p.sale_price > 0 THEN p.sale_price ELSE p.price END) ASC";
                 break;
             case 'price_desc':
-                $orderBy = "COALESCE(p.sale_price, p.price) DESC";
+            case 'price-desc':
+                $orderBy = "(CASE WHEN p.sale_price > 0 THEN p.sale_price ELSE p.price END) DESC";
                 break;
             case 'name':
                 $orderBy = "p.name ASC";
@@ -277,18 +279,26 @@ class Product extends BaseModel
         $total = $totalResult['total'];
 
         // Get products
-        $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug, b.name as brand_name
+        $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug, b.name as brand_name,
+                (CASE WHEN p.sale_price > 0 THEN p.sale_price ELSE p.price END) as effective_price
                 FROM {$this->table} p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN brands b ON p.brand_id = b.id
                 WHERE {$whereClause}
                 ORDER BY {$orderBy}
-                LIMIT ? OFFSET ?";
+                LIMIT {$offset}, {$limit}";
 
-        $params[] = $limit;
-        $params[] = $offset;
+        // Debug log
+        error_log("Product sort query: " . $sql);
+        error_log("Sort parameter: " . ($filters['sort'] ?? 'latest'));
+        error_log("Order by clause: " . $orderBy);
 
         $products = $this->db->fetchAll($sql, $params);
+
+        // Debug: Log actual product prices
+        foreach ($products as $product) {
+            error_log("Product: {$product['name']} - Price: {$product['price']}, Sale Price: {$product['sale_price']}, Effective: {$product['effective_price']}");
+        }
 
         return [
             'products' => $products,

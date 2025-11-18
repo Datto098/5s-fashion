@@ -1126,5 +1126,73 @@ class AjaxController extends Controller
             echo json_encode(['success' => false, 'message' => 'Đã xảy ra lỗi khi xóa đánh giá']);
         }
     }
+
+    /**
+     * Search suggestions for AJAX search
+     */
+    public function searchSuggestions()
+    {
+        try {
+            error_log("Search suggestions called");
+            $query = $_GET['q'] ?? '';
+            error_log("Search query: " . $query);
+            
+            if (empty(trim($query))) {
+                echo json_encode(['suggestions' => []]);
+                return;
+            }
+
+            // Direct database query instead of using model
+            $db = Database::getInstance();
+            $searchTerm = '%' . $query . '%';
+            
+            $sql = "SELECT p.id, p.name, p.slug, p.price, p.sale_price, p.featured_image,
+                           c.name as category_name
+                    FROM products p
+                    LEFT JOIN categories c ON p.category_id = c.id
+                    WHERE p.status = 'published' 
+                    AND (p.name LIKE ? OR p.description LIKE ?)
+                    ORDER BY p.name ASC
+                    LIMIT 6";
+            
+            $products = $db->fetchAll($sql, [$searchTerm, $searchTerm]);
+            error_log("Search result count: " . count($products));
+            
+            $suggestions = [];
+            foreach ($products as $product) {
+                $effectivePrice = ($product['sale_price'] > 0) ? $product['sale_price'] : $product['price'];
+                $originalPrice = $product['price'];
+                $hasDiscount = $product['sale_price'] > 0 && $product['sale_price'] < $product['price'];
+                $discountPercent = $hasDiscount ? round((($originalPrice - $effectivePrice) / $originalPrice) * 100) : 0;
+
+                $suggestions[] = [
+                    'id' => (int)$product['id'],
+                    'name' => $product['name'],
+                    'slug' => $product['slug'],
+                    'image' => $product['featured_image'],
+                    'price' => (int)$effectivePrice,
+                    'original_price' => (int)$originalPrice,
+                    'has_discount' => $hasDiscount,
+                    'discount_percent' => $discountPercent,
+                    'category' => $product['category_name'] ?? '',
+                    'url' => url('product/' . $product['slug'])
+                ];
+            }
+
+            echo json_encode([
+                'suggestions' => $suggestions,
+                'total' => count($products),
+                'query' => $query
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Search error: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'error' => 'Đã xảy ra lỗi khi tìm kiếm: ' . $e->getMessage(),
+                'suggestions' => []
+            ]);
+        }
+    }
 }
 ?>

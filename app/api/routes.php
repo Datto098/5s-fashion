@@ -131,6 +131,70 @@ $router->post('/user/addresses', 'UserApiController@addAddress');
 $router->put('/user/addresses/{id}', 'UserApiController@updateAddress');
 $router->delete('/user/addresses/{id}', 'UserApiController@deleteAddress');
 
+// Search API routes
+$router->get('/search/suggestions', function() {
+    try {
+        $query = $_GET['q'] ?? '';
+        
+        if (empty(trim($query))) {
+            ApiResponse::success(['suggestions' => []], 'No query provided');
+            return;
+        }
+
+        // Database connection
+        $db = Database::getInstance();
+        $searchTerm = '%' . $query . '%';
+        
+        $sql = "SELECT p.id, p.name, p.slug, p.price, p.sale_price, p.featured_image,
+                       c.name as category_name
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.status = 'published' 
+                AND (p.name LIKE ? OR p.description LIKE ?)
+                ORDER BY p.name ASC
+                LIMIT 6";
+        
+        $products = $db->fetchAll($sql, [$searchTerm, $searchTerm]);
+        
+        // Debug: Log product data
+        error_log("Found products: " . json_encode($products));
+        
+        $suggestions = [];
+        foreach ($products as $product) {
+            $effectivePrice = ($product['sale_price'] > 0) ? $product['sale_price'] : $product['price'];
+            $originalPrice = $product['price'];
+            $hasDiscount = $product['sale_price'] > 0 && $product['sale_price'] < $product['price'];
+            $discountPercent = $hasDiscount ? round((($originalPrice - $effectivePrice) / $originalPrice) * 100) : 0;
+
+            // Debug: Log image path
+            error_log("Product image: " . $product['featured_image']);
+
+            $suggestions[] = [
+                'id' => (int)$product['id'],
+                'name' => $product['name'],
+                'slug' => $product['slug'],
+                'image' => $product['featured_image'] ?: 'no-image.jpg', // Default if null
+                'price' => (int)$effectivePrice,
+                'original_price' => (int)$originalPrice,
+                'has_discount' => $hasDiscount,
+                'discount_percent' => $discountPercent,
+                'category' => $product['category_name'] ?? '',
+                'url' => url('product/' . $product['slug'])
+            ];
+        }
+
+        ApiResponse::success([
+            'suggestions' => $suggestions,
+            'total' => count($products),
+            'query' => $query
+        ], 'Search results retrieved successfully');
+
+    } catch (Exception $e) {
+        error_log("Search API error: " . $e->getMessage());
+        ApiResponse::serverError('Search failed: ' . $e->getMessage());
+    }
+});
+
 // Error handling for undefined routes
 $router->any('/{path}', function() {
     ApiResponse::notFound('API endpoint not found');

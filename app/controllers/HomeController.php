@@ -103,7 +103,7 @@ class HomeController extends BaseController
         $page = $_GET['page'] ?? 1;
         $limit = $_GET['limit'] ?? 12;
         $category = $_GET['category'] ?? null;
-        $search = $_GET['search'] ?? null;
+        $search = $_GET['q'] ?? $_GET['search'] ?? null;
         $sort = $_GET['sort'] ?? 'latest';
         $minPrice = $_GET['min_price'] ?? null;
         $maxPrice = $_GET['max_price'] ?? null;
@@ -421,6 +421,75 @@ class HomeController extends BaseController
         ];
 
         $this->render('client/about/index', $data, 'client/layouts/app');
+    }
+
+    public function search()
+    {
+        $searchQuery = $_GET['q'] ?? $_GET['search'] ?? '';
+        
+        if (empty(trim($searchQuery))) {
+            // Redirect to shop if no search query
+            header('Location: ' . url('shop'));
+            exit;
+        }
+
+        $page = $_GET['page'] ?? 1;
+        $limit = $_GET['limit'] ?? 12;
+        $category = $_GET['category'] ?? null;
+        $sort = $_GET['sort'] ?? 'latest';
+        $minPrice = $_GET['min_price'] ?? null;
+        $maxPrice = $_GET['max_price'] ?? null;
+        $brand = $_GET['brand'] ?? null;
+
+        // Get filters
+        $filters = [
+            'category' => $category,
+            'search' => $searchQuery,
+            'sort' => $sort,
+            'min_price' => $minPrice,
+            'max_price' => $maxPrice,
+            'brand' => $brand
+        ];
+
+        // Get products with pagination
+        $result = $this->productModel->getProductsWithFilters($filters, $page, $limit);
+
+        // Get categories for filter
+        $categories = $this->categoryModel->getActiveCategories();
+
+        // Get brands for filter
+        $brands = $this->productModel->getAllBrands();
+
+        // Calculate pagination data
+        $totalProducts = $result['total'];
+        $totalPages = ceil($totalProducts / $limit);
+        $currentPage = (int)$page;
+
+        // Build query string for pagination
+        $queryParams = array_filter([
+            'q' => $searchQuery,
+            'category' => $category,
+            'brand' => $brand,
+            'min_price' => $minPrice,
+            'max_price' => $maxPrice,
+            'sort' => $sort
+        ]);
+        $queryString = $queryParams ? '&' . http_build_query($queryParams) : '';
+
+        $data = [
+            'title' => 'Kết quả tìm kiếm: ' . htmlspecialchars($searchQuery) . ' - Zone Fashion',
+            'products' => $result['products'],
+            'totalProducts' => $totalProducts,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'categories' => $categories,
+            'brands' => $brands,
+            'filters' => $filters,
+            'queryString' => $queryString,
+            'searchQuery' => $searchQuery
+        ];
+
+        $this->render('client/shop/index', $data, 'client/layouts/app');
     }
 }
 ?>

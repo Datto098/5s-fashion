@@ -65,23 +65,23 @@
                 </a>
             </div>
 
-            <!-- Search Bar - Desktop -->
+            <!-- Search Button - Desktop -->
             <div class="col-md-6 d-none d-md-block">
-                <form action="<?= url('search') ?>" method="GET" class="search-form">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="q" placeholder="Tìm kiếm sản phẩm..." value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
-                        <button class="btn btn-primary" type="submit">
+                <div class="search-trigger" data-bs-toggle="modal" data-bs-target="#searchModal">
+                    <div class="input-group search-box-trigger">
+                        <input type="text" class="form-control" placeholder="Tìm kiếm sản phẩm..." readonly style="cursor: pointer;">
+                        <button class="btn btn-primary" type="button">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
 
             <!-- Header Actions -->
             <div class="col-6 col-md-3">
                 <div class="header-actions d-flex align-items-center justify-content-end">
                     <!-- Search Icon - Mobile -->
-                    <button class="btn btn-link text-dark d-md-none me-2" data-bs-toggle="collapse" data-bs-target="#mobileSearch">
+                    <button class="btn btn-link text-dark d-md-none me-2" data-bs-toggle="modal" data-bs-target="#searchModal">
                         <i class="fas fa-search"></i>
                     </button>
 
@@ -104,22 +104,71 @@
                 </div>
             </div>
         </div>
+    </div>
+</header>
 
-        <!-- Mobile Search -->
-        <div class="collapse d-md-none" id="mobileSearch">
-            <div class="pb-3">
-                <form action="<?= url('search') ?>" method="GET">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="q" placeholder="Tìm kiếm sản phẩm..." value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
-                        <button class="btn btn-primary" type="submit">
+<!-- Search Modal -->
+<div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="searchModalLabel">
+                    <i class="fas fa-search me-2 text-primary"></i>Tìm kiếm sản phẩm
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Search Input -->
+                <div class="search-input-container mb-4">
+                    <div class="input-group input-group-lg">
+                        <input type="text" class="form-control border-2" id="searchInput" placeholder="Nhập từ khóa tìm kiếm..." autocomplete="off">
+                        <button class="btn btn-primary px-4" type="button" id="searchButton">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
-                </form>
+                    <div class="search-loading d-none text-center mt-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Đang tìm kiếm...</span>
+                        </div>
+                        <span class="ms-2 text-muted">Đang tìm kiếm...</span>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div id="searchResults" class="search-results d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0 text-muted">Sản phẩm được tìm kiếm nhiều nhất</h6>
+                        <button class="btn btn-sm btn-outline-primary" id="viewAllResults" style="display: none;">
+                            Xem tất cả
+                        </button>
+                    </div>
+                    <div class="row g-3" id="searchResultsList">
+                        <!-- Results will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- No Results -->
+                <div id="noResults" class="text-center py-4 d-none">
+                    <i class="fas fa-search fa-2x text-muted mb-3"></i>
+                    <h6 class="text-muted">Không tìm thấy kết quả</h6>
+                    <p class="text-muted mb-0">Hãy thử tìm kiếm với từ khóa khác</p>
+                </div>
+
+                <!-- Popular Searches (when empty) -->
+                <div id="popularSearches" class="popular-searches">
+                    <h6 class="text-muted mb-3">Từ khóa phổ biến</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-sm btn-outline-secondary search-tag" data-search="áo thun">áo thun</button>
+                        <button class="btn btn-sm btn-outline-secondary search-tag" data-search="quần jean">quần jean</button>
+                        <button class="btn btn-sm btn-outline-secondary search-tag" data-search="áo khoác">áo khoác</button>
+                        <button class="btn btn-sm btn-outline-secondary search-tag" data-search="giày dép">giày dép</button>
+                        <button class="btn btn-sm btn-outline-secondary search-tag" data-search="phụ kiện">phụ kiện</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</header>
+</div>
 
 <!-- Navigation Menu -->
 <?php

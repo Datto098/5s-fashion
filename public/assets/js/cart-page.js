@@ -58,14 +58,24 @@ class CartPageManager {
 	initRemoveButtons() {
 		const removeButtons = document.querySelectorAll('.remove-cart-item');
 		removeButtons.forEach((button) => {
-			button.addEventListener('click', (e) => {
-				const cartId = e.currentTarget.getAttribute('data-cart-id');
-				if (cartId) {
-					this.removeCartItem(cartId);
-				}
-			});
+			// Remove existing listeners first
+			button.removeEventListener('click', this.handleRemoveClick);
+			// Add new listener
+			button.addEventListener('click', this.handleRemoveClick.bind(this));
 		});
 		console.log('Remove buttons listeners attached:', removeButtons.length);
+	}
+
+	handleRemoveClick(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		const cartId = e.currentTarget.getAttribute('data-cart-id');
+		console.log('Remove button clicked for cart ID:', cartId);
+		
+		if (cartId) {
+			this.removeCartItem(cartId);
+		}
 	}
 
 	initQuantityControls() {
@@ -233,9 +243,19 @@ class CartPageManager {
 	}
 
 	removeCartItem(cartKey) {
-		if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?'))
-			return;
+		console.log('CartPageManager.removeCartItem called with:', cartKey);
+		// Create a custom confirmation modal instead of using native confirm()
+		this.showConfirmDialog(
+			'Xóa sản phẩm', 
+			'Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?',
+			() => {
+				// User confirmed - proceed with removal
+				this.performRemoveCartItem(cartKey);
+			}
+		);
+	}
 
+	performRemoveCartItem(cartKey) {
 		// Show loading state
 		this.showLoadingState(true);
 
@@ -251,8 +271,11 @@ class CartPageManager {
 			.then((response) => response.json())
 			.then((data) => {
 				if (data.success) {
+					this.showNotification('Đã xóa sản phẩm khỏi giỏ hàng', 'success');
 					// Reload the page to reflect changes
-					window.location.reload();
+					setTimeout(() => {
+						window.location.reload();
+					}, 1000);
 				} else {
 					this.showNotification(
 						data.message || 'Có lỗi xảy ra',
@@ -270,6 +293,63 @@ class CartPageManager {
 			.finally(() => {
 				this.showLoadingState(false);
 			});
+	}
+
+	showConfirmDialog(title, message, onConfirm) {
+		console.log('showConfirmDialog called:', { title, message });
+		
+		// Create modal HTML
+		const modalHtml = `
+			<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="confirmModalLabel">
+								<i class="fas fa-question-circle text-warning me-2"></i>
+								${title}
+							</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<p class="mb-0">${message}</p>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+								<i class="fas fa-times me-1"></i>Hủy
+							</button>
+							<button type="button" class="btn btn-danger" id="confirmBtn">
+								<i class="fas fa-trash me-1"></i>Xóa
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		`;
+
+		// Remove existing modal if any
+		const existingModal = document.getElementById('confirmModal');
+		if (existingModal) {
+			existingModal.remove();
+		}
+
+		// Add modal to page
+		document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+		// Initialize and show modal
+		const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+		
+		// Add event listener for confirm button
+		document.getElementById('confirmBtn').addEventListener('click', () => {
+			modal.hide();
+			onConfirm();
+		});
+
+		// Clean up modal when hidden
+		document.getElementById('confirmModal').addEventListener('hidden.bs.modal', () => {
+			document.getElementById('confirmModal').remove();
+		});
+
+		modal.show();
 	}
 
 	proceedToCheckout() {
@@ -490,6 +570,7 @@ function updateCartQuantity(element, action) {
 }
 
 function removeCartItem(cartKey) {
+	console.log('Global removeCartItem called with:', cartKey);
 	if (window.cartPageManager) {
 		window.cartPageManager.removeCartItem(cartKey);
 	}

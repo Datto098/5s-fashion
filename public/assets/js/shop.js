@@ -18,6 +18,7 @@ class ShopManager {
 
 		this.currentView = 'grid';
 		this.isLoading = false;
+		this.priceTimeout = null;
 
 		this.init();
 	}
@@ -58,6 +59,20 @@ class ShopManager {
 		document
 			.getElementById('price-slider')
 			?.addEventListener('change', (e) => this.handlePriceChange());
+
+		// Price input fields
+		document
+			.getElementById('min-price')
+			?.addEventListener('input', () => this.handlePriceChange());
+		document
+			.getElementById('max-price')
+			?.addEventListener('input', () => this.handlePriceChange());
+		document
+			.getElementById('min-price')
+			?.addEventListener('change', () => this.handlePriceChange());
+		document
+			.getElementById('max-price')
+			?.addEventListener('change', () => this.handlePriceChange());
 
 		// View toggle
 		document.querySelectorAll('.view-btn').forEach((btn) => {
@@ -150,30 +165,56 @@ class ShopManager {
 
 	handlePriceSlider(e) {
 		const value = parseInt(e.target.value);
-		const minInput = document.getElementById('min-price');
 		const maxInput = document.getElementById('max-price');
-		const sliderMax = parseInt(e.target.max);
 		const displayElement = document.getElementById('current-price-display');
 
-		if (minInput && maxInput) {
-			// Simple approach: use the slider value as the max price
-			minInput.value = 0;
+		if (maxInput) {
+			// Update max price input with slider value
 			maxInput.value = value;
 
 			// Update the price display
 			if (displayElement) {
 				displayElement.textContent = this.formatPrice(value);
 			}
+
+			// Apply filter immediately
+			this.handlePriceChange();
 		}
 	}
+
 	handlePriceChange() {
-		const minPrice = document.getElementById('min-price')?.value;
-		const maxPrice = document.getElementById('max-price')?.value;
+		const minPriceInput = document.getElementById('min-price');
+		const maxPriceInput = document.getElementById('max-price');
+		const slider = document.getElementById('price-slider');
+		const displayElement = document.getElementById('current-price-display');
 
-		this.currentFilters.priceMin = minPrice ? parseInt(minPrice) : null;
-		this.currentFilters.priceMax = maxPrice ? parseInt(maxPrice) : null;
+		const minPrice = minPriceInput?.value;
+		const maxPrice = maxPriceInput?.value;
 
-		this.applyFilters();
+		// Update current filters
+		this.currentFilters.priceMin = minPrice && parseInt(minPrice) > 0 ? parseInt(minPrice) : null;
+		this.currentFilters.priceMax = maxPrice && parseInt(maxPrice) > 0 ? parseInt(maxPrice) : null;
+
+		// Update slider position if max price changed
+		if (slider && maxPrice && parseInt(maxPrice) > 0) {
+			slider.value = parseInt(maxPrice);
+			// Update display
+			if (displayElement) {
+				displayElement.textContent = this.formatPrice(parseInt(maxPrice));
+			}
+		} else if (displayElement && (!maxPrice || parseInt(maxPrice) === 0)) {
+			// Reset to default if empty
+			if (slider) slider.value = 2500000;
+			displayElement.textContent = this.formatPrice(2500000);
+		}
+
+		console.log('Price filter updated:', this.currentFilters.priceMin, 'to', this.currentFilters.priceMax);
+
+		// Apply filters with debounce
+		clearTimeout(this.priceTimeout);
+		this.priceTimeout = setTimeout(() => {
+			this.applyFilters();
+		}, 500);
 	}
 
 	updatePriceDisplay() {

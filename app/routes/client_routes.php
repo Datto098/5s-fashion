@@ -11,7 +11,7 @@ return [
 
     // Shop
     'shop' => 'HomeController@shop',
-    'search' => 'HomeController@shop',
+    'search' => 'HomeController@search',
 
     // Product
     'product/{slug}' => 'HomeController@product',

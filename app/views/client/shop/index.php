@@ -18,15 +18,40 @@ ob_start();
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h1 class="shop-title">Cửa Hàng</h1>
-                    <p class="shop-subtitle">Khám phá bộ sưu tập thời trang đa dạng của chúng tôi</p>
+                    <?php if (isset($searchQuery) && !empty($searchQuery)): ?>
+                        <h1 class="shop-title">Kết quả tìm kiếm</h1>
+                        <p class="shop-subtitle">Tìm kiếm cho: "<strong><?= htmlspecialchars($searchQuery) ?></strong>"</p>
+                    <?php else: ?>
+                        <h1 class="shop-title">Cửa Hàng</h1>
+                        <p class="shop-subtitle">Khám phá bộ sưu tập thời trang đa dạng của chúng tôi</p>
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="shop-stats">
-                        <span class="result-count">Hiển thị <strong id="showing-count">1-12</strong> trong <strong id="total-count"><?= $totalProducts ?></strong> sản phẩm</span>
+                        <?php if (isset($searchQuery) && !empty($searchQuery)): ?>
+                            <span class="result-count">Tìm thấy <strong id="total-count"><?= $totalProducts ?></strong> sản phẩm</span>
+                        <?php else: ?>
+                            <span class="result-count">Hiển thị <strong id="showing-count">1-12</strong> trong <strong id="total-count"><?= $totalProducts ?></strong> sản phẩm</span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
+
+            <?php if (isset($searchQuery) && !empty($searchQuery) && $totalProducts == 0): ?>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="search-no-results alert alert-warning">
+                        <i class="fas fa-search me-2"></i>
+                        <strong>Không tìm thấy kết quả nào</strong> cho từ khóa "<strong><?= htmlspecialchars($searchQuery) ?></strong>"
+                        <br>
+                        <small class="mt-2 d-block">Gợi ý: Thử tìm kiếm với từ khóa khác hoặc kiểm tra chính tả</small>
+                        <a href="<?= url('shop') ?>" class="ms-2 btn btn-sm btn-outline-primary mt-2">
+                            <i class="fas fa-arrow-left me-1"></i>Xem tất cả sản phẩm
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <?php if (isset($filters['featured']) && $filters['featured'] == 1): ?>
             <div class="row mt-3">
@@ -117,10 +142,13 @@ ob_start();
                                         </div>
                                     </div>
                                     <div class="price-range-slider mt-3">
-                                        <input type="range" class="form-range" id="price-slider" min="0" max="5000000" step="50000">
+                                        <div class="current-price-value mb-2">
+                                            Giá tối đa: <span id="current-price-display">2,500,000₫</span>
+                                        </div>
+                                        <input type="range" class="form-range" id="price-slider" min="0" max="5000000" step="50000" value="2500000">
                                         <div class="price-labels">
-                                            <span>0đ</span>
-                                            <span>5,000,000đ</span>
+                                            <span>0₫</span>
+                                            <span>5,000,000₫</span>
                                         </div>
                                     </div>
                                 </div>
@@ -199,7 +227,7 @@ ob_start();
                                      data-category="<?= $product['category_id'] ?>"
                                      data-category-slug="<?= $product['category_slug'] ?? '' ?>"
                                      data-brand="<?= $product['brand_id'] ?>"
-                                     data-price="<?= $product['price'] ?>"
+                                     data-price="<?= ($product['sale_price'] > 0) ? $product['sale_price'] : $product['price'] ?>"
                                      data-rating="<?= $product['rating'] ?? 0 ?>"
                                      data-name="<?= strtolower($product['name']) ?>">
                                     <?php include VIEW_PATH . '/client/partials/product-card.php'; ?>

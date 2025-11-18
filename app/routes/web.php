@@ -20,7 +20,7 @@ $router->get('/home', 'HomeController@index');
 
 // Shop routes
 $router->get('/shop', 'HomeController@shop');
-$router->get('/search', 'HomeController@shop'); // Search uses same shop method
+$router->get('/search', 'HomeController@search'); // Search with dedicated method
 
 // Product routes
 $router->get('/product/{slug}', 'HomeController@product');

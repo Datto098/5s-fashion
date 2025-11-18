@@ -222,6 +222,7 @@
     <link href="<?= asset('css/components.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/quick-view.css') ?>" rel="stylesheet">
     <link href="<?= asset('css/counter-smooth.css') ?>" rel="stylesheet">
+    <link href="<?= asset('css/search-modal.css') ?>" rel="stylesheet">
 
     <!-- Custom CSS for current page - Loaded after base CSS -->
     <?php if (isset($custom_css)): ?>
@@ -638,6 +639,7 @@
         'js/cart-manager.js',
         'js/wishlist-manager.js',
         'js/quick-view.js',
+        'js/search-modal.js',
         'js/client.js?v=' . time()
     ];
 
@@ -665,6 +667,9 @@
 
     <!-- Initialize global cart manager -->
     <script>
+        // Set base URL for AJAX requests
+        window.baseUrl = '<?= rtrim(url(), '/') ?>';
+        
         // Global notification helper function - thay thế cho tất cả alert()
         window.showAlert = function(message, type = 'info', title = '') {
             if (window.notifications && typeof window.notifications.show === 'function') {
