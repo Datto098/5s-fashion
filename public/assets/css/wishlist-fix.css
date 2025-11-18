@@ -1,0 +1,42 @@
+/**
+ * Wishlist Remove Button Fix
+ * zone Fashion E-commerce Platform
+ */
+
+.wishlist-remove-btn {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease !important;
+    z-index: 10 !important;
+    background-color: #dc3545 !important;
+    border: none !important;
+    color: white !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+}
+
+.wishlist-remove-btn:hover {
+    background-color: #c82333 !important;
+    transform: scale(1.1) !important;
+}
+
+.wishlist-remove-btn i {
+    font-size: 12px !important;
+    color: white !important;
+}
+
+/* Ensure parent container has position relative */
+.wishlist-item-card .product-image {
+    position: relative !important;
+}
+
+.product-image {
+    position: relative !important;
+}

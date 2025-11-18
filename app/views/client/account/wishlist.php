@@ -129,8 +129,8 @@ ob_start();
                                                         <i class="fas fa-eye"></i>
                                                     </button>
                                                 </div>
-                                                <button class="btn btn-danger btn-sm remove-wishlist"
-                                                        onclick="removeFromWishlist(<?= $item['product_id'] ?>)"
+                                                <button class="btn btn-danger btn-sm wishlist-remove-btn"
+                                                        data-product-id="<?= $item['product_id'] ?>"
                                                         title="Xóa khỏi yêu thích">
                                                     <i class="fas fa-times"></i>
                                                 </button>
@@ -244,7 +244,8 @@ ob_start();
                                                 <button class="btn btn-outline-secondary btn-sm" onclick="quickView(<?= $item['product_id'] ?>)">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <button class="btn btn-outline-danger btn-sm" onclick="removeFromWishlist(<?= $item['product_id'] ?>)">
+                                                <button class="btn btn-outline-danger btn-sm wishlist-remove-btn" 
+                                                        data-product-id="<?= $item['product_id'] ?>">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -363,7 +364,8 @@ ob_start();
     opacity: 1;
 }
 
-.remove-wishlist {
+.remove-wishlist,
+.wishlist-remove-btn {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -549,6 +551,12 @@ function addToCart(productId) {
     }
 }
 </script>
+
+<!-- Wishlist Fix CSS -->
+<link rel="stylesheet" href="<?= asset('css/wishlist-fix.css') ?>">
+
+<!-- Wishlist Manager JavaScript -->
+<script src="<?= asset('js/wishlist-manager.js') ?>"></script>
 
 <?php
 // Get the content and assign to layout

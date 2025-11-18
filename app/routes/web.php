@@ -71,6 +71,7 @@ $router->get('/wishlist', 'WishlistController@index');
 $router->get('/wishlist/count', 'WishlistController@count');
 $router->post('/wishlist/add', 'WishlistController@add');
 $router->post('/wishlist/remove', 'WishlistController@remove');
+$router->post('/wishlist/toggle', 'WishlistController@toggle');
 $router->post('/wishlist/clear', 'WishlistController@clear');
 
 // Voucher routes

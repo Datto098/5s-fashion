@@ -6,7 +6,7 @@
 
 class WishlistManager {
 	constructor() {
-		this.baseUrl = '/zone-fashion/ajax';
+		this.baseUrl = '/zone-fashion';
 		this.syncInProgress = false;
 		this.init();
 	}
@@ -82,6 +82,45 @@ class WishlistManager {
 					this.toggleWishlist(productId, button);
 				}
 			}
+
+			// Handle wishlist remove buttons (direct remove, not toggle)
+			if (
+				e.target.matches('.wishlist-remove-btn, .wishlist-remove-btn *') ||
+				e.target.closest('.wishlist-remove-btn')
+			) {
+				e.preventDefault();
+				e.stopPropagation();
+
+				const button = e.target.closest('.wishlist-remove-btn');
+				const productId = button.getAttribute('data-product-id');
+
+				if (productId) {
+					console.log('Wishlist remove button clicked for product:', productId);
+					this.removeFromWishlist(productId, true);
+				}
+			}
+
+			// Legacy onclick support for removeFromWishlist buttons
+			if (
+				e.target.matches('[onclick*="removeFromWishlist"]') ||
+				e.target.closest('[onclick*="removeFromWishlist"]')
+			) {
+				e.preventDefault();
+				e.stopPropagation();
+
+				const button = e.target.matches('[onclick*="removeFromWishlist"]')
+					? e.target
+					: e.target.closest('[onclick*="removeFromWishlist"]');
+
+				const onclick = button.getAttribute('onclick');
+				const match = onclick.match(/removeFromWishlist\((\d+)\)/);
+
+				if (match) {
+					const productId = match[1];
+					console.log('Direct remove from wishlist triggered for product:', productId);
+					this.removeFromWishlist(productId, true);
+				}
+			}
 		});
 
 		// Storage event for cross-tab sync
@@ -134,7 +173,7 @@ class WishlistManager {
 				}
 			}
 
-			const response = await fetch(`${this.baseUrl}/wishlist/toggle`, {
+			const response = await fetch(`${this.baseUrl}/ajax/wishlist/toggle`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -206,15 +245,141 @@ class WishlistManager {
 	}
 
 	/**
-	 * Get wishlist items from server
+	 * Remove product from wishlist (force remove, not toggle)
 	 */
+	async removeFromWishlist(productId, removeCard = false) {
+		if (!this.isUserLoggedIn()) {
+			this.showAlert('Vui lòng đăng nhập để sử dụng wishlist', 'warning');
+			return false;
+		}
+
+		if (window.wishlistOperationInProgress) {
+			console.log('Wishlist operation in progress, ignoring...');
+			return false;
+		}
+
+		window.wishlistOperationInProgress = true;
+
+		try {
+			console.log('Removing product from wishlist:', productId);
+			
+			const response = await fetch(`${this.baseUrl}/wishlist/remove`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					product_id: parseInt(productId),
+				}),
+			});
+
+			const data = await response.json();
+			console.log('Remove response:', data);
+
+			if (data.success) {
+				this.showAlert('Đã xóa khỏi danh sách yêu thích', 'success');
+				
+				// Remove the wishlist card from DOM if requested
+				if (removeCard) {
+					// Tìm card theo data-product-id hoặc onclick attribute
+					let wishlistCard = document.querySelector(`[data-product-id="${productId}"]`)?.closest('.col-lg-4, .wishlist-item-row');
+					
+					// Nếu không tìm thấy, thử tìm theo onclick
+					if (!wishlistCard) {
+						const button = document.querySelector(`[onclick*="removeFromWishlist(${productId})"]`);
+						if (button) {
+							wishlistCard = button.closest('.col-lg-4, .wishlist-item-row');
+						}
+					}
+					
+					if (wishlistCard) {
+						console.log('Found wishlist card, removing...', wishlistCard);
+						wishlistCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+						wishlistCard.style.opacity = '0';
+						wishlistCard.style.transform = 'scale(0.9)';
+						setTimeout(() => {
+							wishlistCard.remove();
+							// Check if wishlist is empty after removal
+							this.checkEmptyWishlist();
+						}, 300);
+					} else {
+						console.log('Wishlist card not found for product:', productId);
+						// Reload trang nếu không tìm thấy card để xóa
+						setTimeout(() => {
+							window.location.reload();
+						}, 1000);
+					}
+				}
+
+				// Sync all buttons
+				await this.syncWishlistFromServer();
+				this.triggerCrossTabSync();
+
+				return true;
+			} else {
+				this.showAlert(data.message || 'Không thể xóa khỏi danh sách yêu thích', 'error');
+				return false;
+			}
+		} catch (error) {
+			console.error('Remove wishlist error:', error);
+			this.showAlert('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+			return false;
+		} finally {
+			window.wishlistOperationInProgress = false;
+		}
+	}
+
+	/**
+	 * Check if wishlist is empty and show empty state
+	 */
+	checkEmptyWishlist() {
+		const wishlistGrid = document.getElementById('wishlistGrid');
+		const wishlistList = document.getElementById('wishlistList');
+		
+		if (wishlistGrid) {
+			const gridItems = wishlistGrid.querySelectorAll('.col-lg-4').length;
+			if (gridItems === 0) {
+				this.showEmptyWishlistState();
+			}
+		}
+		
+		if (wishlistList) {
+			const listItems = wishlistList.querySelectorAll('.wishlist-item-row').length;
+			if (listItems === 0) {
+				this.showEmptyWishlistState();
+			}
+		}
+	}
+
+	/**
+	 * Show empty wishlist state
+	 */
+	showEmptyWishlistState() {
+		const contentArea = document.querySelector('.account-content');
+		if (contentArea) {
+			contentArea.innerHTML = `
+				<div class="content-header mb-4">
+					<h2 class="content-title">Sản phẩm yêu thích</h2>
+					<p class="content-subtitle">Danh sách những sản phẩm bạn đã lưu</p>
+				</div>
+				<div class="empty-wishlist text-center py-5">
+					<i class="fas fa-heart fa-4x text-muted mb-3"></i>
+					<h4>Chưa có sản phẩm yêu thích</h4>
+					<p class="text-muted mb-4">Khám phá và lưu những sản phẩm bạn yêu thích!</p>
+					<a href="/zone-fashion/shop" class="btn btn-primary btn-lg">
+						Khám phá sản phẩm
+					</a>
+				</div>
+			`;
+		}
+	}
 	async getWishlistItems() {
 		if (!this.isUserLoggedIn()) {
 			return [];
 		}
 
 		try {
-			const response = await fetch(`${this.baseUrl}/wishlist/list`, {
+			const response = await fetch(`${this.baseUrl}/ajax/wishlist/list`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
@@ -386,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	};
 
 	window.removeFromWishlist = function (productId) {
-		return wishlistManager.toggleWishlist(productId);
+		return wishlistManager.removeFromWishlist(productId, false);
 	};
 
 	window.updateWishlistCounterFromAPI = function () {

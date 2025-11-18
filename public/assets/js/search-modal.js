@@ -191,7 +191,7 @@ class SearchModal {
                                      alt="${product.name}" 
                                      class="product-image"
                                      onerror="this.style.display='none'; this.parentNode.innerHTML='<div class=\'no-image-placeholder\'>No Image</div>'"
-                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                     style="width: 60px; height: 60px; object-fit: cover;">
                             </div>
                         </div>
                         <div class="flex-grow-1 min-width-0">

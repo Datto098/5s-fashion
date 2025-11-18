@@ -67,8 +67,7 @@
 
 /* Image Container */
 .product-image-container {
-    width: 60px;
-    height: 60px;
+ 
     border: 1px solid #dee2e6;
     border-radius: 6px;
     overflow: hidden;
