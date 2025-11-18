@@ -35,7 +35,7 @@ ob_start();
                                 <div class="col-md-6">
                                     <div class="order-info-item">
                                         <span class="label">Mã đơn hàng:</span>
-                                        <span class="value text-primary fw-bold" id="orderCode">
+                                        <span class="value text-primary fw-bold" id="orderCode" data-order-id="<?= $data['order']['id'] ?? '' ?>">
                                             <?php echo isset($data['order']['order_code']) ? $data['order']['order_code'] : 'ORD' . ($data['orderId'] ?? '000001'); ?>
                                         </span>
                                     </div>
@@ -511,6 +511,29 @@ $custom_js = [
     'js/checkmark-trigger.js'
 ];
 
+// Add inline script to make downloadInvoice globally available
+$inline_js = "
+<script>
+// Simple global function for download invoice button
+function downloadInvoice() {
+    const orderElement = document.getElementById('orderCode');
+    const orderId = orderElement ? orderElement.getAttribute('data-order-id') : null;
+    
+    if (!orderId) {
+        alert('Không tìm thấy mã đơn hàng');
+        return;
+    }
+    
+    // Simply open invoice in new tab
+    const url = '/zone-fashion/order/downloadInvoice?order_id=' + orderId;
+    window.open(url, '_blank');
+}
+</script>
+";
+
 // Include main layout
 include VIEW_PATH . '/client/layouts/app.php';
+
+// Output inline JavaScript
+echo $inline_js;
 ?>

@@ -86,6 +86,66 @@ class AnalyticsController extends BaseController
         }
     }
 
+    public function exportjson()
+    {
+        try {
+            // Set JSON header
+            header('Content-Type: application/json; charset=utf-8');
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: GET');
+            header('Access-Control-Allow-Headers: Content-Type');
+
+            $period = $_GET['period'] ?? '30';
+            $format = $_GET['format'] ?? 'pretty';
+
+            // Get all analytics data
+            $data = [
+                'export_info' => [
+                    'type' => 'analytics_data',
+                    'period' => $period,
+                    'export_time' => date('c'),
+                    'source' => 'Zone Fashion Admin API',
+                    'version' => '1.0'
+                ],
+                'analytics' => [
+                    'overview' => $this->getOverviewStats(),
+                    'sales' => $this->getSalesStats($period),
+                    'reviews' => $this->getReviewStats($period),
+                    'products' => $this->getProductStats($period),
+                    'customers' => $this->getCustomerStats($period),
+                    'charts' => $this->getChartData($period),
+                    'trending' => $this->getTrendingData($period)
+                ],
+                'metadata' => [
+                    'period_days' => intval($period),
+                    'last_updated' => date('c'),
+                    'data_range' => [
+                        'from' => date('Y-m-d', strtotime("-$period days")),
+                        'to' => date('Y-m-d')
+                    ]
+                ]
+            ];
+
+            // Format output based on format parameter
+            if ($format === 'compact') {
+                echo json_encode($data, JSON_UNESCAPED_UNICODE);
+            } else {
+                echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error in AnalyticsController::exportJson: ' . $e->getMessage());
+            
+            header('HTTP/1.1 500 Internal Server Error');
+            echo json_encode([
+                'error' => true,
+                'message' => 'Có lỗi xảy ra khi xuất dữ liệu JSON',
+                'timestamp' => date('c')
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }
+        exit;
+    }
+
     private function getOverviewStats()
     {
         try {

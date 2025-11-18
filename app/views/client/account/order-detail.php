@@ -377,7 +377,7 @@ ob_start();
                                         </a>
                                         <?php endif; ?>
 
-                                        <a href="#" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                                        <a href="#" class="btn btn-outline-secondary btn-sm" onclick="printInvoice(<?= $order['id'] ?>)">
                                             <i class="fas fa-print me-2"></i>In đơn hàng
                                         </a>
                                     </div>
@@ -479,6 +479,18 @@ window.addEventListener('afterprint', function() {
     document.querySelector('.account-sidebar').style.display = 'block';
     document.querySelector('.account-main').style.width = '';
 });
+
+// Function to print invoice in new tab
+function printInvoice(orderId) {
+    if (!orderId) {
+        alert('Không tìm thấy mã đơn hàng');
+        return;
+    }
+    
+    // Open invoice in new tab for printing
+    const url = '/zone-fashion/order/downloadInvoice?order_id=' + orderId;
+    window.open(url, '_blank');
+}
 </script>
 
 <?php

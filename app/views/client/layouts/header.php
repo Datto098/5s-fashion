@@ -258,6 +258,19 @@ if ($useSimpleMenu) {
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body">
+        <!-- Debug Info (remove in production) -->
+        <?php if (APP_DEBUG): ?>
+            <div class="alert alert-info mb-3">
+                <small>
+                    <strong>Debug Info:</strong><br>
+                    Base URL: <?= BASE_URL ?><br>
+                    Current URL: <?= $_SERVER['REQUEST_URI'] ?? 'N/A' ?><br>
+                    Test Link: <a href="<?= url('shop') ?>" target="_blank">Shop Link</a><br>
+                    Categories Count: <?= count($navCategories ?? []) ?>
+                </small>
+            </div>
+        <?php endif; ?>
+
         <!-- User Info -->
         <?php if (isLoggedIn()): ?>
             <div class="user-info bg-light p-3 rounded mb-3">
@@ -273,10 +286,10 @@ if ($useSimpleMenu) {
             </div>
         <?php else: ?>
             <div class="auth-links mb-3">
-                <a href="/login" class="btn btn-primary w-100 mb-2">
+                <a href="<?= url('login') ?>" class="btn btn-primary w-100 mb-2">
                     <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
                 </a>
-                <a href="/register" class="btn btn-outline-primary w-100">
+                <a href="<?= url('register') ?>" class="btn btn-outline-primary w-100">
                     <i class="fas fa-user-plus me-2"></i>Đăng Ký
                 </a>
             </div>
@@ -285,37 +298,79 @@ if ($useSimpleMenu) {
         <!-- Navigation Menu -->
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="<?= url() ?>"><i class="fas fa-home me-2"></i>Trang Chủ</a>
+                <a class="nav-link d-flex align-items-center" href="<?= url() ?>">
+                    <i class="fas fa-home me-2"></i>Trang Chủ
+                </a>
+            </li>
+            
+            <!-- All Products Link -->
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" href="<?= url('shop') ?>">
+                    <i class="fas fa-shopping-bag me-2"></i>Tất cả sản phẩm
+                </a>
             </li>
 
             <?php if (isset($navCategories) && !empty($navCategories)): ?>
                 <?php foreach ($navCategories as $index => $category): ?>
                     <li class="nav-item">
                         <?php if (!empty($category['children'])): ?>
-                            <a class="nav-link" data-bs-toggle="collapse" href="#category<?= $category['id'] ?>">
-                                <i class="fas <?= $category['slug'] === 'nam' ? 'fa-tshirt' : ($category['slug'] === 'nu' ? 'fa-female' : 'fa-tag') ?> me-2"></i>
-                                <?= htmlspecialchars($category['name']) ?> <i class="fas fa-chevron-down float-end"></i>
+                            <!-- Category with children - collapsible -->
+                            <a class="nav-link d-flex align-items-center justify-content-between" 
+                               data-bs-toggle="collapse" 
+                               href="#category<?= $category['id'] ?>" 
+                               role="button" 
+                               aria-expanded="false">
+                                <span>
+                                    <i class="fas <?= $category['slug'] === 'nam' ? 'fa-tshirt' : ($category['slug'] === 'nu' ? 'fa-female' : 'fa-tag') ?> me-2"></i>
+                                    <?= htmlspecialchars($category['name']) ?>
+                                </span>
+                                <i class="fas fa-chevron-down"></i>
                             </a>
                             <div class="collapse" id="category<?= $category['id'] ?>">
                                 <ul class="navbar-nav ps-3">
+                                    <!-- Link to parent category -->
+                                    <li class="nav-item">
+                                        <a class="nav-link text-primary" href="<?= url('shop?category=' . $category['slug']) ?>">
+                                            <i class="fas fa-eye me-2"></i>Xem tất cả <?= htmlspecialchars($category['name']) ?>
+                                        </a>
+                                    </li>
+                                    <li><hr class="my-1"></li>
+                                    <!-- Children categories -->
                                     <?php foreach ($category['children'] as $child): ?>
-                                        <li><a class="nav-link" href="<?= url('shop?category=' . $child['slug']) ?>"><?= htmlspecialchars($child['name']) ?></a></li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="<?= url('shop?category=' . $child['slug']) ?>">
+                                                <i class="fas fa-angle-right me-2 text-muted"></i>
+                                                <?= htmlspecialchars($child['name']) ?>
+                                            </a>
+                                        </li>
                                     <?php endforeach; ?>
                                 </ul>
                             </div>
                         <?php else: ?>
-                            <a class="nav-link" href="<?= url('shop?category=' . $category['slug']) ?>">
-                                <i class="fas fa-tag me-2"></i><?= htmlspecialchars($category['name']) ?>
+                            <!-- Simple category link -->
+                            <a class="nav-link d-flex align-items-center" href="<?= url('shop?category=' . $category['slug']) ?>">
+                                <i class="fas fa-tag me-2"></i>
+                                <?= htmlspecialchars($category['name']) ?>
                             </a>
                         <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             <?php endif; ?>
+            
             <li class="nav-item">
-                <a class="nav-link" href="/blog"><i class="fas fa-newspaper me-2"></i>Blog</a>
+                <a class="nav-link d-flex align-items-center" href="<?= url('vouchers') ?>">
+                    <i class="fas fa-ticket-alt me-2"></i>Voucher
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/contact"><i class="fas fa-envelope me-2"></i>Liên Hệ</a>
+                <a class="nav-link d-flex align-items-center" href="<?= url('blog') ?>">
+                    <i class="fas fa-newspaper me-2"></i>Blog
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" href="<?= url('contact') ?>">
+                    <i class="fas fa-envelope me-2"></i>Liên Hệ
+                </a>
             </li>
         </ul>
 
@@ -324,18 +379,126 @@ if ($useSimpleMenu) {
             <hr>
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="/account"><i class="fas fa-user me-2"></i>Tài Khoản</a>
+                    <a class="nav-link" href="<?= url('account') ?>"><i class="fas fa-user me-2"></i>Tài Khoản</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/orders"><i class="fas fa-shopping-bag me-2"></i>Đơn Hàng</a>
+                    <a class="nav-link" href="<?= url('orders') ?>"><i class="fas fa-shopping-bag me-2"></i>Đơn Hàng</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/wishlist"><i class="fas fa-heart me-2"></i>Yêu Thích</a>
+                    <a class="nav-link" href="<?= url('wishlist') ?>"><i class="fas fa-heart me-2"></i>Yêu Thích</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-danger" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất</a>
+                    <a class="nav-link text-danger" href="<?= url('logout') ?>"><i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất</a>
                 </li>
             </ul>
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Mobile Menu Styles -->
+<style>
+.offcanvas {
+    width: 320px !important;
+}
+
+.offcanvas-body .navbar-nav .nav-link {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+    color: #333;
+}
+
+.offcanvas-body .navbar-nav .nav-link:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+    padding-left: 20px;
+}
+
+.offcanvas-body .navbar-nav .nav-item .collapse .navbar-nav .nav-link {
+    padding-left: 24px;
+    font-size: 0.9rem;
+    border-bottom: none;
+}
+
+.offcanvas-body .navbar-nav .nav-item .collapse .navbar-nav .nav-link:hover {
+    padding-left: 28px;
+    background-color: #e9ecef;
+}
+
+.offcanvas-body .user-info {
+    border: 1px solid #dee2e6;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+.offcanvas-body .auth-links .btn {
+    font-weight: 500;
+}
+
+.mobile-menu-section {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.mobile-menu-section:last-child {
+    border-bottom: none;
+}
+
+/* Fix for collapsed items */
+.offcanvas-body .collapse .nav-item {
+    margin: 0;
+}
+
+.offcanvas-body .collapse .nav-item .nav-link {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}
+
+/* Debug info styling */
+.offcanvas-body .alert-info {
+    font-size: 0.75rem;
+    padding: 8px 12px;
+}
+
+/* Responsive improvements */
+@media (max-width: 576px) {
+    .offcanvas {
+        width: 100vw !important;
+    }
+}
+</style>
+
+<!-- Mobile Menu JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Close mobile menu when clicking on nav links (except dropdowns)
+    const mobileMenuLinks = document.querySelectorAll('#mobileMenu .nav-link:not([data-bs-toggle="collapse"])');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const offcanvasInstance = bootstrap.Offcanvas.getInstance(mobileMenu);
+    
+    mobileMenuLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            // Small delay to ensure navigation starts
+            setTimeout(() => {
+                if (offcanvasInstance) {
+                    offcanvasInstance.hide();
+                }
+            }, 100);
+        });
+    });
+    
+    // Debug: Log clicks on mobile menu items
+    <?php if (APP_DEBUG): ?>
+    mobileMenuLinks.forEach((link, index) => {
+        link.addEventListener('click', function(e) {
+            console.log('Mobile menu link clicked:', {
+                index: index,
+                href: this.getAttribute('href'),
+                text: this.textContent.trim(),
+                baseUrl: '<?= BASE_URL ?>'
+            });
+        });
+    });
+    <?php endif; ?>
+});
+</script>

@@ -509,28 +509,51 @@ class OrderSuccessManager {
 	}
 
 	downloadInvoice() {
-		// Simulate invoice download
-		this.showMessage('Đang tạo hóa đơn...', 'info');
+		// Get order ID from URL or page data
+		const urlParams = new URLSearchParams(window.location.search);
+		const orderId = urlParams.get('order_id') || this.orderId || this.getOrderIdFromPage();
+		
+		if (!orderId) {
+			this.showMessage('Không tìm thấy mã đơn hàng', 'error');
+			return;
+		}
 
+		// Show loading message
+		this.showMessage('Đang tạo hóa đơn PDF...', 'info');
+
+		// Create download link for PDF
+		const downloadUrl = `/zone-fashion/order/downloadInvoice?order_id=${orderId}`;
+		
+		// Create hidden iframe to trigger download
+		const iframe = document.createElement('iframe');
+		iframe.style.display = 'none';
+		iframe.src = downloadUrl;
+		document.body.appendChild(iframe);
+		
+		// Clean up iframe after download starts
 		setTimeout(() => {
-			// Create and trigger download
-			const element = document.createElement('a');
-			element.setAttribute(
-				'href',
-				'data:text/plain;charset=utf-8,' +
-					encodeURIComponent('Hóa đơn zone Fashion - Demo')
-			);
-			element.setAttribute(
-				'download',
-				`hoa-don-${this.orderId || 'FS240101001'}.txt`
-			);
-			element.style.display = 'none';
-			document.body.appendChild(element);
-			element.click();
-			document.body.removeChild(element);
+			document.body.removeChild(iframe);
+			this.showMessage('Hóa đơn PDF đang được tải xuống...', 'success');
+		}, 1000);
+	}
 
-			this.showMessage('Tải hóa đơn thành công!', 'success');
-		}, 1500);
+	getOrderIdFromPage() {
+		// Try to get order ID from various sources on the page
+		const orderCodeElement = document.getElementById('orderCode');
+		if (orderCodeElement) {
+			const orderCode = orderCodeElement.textContent.trim();
+			// Extract numeric ID from order code if needed
+			const match = orderCode.match(/\d+/);
+			return match ? match[0] : null;
+		}
+		
+		// Try to get from URL path
+		const pathMatch = window.location.pathname.match(/\/order\/success\/(\d+)/);
+		if (pathMatch) {
+			return pathMatch[1];
+		}
+		
+		return null;
 	}
 
 	showMessage(message, type = 'info') {

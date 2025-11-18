@@ -912,5 +912,431 @@ public function checkout()
             throw $e;
         }
     }
+
+    /**
+     * Download invoice for an order - Simple HTML version
+     */
+    public function downloadInvoice()
+    {
+        try {
+            // Get order ID from URL
+            $orderId = $_GET['order_id'] ?? null;
+            
+            if (!$orderId) {
+                echo "Mã đơn hàng không hợp lệ";
+                return;
+            }
+
+            $user = getUser();
+            if (!$user) {
+                echo "Vui lòng đăng nhập";
+                return;
+            }
+            
+            // Get order details
+            $order = $this->getSimpleOrderDetails($orderId, $user['id']);
+            
+            if (!$order) {
+                echo "Không tìm thấy đơn hàng";
+                return;
+            }
+
+            // Output HTML invoice directly
+            $this->outputInvoiceHtml($order);
+            
+        } catch (Exception $e) {
+            echo "Có lỗi xảy ra: " . $e->getMessage();
+        }
+    }
+
+    /**
+     * Get simple order details
+     */
+    private function getSimpleOrderDetails($orderId, $userId)
+    {
+        try {
+            $db = Database::getInstance()->getConnection();
+            
+            // Get order
+            $stmt = $db->prepare("
+                SELECT o.*, 
+                       COALESCE(o.customer_name, u.username) as customer_name,
+                       COALESCE(o.customer_email, u.email) as customer_email,
+                       COALESCE(o.customer_phone, u.phone) as customer_phone
+                FROM orders o
+                LEFT JOIN users u ON o.user_id = u.id
+                WHERE o.id = ? AND o.user_id = ?
+            ");
+            $stmt->execute([$orderId, $userId]);
+            $order = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$order) return null;
+            
+            // Get order items
+            $stmt = $db->prepare("
+                SELECT oi.*, 
+                       p.name as product_name
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = ?
+            ");
+            $stmt->execute([$orderId]);
+            $order['items'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            return $order;
+            
+        } catch (Exception $e) {
+            error_log('Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Output simple HTML invoice
+     */
+    private function outputInvoiceHtml($order)
+    {
+        $orderDate = date('d/m/Y H:i', strtotime($order['created_at']));
+        $shippingData = json_decode($order['shipping_address'], true);
+        $customerAddress = $shippingData['address'] ?? '';
+
+        header('Content-Type: text/html; charset=utf-8');
+        
+        echo "<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Hóa đơn {$order['order_code']}</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+                .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                .company-name { font-size: 24px; font-weight: bold; color: #333; margin-bottom: 10px; }
+                .invoice-title { font-size: 20px; margin: 20px 0; font-weight: bold; }
+                .info-row { display: flex; justify-content: space-between; margin-bottom: 30px; }
+                .info-col { width: 48%; }
+                .info-title { font-weight: bold; margin-bottom: 10px; font-size: 16px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+                .info-item { margin-bottom: 8px; }
+                table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+                th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                th { background-color: #f5f5f5; font-weight: bold; }
+                .text-center { text-align: center; }
+                .text-right { text-align: right; }
+                .total-row { font-weight: bold; background-color: #f9f9f9; font-size: 16px; }
+                .footer { margin-top: 40px; text-align: center; color: #666; }
+                .print-btn { 
+                    background: #007bff; color: white; border: none; padding: 15px 30px; 
+                    font-size: 16px; border-radius: 5px; cursor: pointer; margin: 20px;
+                }
+                @media print { .print-btn { display: none; } }
+            </style>
+        </head>
+        <body>
+            <div class='header'>
+                <div class='company-name'>Zone Fashion</div>
+                <div>Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM</div>
+                <div>Hotline: 1900 1900 | Email: info@zone-fashion.com</div>
+                <div class='invoice-title'>HÓA ĐƠN BÁN HÀNG</div>
+            </div>
+            
+            <div class='info-row'>
+                <div class='info-col'>
+                    <div class='info-title'>Thông tin đơn hàng</div>
+                    <div class='info-item'><strong>Mã đơn hàng:</strong> {$order['order_code']}</div>
+                    <div class='info-item'><strong>Ngày đặt:</strong> {$orderDate}</div>
+                    <div class='info-item'><strong>Thanh toán:</strong> Thanh toán khi nhận hàng</div>
+                </div>
+                <div class='info-col'>
+                    <div class='info-title'>Thông tin khách hàng</div>
+                    <div class='info-item'><strong>Họ tên:</strong> {$order['customer_name']}</div>
+                    <div class='info-item'><strong>Điện thoại:</strong> {$order['customer_phone']}</div>
+                    <div class='info-item'><strong>Email:</strong> {$order['customer_email']}</div>
+                    <div class='info-item'><strong>Địa chỉ:</strong> {$customerAddress}</div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th class='text-center'>STT</th>
+                        <th>Tên sản phẩm</th>
+                        <th class='text-center'>Số lượng</th>
+                        <th class='text-right'>Đơn giá</th>
+                        <th class='text-right'>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>";
+
+        $stt = 1;
+        foreach ($order['items'] as $item) {
+            $subtotal = $item['price'] * $item['quantity'];
+            echo "<tr>
+                <td class='text-center'>{$stt}</td>
+                <td>{$item['product_name']}</td>
+                <td class='text-center'>{$item['quantity']}</td>
+                <td class='text-right'>" . number_format($item['price'], 0, ',', '.') . "đ</td>
+                <td class='text-right'>" . number_format($subtotal, 0, ',', '.') . "đ</td>
+            </tr>";
+            $stt++;
+        }
+
+        echo "<tr class='total-row'>
+                <td colspan='4' class='text-right'>TỔNG CỘNG:</td>
+                <td class='text-right'>" . number_format($order['total_amount'], 0, ',', '.') . "đ</td>
+            </tr>
+            </tbody>
+            </table>
+
+            <div class='footer'>
+                <p><strong>Cảm ơn quý khách đã mua sắm tại Zone Fashion!</strong></p>
+                <p>Đây là hóa đơn điện tử, vui lòng lưu giữ để tra cứu và bảo hành sản phẩm.</p>
+            </div>
+            
+            <div style='text-align: center;'>
+                <button class='print-btn' onclick='window.print()'>🖨️ In hóa đơn</button>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
+     * Get order details with items
+     */
+    private function getOrderDetails($orderId, $userId)
+    {
+        try {
+            $db = Database::getInstance()->getConnection();
+            
+            // Get order basic info
+            $stmt = $db->prepare("
+                SELECT o.*, 
+                       COALESCE(o.customer_name, u.username) as customer_name,
+                       COALESCE(o.customer_email, u.email) as customer_email,
+                       COALESCE(o.customer_phone, u.phone) as customer_phone
+                FROM orders o
+                LEFT JOIN users u ON o.user_id = u.id
+                WHERE o.id = ? AND o.user_id = ?
+            ");
+            $stmt->execute([$orderId, $userId]);
+            $order = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$order) return null;
+            
+            // Get order items
+            $stmt = $db->prepare("
+                SELECT oi.*, 
+                       p.name as product_name,
+                       p.sku as product_sku,
+                       pv.variant_name,
+                       pv.color,
+                       pv.size
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.id
+                LEFT JOIN product_variants pv ON oi.product_variant_id = pv.id
+                WHERE oi.order_id = ?
+                ORDER BY oi.id
+            ");
+            $stmt->execute([$orderId]);
+            $order['items'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            return $order;
+            
+        } catch (Exception $e) {
+            error_log('Error getting order details: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Generate and output PDF invoice
+     */
+    private function generateInvoicePdf($order)
+    {
+        // Require DomPDF
+        require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
+        
+        // Configure DomPDF options
+        $options = new \Dompdf\Options();
+        $options->set('defaultFont', 'DejaVu Sans');
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        
+        // Create DomPDF instance
+        $dompdf = new \Dompdf\Dompdf($options);
+        
+        // Generate HTML for PDF
+        $html = $this->generateInvoiceHtml($order, true); // true for PDF format
+        
+        // Load HTML to DomPDF
+        $dompdf->loadHtml($html);
+        
+        // Set paper size and orientation
+        $dompdf->setPaper('A4', 'portrait');
+        
+        // Render PDF
+        $dompdf->render();
+        
+        // Set headers for PDF download
+        $filename = 'hoa-don-' . $order['order_code'] . '.pdf';
+        
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+        
+        // Output PDF
+        echo $dompdf->output();
+        exit;
+    }
+
+    /**
+     * Generate invoice HTML
+     */
+    private function generateInvoiceHtml($order, $forPdf = false)
+    {
+        $orderDate = date('d/m/Y H:i', strtotime($order['created_at']));
+        $orderCode = $order['order_code'];
+        $customerName = $order['customer_name'] ?: 'Khách hàng';
+        $customerPhone = $order['customer_phone'] ?: '';
+        $customerEmail = $order['customer_email'] ?: '';
+        $shippingAddress = $order['shipping_address'] ?: '';
+        $paymentMethod = $this->getPaymentMethodName($order['payment_method']);
+        $totalAmount = number_format($order['total_amount'], 0, ',', '.');
+        
+        $itemsHtml = '';
+        $itemNumber = 1;
+        
+        foreach ($order['items'] as $item) {
+            $productName = $item['product_name'];
+            $variant = '';
+            if ($item['variant_name']) {
+                $variant = ' (' . $item['variant_name'] . ')';
+            } elseif ($item['color'] || $item['size']) {
+                $variant = ' (' . ($item['color'] ?: '') . ($item['color'] && $item['size'] ? ', ' : '') . ($item['size'] ?: '') . ')';
+            }
+            
+            $subtotal = number_format($item['price'] * $item['quantity'], 0, ',', '.');
+            
+            $itemsHtml .= "
+                <tr>
+                    <td style='border: 1px solid #ddd; padding: 8px; text-align: center;'>{$itemNumber}</td>
+                    <td style='border: 1px solid #ddd; padding: 8px;'>{$productName}{$variant}</td>
+                    <td style='border: 1px solid #ddd; padding: 8px; text-align: center;'>{$item['quantity']}</td>
+                    <td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>" . number_format($item['price'], 0, ',', '.') . "đ</td>
+                    <td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>{$subtotal}đ</td>
+                </tr>
+            ";
+            $itemNumber++;
+        }
+
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <title>Hóa đơn {$orderCode}</title>
+            <style>
+                body { 
+                    font-family: 'DejaVu Sans', Arial, sans-serif; 
+                    margin: 0; 
+                    padding: 20px; 
+                    font-size: " . ($forPdf ? '12px' : '14px') . "; 
+                    line-height: 1.4;
+                }
+                .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                .company-name { font-size: " . ($forPdf ? '20px' : '24px') . "; font-weight: bold; color: #333; margin-bottom: 10px; }
+                .company-info { font-size: " . ($forPdf ? '11px' : '13px') . "; color: #666; margin-bottom: 5px; }
+                .invoice-title { font-size: " . ($forPdf ? '16px' : '20px') . "; margin: 20px 0; font-weight: bold; }
+                .info-section { margin: 20px 0; }
+                .info-row { display: table; width: 100%; margin-bottom: 20px; }
+                .info-col { display: table-cell; width: 48%; vertical-align: top; padding: 0 10px; }
+                .info-col:first-child { padding-left: 0; }
+                .info-col:last-child { padding-right: 0; }
+                .info-title { font-weight: bold; margin-bottom: 10px; font-size: " . ($forPdf ? '13px' : '14px') . "; }
+                .info-item { margin-bottom: 5px; font-size: " . ($forPdf ? '11px' : '12px') . "; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { border: 1px solid #ddd; padding: " . ($forPdf ? '6px' : '8px') . "; text-align: left; }
+                th { background-color: #f5f5f5; font-weight: bold; font-size: " . ($forPdf ? '11px' : '12px') . "; }
+                td { font-size: " . ($forPdf ? '10px' : '11px') . "; }
+                .text-center { text-align: center; }
+                .text-right { text-align: right; }
+                .total-row { font-weight: bold; background-color: #f9f9f9; }
+                .total-row td { font-size: " . ($forPdf ? '12px' : '13px') . "; }
+                .footer { margin-top: 30px; text-align: center; font-size: " . ($forPdf ? '10px' : '12px') . "; color: #666; }
+                .footer p { margin: 5px 0; }
+                " . (!$forPdf ? ".print-btn { background: #007bff; color: white; border: none; padding: 10px 20px; margin: 10px; border-radius: 5px; cursor: pointer; }
+                @media print { .print-btn { display: none; } }" : "") . "
+            </style>
+        </head>
+        <body>
+            <div class='header'>
+                <div class='company-name'>Zone Fashion</div>
+                <div class='company-info'>Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM</div>
+                <div class='company-info'>Hotline: 1900 1900 | Email: info@zone-fashion.com</div>
+                <div class='invoice-title'>HÓA ĐƠN BÁN HÀNG</div>
+            </div>
+            
+            <div class='info-section'>
+                <div class='info-row'>
+                    <div class='info-col'>
+                        <div class='info-title'>Thông tin đơn hàng:</div>
+                        <div class='info-item'>Mã đơn hàng: <strong>{$orderCode}</strong></div>
+                        <div class='info-item'>Ngày đặt: <strong>{$orderDate}</strong></div>
+                        <div class='info-item'>Phương thức thanh toán: <strong>{$paymentMethod}</strong></div>
+                    </div>
+                    <div class='info-col'>
+                        <div class='info-title'>Thông tin khách hàng:</div>
+                        <div class='info-item'>Họ tên: <strong>{$customerName}</strong></div>
+                        <div class='info-item'>Điện thoại: <strong>{$customerPhone}</strong></div>
+                        <div class='info-item'>Email: <strong>{$customerEmail}</strong></div>
+                        <div class='info-item'>Địa chỉ: <strong>{$shippingAddress}</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th class='text-center' style='width: 8%;'>STT</th>
+                        <th style='width: 45%;'>Tên sản phẩm</th>
+                        <th class='text-center' style='width: 10%;'>SL</th>
+                        <th class='text-right' style='width: 17%;'>Đơn giá</th>
+                        <th class='text-right' style='width: 20%;'>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {$itemsHtml}
+                    <tr class='total-row'>
+                        <td colspan='4' class='text-right'><strong>Tổng cộng:</strong></td>
+                        <td class='text-right'><strong>{$totalAmount}đ</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class='footer'>
+                <p><strong>Cảm ơn quý khách đã mua sắm tại Zone Fashion!</strong></p>
+                <p>Đây là hóa đơn điện tử, vui lòng lưu giữ để tra cứu và bảo hành sản phẩm.</p>
+            </div>
+            " . (!$forPdf ? "
+            <div style='text-align: center; margin-top: 20px;'>
+                <button class='print-btn' onclick='window.print()'>In hóa đơn</button>
+            </div>" : "") . "
+        </body>
+        </html>
+        ";
+    }
+
+    /**
+     * Get payment method display name
+     */
+    private function getPaymentMethodName($method)
+    {
+        switch ($method) {
+            case 'cod': return 'Thanh toán khi nhận hàng';
+            case 'vnpay': return 'VNPay';
+            case 'momo': return 'MoMo';
+            case 'bank_transfer': return 'Chuyển khoản ngân hàng';
+            default: return 'Thanh toán khi nhận hàng';
+        }
+    }
 }
 ?>

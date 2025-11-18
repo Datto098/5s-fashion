@@ -156,7 +156,14 @@ class App
 
         // Set method (standard behavior)
         if (isset($url[1])) {
-            if (method_exists($this->controller, $url[1])) {
+            // Convert kebab-case to camelCase for method names
+            $methodName = str_replace('-', '', lcfirst(str_replace('-', ' ', $url[1])));
+            $methodName = str_replace(' ', '', ucwords($methodName));
+            
+            if (method_exists($this->controller, $methodName)) {
+                $this->method = $methodName;
+                unset($url[1]);
+            } elseif (method_exists($this->controller, $url[1])) {
                 $this->method = $url[1];
                 unset($url[1]);
             }

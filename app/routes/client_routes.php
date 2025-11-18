@@ -108,6 +108,7 @@ return [
     'order/success/{id}' => 'OrderController@success',
     'order/success' => 'OrderController@success',
     'order/tracking' => 'OrderController@tracking',
+    'order/downloadInvoice' => 'OrderController@downloadInvoice',
 
     // Payment routes
     'payment/methods' => 'PaymentController@getMethods',

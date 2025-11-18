@@ -25,9 +25,16 @@ $trending = $trending ?? [];$period = $period ?? '30';
             <a href="/zone-fashion/admin/analytics/reports" class="btn btn-primary btn-sm">
                 <i class="fas fa-chart-line me-1"></i>Chi tiết
             </a>
-            <button class="btn btn-success btn-sm" onclick="exportData()">
-                <i class="fas fa-download me-1"></i>Xuất dữ liệu
-            </button>
+            <div class="dropdown">
+                <button class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-1"></i>Xuất dữ liệu JSON
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="exportDataClient()"><i class="fas fa-file-code me-2"></i>Tải JSON File</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="exportDataAPI()"><i class="fas fa-link me-2"></i>API Endpoint</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="showDataPreview()"><i class="fas fa-eye me-2"></i>Xem trước JSON</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -491,14 +498,22 @@ function switchChart(type) {
     mainChart.update();
 }
 
-function exportData() {
-    // Implement export functionality
+// Export data as JSON file download
+function exportDataClient() {
     const data = {
-        period: <?= json_encode($period) ?>,
-        overview: <?= json_encode($overview) ?>,
-        sales: <?= json_encode($sales) ?>,
-        reviews: <?= json_encode($reviews) ?>,
-        timestamp: new Date().toISOString()
+        export_info: {
+            type: 'analytics_data',
+            period: <?= json_encode($period) ?>,
+            export_time: new Date().toISOString(),
+            source: 'Zone Fashion Admin Dashboard'
+        },
+        analytics: {
+            overview: <?= json_encode($overview) ?>,
+            sales: <?= json_encode($sales) ?>,
+            reviews: <?= json_encode($reviews) ?>,
+            products: <?= json_encode($products ?? []) ?>,
+            customers: <?= json_encode($customers ?? []) ?>
+        }
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -510,6 +525,133 @@ function exportData() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    // Show success message
+    showToast('Dữ liệu JSON đã được tải xuống thành công!', 'success');
+}
+
+// Show API endpoint for programmatic access
+function exportDataAPI() {
+    const apiUrl = `${window.location.origin}/zone-fashion/admin/analytics/export-json?period=<?= $period ?>`;
+    
+    const modalHtml = `
+        <div class="modal fade" id="apiModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-link me-2"></i>API Endpoint xuất JSON</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Endpoint URL:</strong></p>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" value="${apiUrl}" readonly>
+                            <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText('${apiUrl}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <p><strong>Method:</strong> GET</p>
+                        <p><strong>Response:</strong> JSON data</p>
+                        <p><strong>Parameters:</strong></p>
+                        <ul>
+                            <li><code>period</code> - Số ngày (7, 30, 90, 365)</li>
+                            <li><code>format</code> - pretty | compact (optional)</li>
+                        </ul>
+                        <p><strong>Ví dụ:</strong></p>
+                        <code class="text-muted">${apiUrl}&format=compact</code>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="${apiUrl}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt me-1"></i>Mở API
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('apiModal'));
+    modal.show();
+    
+    // Clean up modal after hide
+    document.getElementById('apiModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Show JSON data preview
+function showDataPreview() {
+    const data = {
+        export_info: {
+            type: 'analytics_data',
+            period: <?= json_encode($period) ?>,
+            export_time: new Date().toISOString(),
+            source: 'Zone Fashion Admin Dashboard'
+        },
+        analytics: {
+            overview: <?= json_encode($overview) ?>,
+            sales: <?= json_encode($sales) ?>,
+            reviews: <?= json_encode($reviews) ?>
+        }
+    };
+    
+    const modalHtml = `
+        <div class="modal fade" id="previewModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-eye me-2"></i>Xem trước dữ liệu JSON</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <pre class="bg-light p-3 rounded" style="max-height: 500px; overflow-y: auto;"><code>${JSON.stringify(data, null, 2)}</code></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="navigator.clipboard.writeText(JSON.stringify(data, null, 2))">
+                            <i class="fas fa-copy me-1"></i>Copy JSON
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    modal.show();
+    
+    // Clean up modal after hide
+    document.getElementById('previewModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Toast notification helper
+function showToast(message, type = 'info') {
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type} border-0 position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999;" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', toastHtml);
+    const toast = new bootstrap.Toast(document.querySelector('.toast:last-child'));
+    toast.show();
+    
+    // Auto remove toast after hide
+    document.querySelector('.toast:last-child').addEventListener('hidden.bs.toast', function() {
+        this.remove();
+    });
 }
 
 // Auto refresh every 5 minutes
