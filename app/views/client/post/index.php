@@ -73,7 +73,7 @@ function getPostImageUrl($thumbnail) {
                                 </a>
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title mb-2 text-dark" style="font-size: 1.1rem;">
-                                        <a href="/zone-fashion/post/<?= $post['id'] ?>" class="text-decoration-none text-dark">
+                                        <a href="/zone-fashion/blog/<?= $post['id'] ?>" class="text-decoration-none text-dark">
                                             <?= htmlspecialchars($post['title']) ?>
                                         </a>
                                     </h5>
@@ -86,7 +86,7 @@ function getPostImageUrl($thumbnail) {
                                     <p class="card-text text-secondary" style="font-size: 0.97rem; flex-grow: 1;">
                                         <?= htmlspecialchars(mb_substr(strip_tags($post['content'] ?? ''), 0, 100)) ?>...
                                     </p>
-                                    <a href="/zone-fashion/post/<?= $post['id'] ?>" class="btn btn-outline-primary btn-sm mt-auto align-self-start">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
+                                    <a href="/zone-fashion/blog/<?= $post['id'] ?>" class="btn btn-outline-primary btn-sm mt-auto align-self-start">Đọc tiếp <i class="fas fa-arrow-right"></i></a>
                                 </div>
                             </div>
                         </div>

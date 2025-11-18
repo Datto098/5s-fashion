@@ -199,19 +199,31 @@ class App
             }
         }
 
-        // Check if it's a category or brand URL pattern
+        // Check if it's a valid category or brand URL pattern
         if (!empty($fullPath)) {
             $segments = explode('/', $fullPath);
             $firstSegment = $segments[0];
 
             // Skip special URLs that shouldn't be treated as categories
-            $skipPatterns = ['ajax', 'api', 'admin', 'uploads', 'assets', 'public', 'order', 'payment', 'cart', 'wishlist', 'account', 'auth', 'login', 'register'];
+            $skipPatterns = ['ajax', 'api', 'admin', 'uploads', 'assets', 'public', 'order', 'payment', 'cart', 'wishlist', 'account', 'auth', 'login', 'register', 'vouchers', 'contact', 'about', 'blog', 'search'];
 
-            // Handle category-like URLs (ao-thun-nam, giay-the-thao, etc.)
+            // Only handle category-like URLs if they're not in skip patterns AND have valid format
             if (!in_array($firstSegment, $skipPatterns) && preg_match('/^[a-z0-9-]+$/', $firstSegment)) {
-                $_GET['category'] = $firstSegment;
-                $this->handleRoute('HomeController@shop');
-                return;
+                // Check if it's a valid category slug in database
+                try {
+                    require_once APP_PATH . '/models/Category.php';
+                    $categoryModel = new Category();
+                    
+                    $category = $categoryModel->findBySlug($firstSegment);
+                    if ($category && $category['status'] === 'active') {
+                        $_GET['category'] = $firstSegment;
+                        $this->handleRoute('HomeController@shop');
+                        return;
+                    }
+                } catch (Exception $e) {
+                    // If there's an error checking category, continue to 404
+                    error_log("Error checking category: " . $e->getMessage());
+                }
             }
         }
 
@@ -247,8 +259,18 @@ class App
     private function show404()
     {
         http_response_code(404);
-        echo "<h1>404 - Page Not Found</h1>";
-        echo "<p>The page you are looking for could not be found.</p>";
+        
+        // Check if 404.php file exists
+        $errorFile = VIEW_PATH . '/errors/404.php';
+        if (file_exists($errorFile)) {
+            require_once $errorFile;
+        } else {
+            // Fallback if 404.php doesn't exist
+            echo "<h1>404 - Page Not Found</h1>";
+            echo "<p>The page you are looking for could not be found.</p>";
+            echo '<a href="' . BASE_URL . '">Go to Homepage</a>';
+        }
+        exit;
     }
 
     public function parseUrl()

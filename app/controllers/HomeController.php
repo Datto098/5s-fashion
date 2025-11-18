@@ -18,6 +18,7 @@ class HomeController extends BaseController
     private $couponModel;
     private $reviewModel;
     private $orderModel;
+    private $postModel;
 
     public function __construct()
     {
@@ -30,12 +31,14 @@ class HomeController extends BaseController
         require_once __DIR__ . '/../models/Product.php';
         require_once __DIR__ . '/../models/Category.php';
         require_once __DIR__ . '/../models/Coupon.php';
+        require_once __DIR__ . '/../models/Post.php';
 
         $this->productModel = new Product();
         $this->categoryModel = new Category();
         $this->couponModel = new Coupon();
         $this->reviewModel = new Review();
         $this->orderModel = new Order();
+        $this->postModel = new Post();
     }
 
     public function index()
@@ -63,6 +66,9 @@ class HomeController extends BaseController
         // Get featured vouchers for homepage
         $featuredVouchers = $this->couponModel->getFeaturedVouchers(2);
 
+        // Get latest blog posts for news section
+        $latestPosts = Post::getLatest(5); // Get 5 latest posts (1 featured + 4 in list)
+
         // If user is logged in, fetch their saved/used voucher ids so homepage can mark them
         $savedVoucherIds = [];
         $usedVoucherIds = [];
@@ -83,9 +89,10 @@ class HomeController extends BaseController
             'new_arrivals' => $newArrivals,
             'best_sellers' => $bestSellers,
             'sale_products' => $saleProducts,
-            'featured_vouchers' => $featuredVouchers
-            , 'saved_voucher_ids' => $savedVoucherIds
-            , 'used_voucher_ids' => $usedVoucherIds
+            'featured_vouchers' => $featuredVouchers,
+            'latest_posts' => $latestPosts,
+            'saved_voucher_ids' => $savedVoucherIds,
+            'used_voucher_ids' => $usedVoucherIds
         ];
 
         $this->render('client/home/index', $data, 'client/layouts/app');

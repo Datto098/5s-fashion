@@ -20,13 +20,13 @@ class PHPMailerHelper {
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = '22211tt2029@mail.tdc.edu.vn';
-            $mail->Password   = 'kpjy vikb dqmx wnmy';
+            $mail->Username   = 'dangthixuan2272004@gmail.com';
+            $mail->Password   = 'mmnd rvse gkob fuuy';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
 
-            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', 'zone Fashion');
+            $mail->setFrom('dangthixuan2272004@gmail.com', 'zone Fashion');
             if ($toName) {
                 $mail->addAddress($to, $toName);
             } else {
@@ -51,14 +51,14 @@ class PHPMailerHelper {
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = '22211tt2029@mail.tdc.edu.vn'; 
-            $mail->Password   = 'kpjy vikb dqmx wnmy';  
+            $mail->Username   = 'dangthixuan2272004@gmail.com'; 
+            $mail->Password   = 'mmnd rvse gkob fuuy';  
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
 
             //Recipients
-            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', 'zone Fashion');
+            $mail->setFrom('dangthixuan2272004@gmail.com', 'zone Fashion');
             $mail->addAddress($to, $toName);
 
             //Content
@@ -91,14 +91,14 @@ class PHPMailerHelper {
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
-            $mail->Username   = '22211tt2029@mail.tdc.edu.vn';
-            $mail->Password   = 'kpjy vikb dqmx wnmy';
+            $mail->Username   = 'dangthixuan2272004@gmail.com';
+            $mail->Password   = 'mmnd rvse gkob fuuy';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             $mail->CharSet    = 'UTF-8';
 
             //Recipients
-            $mail->setFrom('22211tt2029@mail.tdc.edu.vn', 'zone Fashion');
+            $mail->setFrom('dangthixuan2272004@gmail.com', 'zone Fashion');
             $mail->addAddress($to, $toName);
 
             //Content

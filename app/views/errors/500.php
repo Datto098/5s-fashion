@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Trang không tìm thấy | Zone Fashion</title>
+    <title>500 - Lỗi máy chủ | Zone Fashion</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -21,11 +21,11 @@
             --shadow-card: 0 5px 15px rgba(0, 0, 0, 0.08);
             --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
             --transition-standard: all 0.3s ease;
-            --primary-gradient: linear-gradient(135deg, var(--primary-color), #0056b3);
+            --danger-gradient: linear-gradient(135deg, var(--danger-color), #b02a37);
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
@@ -57,32 +57,31 @@
             left: 0;
             right: 0;
             height: 5px;
-            background: var(--primary-gradient);
+            background: var(--danger-gradient);
         }
 
         .error-icon {
             font-size: 5rem;
-            color: var(--warning-color);
+            color: var(--danger-color);
             margin-bottom: 2rem;
-            animation: bounce 2s infinite;
+            animation: pulse 2s infinite;
         }
 
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
             }
-            40% {
-                transform: translateY(-10px);
-            }
-            60% {
-                transform: translateY(-5px);
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
             }
         }
 
         .error-code {
             font-size: 6rem;
             font-weight: 700;
-            color: var(--primary-color);
+            color: var(--danger-color);
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
@@ -118,15 +117,15 @@
         }
 
         .btn-primary {
-            background: var(--primary-gradient);
+            background: var(--danger-gradient);
             border: none;
             color: white;
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, #0056b3, var(--primary-color));
+            background: linear-gradient(135deg, #b02a37, var(--danger-color));
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
             color: white;
         }
 
@@ -140,34 +139,6 @@
             background: var(--secondary-color);
             color: white;
             transform: translateY(-2px);
-        }
-
-        .floating-shapes {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: -1;
-        }
-
-        .floating-shapes::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background-image: 
-                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 0%, transparent 50%);
-            animation: float 20s linear infinite;
-        }
-
-        @keyframes float {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         @media (max-width: 576px) {
@@ -197,37 +168,35 @@
     </style>
 </head>
 <body>
-    <div class="floating-shapes"></div>
     <div class="error-container">
         <div class="error-content">
             <div class="error-icon">
-                <i class="fas fa-search"></i>
+                <i class="fas fa-exclamation-triangle"></i>
             </div>
-            <div class="error-code">404</div>
-            <h1 class="error-title">Trang không tìm thấy</h1>
+            <div class="error-code">500</div>
+            <h1 class="error-title">Lỗi máy chủ</h1>
             <p class="error-description">
-                Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển. 
-                Hãy thử quay lại trang chủ hoặc khám phá cửa hàng của chúng tôi.
+                Đã xảy ra lỗi trên máy chủ. Chúng tôi đang khắc phục sự cố này. 
+                Vui lòng thử lại sau ít phút hoặc liên hệ với chúng tôi nếu vấn đề vẫn tiếp tục.
             </p>
             <div class="error-actions">
                 <a href="<?= BASE_URL ?>" class="btn btn-primary">
                     <i class="fas fa-home"></i>
                     Về trang chủ
                 </a>
-                <a href="<?= BASE_URL ?>/shop" class="btn btn-outline-secondary">
-                    <i class="fas fa-shopping-bag"></i>
-                    Cửa hàng
+                <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Quay lại
                 </a>
             </div>
         </div>
     </div>
 
     <script>
-        // Add some interactive effects
+        // Add entrance animation
         document.addEventListener('DOMContentLoaded', function() {
             const errorContent = document.querySelector('.error-content');
             
-            // Add entrance animation
             errorContent.style.opacity = '0';
             errorContent.style.transform = 'translateY(50px)';
             

@@ -447,30 +447,7 @@ ob_start();
 </style>
 
 <script>
-// Toast notification function
-function showToast(message, type = 'info') {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} position-fixed`;
-    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    toast.innerHTML = `
-        <div class="d-flex align-items-center">
-            <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
-            <span>${message}</span>
-            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
-        </div>
-    `;
-
-    // Add to page
-    document.body.appendChild(toast);
-
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.remove();
-        }
-    }, 3000);
-}
+// Removed showToast function to prevent conflicts - using simple alert() instead
 
 // View toggle functionality
 document.getElementById('gridView').addEventListener('click', function() {
@@ -487,12 +464,37 @@ document.getElementById('listView').addEventListener('click', function() {
     document.getElementById('gridView').classList.remove('active');
 });
 
-function removeFromWishlist(productId) {
+// Remove any existing event listeners and add fresh one
+document.addEventListener('DOMContentLoaded', function() {
+    // Override all remove buttons with single event delegation
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-wishlist')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const button = e.target.closest('.remove-wishlist');
+            const productId = button.getAttribute('onclick')?.match(/\d+/)?.[0];
+            
+            if (productId) {
+                removeFromWishlistSafe(productId);
+            }
+            return false;
+        }
+    });
+});
+
+function removeFromWishlistSafe(productId) {
+    // Prevent double clicks
+    if (window.removingProduct) return;
+    
     if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi danh sách yêu thích?')) {
-        const button = event.target.closest('button');
-        const originalContent = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        button.disabled = true;
+        window.removingProduct = true;
+        
+        // Disable all remove buttons
+        document.querySelectorAll('.remove-wishlist').forEach(btn => {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        });
 
         fetch('<?= url('account/wishlist/remove') ?>', {
             method: 'POST',
@@ -504,58 +506,38 @@ function removeFromWishlist(productId) {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Response data:', data); // Debug log
             if (data.success) {
-                // Xóa item ngay khỏi DOM
-                const gridCard = button.closest('.col-lg-4');
-                const listRow = button.closest('.wishlist-item-row');
-
-                if (gridCard) {
-                    gridCard.style.transition = 'all 0.3s ease';
-                    gridCard.style.opacity = '0';
-                    gridCard.style.transform = 'scale(0.8)';
-                    setTimeout(() => gridCard.remove(), 300);
-                }
-                if (listRow) {
-                    listRow.style.transition = 'all 0.3s ease';
-                    listRow.style.opacity = '0';
-                    listRow.style.transform = 'scale(0.98)';
-                    setTimeout(() => listRow.remove(), 300);
-                }
-
-                // Update wishlist count
-                const countElement = document.querySelector('.wishlist-count .fw-bold');
-                if (countElement) {
-                    const currentCount = parseInt(countElement.textContent);
-                    countElement.textContent = Math.max(currentCount - 1, 0);
-                }
-
-                showToast('Đã xóa sản phẩm khỏi danh sách yêu thích', 'success');
-
-                // Reload ngay sau khi alert
-                setTimeout(() => {
-                    location.reload();
-                }, 1500); // Chỉ đợi 1.5 giây
-
+                alert('Đã xóa sản phẩm khỏi danh sách yêu thích');
+                location.reload();
             } else {
-                console.log('Request failed - data.success is false:', data);
-                button.innerHTML = originalContent;
-                button.disabled = false;
-                showToast(data.message || 'Có lỗi xảy ra, vui lòng thử lại', 'error');
+                window.removingProduct = false;
+                document.querySelectorAll('.remove-wishlist').forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-times"></i>';
+                });
+                alert(data.message || 'Có lỗi xảy ra, vui lòng thử lại');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            button.innerHTML = originalContent;
-            button.disabled = false;
-            showToast('Có lỗi xảy ra, vui lòng thử lại', 'error');
+            window.removingProduct = false;
+            document.querySelectorAll('.remove-wishlist').forEach(btn => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-times"></i>';
+            });
+            alert('Có lỗi xảy ra, vui lòng thử lại');
         });
     }
 }
 
+// Keep original function for onclick compatibility
+function removeFromWishlist(productId) {
+    removeFromWishlistSafe(productId);
+}
+
 function quickView(productId) {
     // Implementation for quick view
-    showInfo('Chức năng xem nhanh đang được phát triển. Product ID: ' + productId);
+    alert('Chức năng xem nhanh đang được phát triển. Product ID: ' + productId);
 }
 
 function addToCart(productId) {

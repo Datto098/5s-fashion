@@ -354,6 +354,121 @@ ob_start();
 </section>
 <?php endif; ?>
 
+<!-- News/Blog Section -->
+<section class="news-section py-5" style="background: #f8f9fa;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="section-header text-center mb-5">
+                    <h2 class="section-title">TIN TỨC</h2>
+                    <p class="section-subtitle">Cập nhật những xu hướng thời trang mới nhất</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Featured Article -->
+            <div class="col-lg-6 mb-4">
+                <?php if (!empty($latest_posts)): ?>
+                <?php $featured_post = $latest_posts[0]; ?>
+                <div class="featured-article">
+                    <div class="article-image">
+                        <img src="<?= !empty($featured_post['thumbnail']) ? asset('uploads/posts/' . $featured_post['thumbnail']) : asset('images/blog/default-post.jpg') ?>" 
+                             alt="<?= htmlspecialchars($featured_post['title']) ?>" class="img-fluid">
+                        <div class="article-overlay">
+                            <div class="article-meta">
+                                <span class="article-date">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <?= date('d/m/Y', strtotime($featured_post['created_at'])) ?>
+                                </span>
+                                <span class="article-views">
+                                    <i class="fas fa-eye"></i>
+                                    Mới đăng
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="article-content">
+                        <h3 class="article-title">
+                            <a href="<?= url('blog/' . $featured_post['id']) ?>">
+                                <?= htmlspecialchars($featured_post['title']) ?>
+                            </a>
+                        </h3>
+                        <p class="article-excerpt">
+                            <?= htmlspecialchars(substr(strip_tags($featured_post['content']), 0, 150)) ?>...
+                        </p>
+                        <a href="<?= url('blog/' . $featured_post['id']) ?>" class="btn btn-outline-primary">
+                            Đọc tiếp
+                        </a>
+                    </div>
+                </div>
+                <?php else: ?>
+                <div class="featured-article">
+                    <div class="article-content text-center">
+                        <h3 class="article-title">Chưa có bài viết nào</h3>
+                        <p class="article-excerpt">Hãy quay lại sau để xem những bài viết mới nhất về thời trang!</p>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+            
+            <!-- Article List -->
+            <div class="col-lg-6">
+                <div class="article-list">
+                    <?php if (!empty($latest_posts) && count($latest_posts) > 1): ?>
+                        <?php for ($i = 1; $i < min(count($latest_posts), 5); $i++): ?>
+                        <?php $post = $latest_posts[$i]; ?>
+                        <div class="article-item <?= $i < 4 ? 'mb-3' : '' ?>">
+                            <div class="row align-items-center">
+                                <div class="col-4">
+                                    <div class="article-thumbnail">
+                                        <img src="<?= !empty($post['thumbnail']) ? asset('uploads/posts/' . $post['thumbnail']) : asset('images/blog/default-post-thumb.jpg') ?>" 
+                                             alt="<?= htmlspecialchars($post['title']) ?>" class="img-fluid">
+                                    </div>
+                                </div>
+                                <div class="col-8">
+                                    <div class="article-info">
+                                        <h5 class="article-title mb-2">
+                                            <a href="<?= url('blog/' . $post['id']) ?>">
+                                                <?= htmlspecialchars($post['title']) ?>
+                                            </a>
+                                        </h5>
+                                        <div class="article-meta">
+                                            <span class="text-muted">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                <?= date('d/m/Y', strtotime($post['created_at'])) ?>
+                                            </span>
+                                        </div>
+                                        <p class="article-excerpt small text-muted mb-0">
+                                            <?= htmlspecialchars(substr(strip_tags($post['content']), 0, 80)) ?>...
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endfor; ?>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-newspaper fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Chưa có bài viết nào</h5>
+                            <p class="text-muted">Hãy quay lại sau để xem những tin tức mới nhất!</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <a href="<?= url('blog') ?>" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-newspaper me-2"></i>
+                    Xem tất cả bài viết
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <?php
 // Get the buffered content
 $content = ob_get_clean();
@@ -365,8 +480,220 @@ $custom_js = ['js/homepage.js'];
 // Set additional data
 $show_breadcrumb = false;
 
-// Inline CSS for voucher section
+// Inline CSS for voucher section and news section
 $inline_css = "
+/* News Section Styles */
+.news-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.news-section .section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.news-section .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    border-radius: 2px;
+}
+
+.news-section .section-subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+
+.featured-article {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.featured-article:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.featured-article .article-image {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+}
+
+.featured-article .article-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.featured-article:hover .article-image img {
+    transform: scale(1.05);
+}
+
+.featured-article .article-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 20px;
+}
+
+.featured-article .article-meta {
+    display: flex;
+    gap: 15px;
+}
+
+.featured-article .article-meta span {
+    color: white;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.featured-article .article-content {
+    padding: 25px;
+}
+
+.featured-article .article-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.featured-article .article-title a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.featured-article .article-title a:hover {
+    color: #007bff;
+}
+
+.featured-article .article-excerpt {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.article-list {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    height: 100%;
+}
+
+.article-item {
+    padding: 15px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.article-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0 !important;
+}
+
+.article-thumbnail {
+    border-radius: 10px;
+    overflow: hidden;
+    height: 80px;
+}
+
+.article-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.article-item:hover .article-thumbnail img {
+    transform: scale(1.1);
+}
+
+.article-info .article-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.article-info .article-title a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.article-info .article-title a:hover {
+    color: #007bff;
+}
+
+.article-info .article-meta {
+    margin-bottom: 8px;
+}
+
+.article-info .article-excerpt {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+    .featured-article .article-image {
+        height: 200px;
+    }
+    
+    .article-list {
+        margin-top: 30px;
+    }
+}
+
+@media (max-width: 767px) {
+    .news-section .section-title {
+        font-size: 2rem;
+    }
+    
+    .featured-article .article-image {
+        height: 180px;
+    }
+    
+    .featured-article .article-content {
+        padding: 20px;
+    }
+    
+    .article-list {
+        padding: 20px;
+    }
+    
+    .article-thumbnail {
+        height: 60px;
+    }
+    
+    .article-info .article-title {
+        font-size: 0.9rem;
+    }
+}
+
+/* Voucher Section Styles */
 .voucher-section {
     margin: 50px 0;
     padding: 0 15px;
