@@ -421,15 +421,24 @@ class ChatbotApiController extends ApiController
         }
 
         // If no pattern matched, call Gemini API for general questions
+        error_log("[Chatbot Debug] No pattern matched for message: '$message', calling Gemini API");
         $geminiAnswer = $this->askGemini($message);
+        error_log("[Chatbot Debug] Gemini API response: " . ($geminiAnswer ? $geminiAnswer : 'NULL/EMPTY'));
+        
         if ($geminiAnswer) {
-            $response = [
+            return [
                 'message' => $geminiAnswer,
                 'type' => 'gemini_answer',
                 'context' => $context
             ];
         }
-        return $response;
+
+        // If even Gemini fails, return default response
+        return [
+            'message' => 'Xin lỗi, tôi không hiểu câu hỏi của bạn. Bạn có thể hỏi về sản phẩm, giá cả, hoặc các dịch vụ của chúng tôi.',
+            'type' => 'fallback',
+            'context' => $context
+        ];
     }
 
     /**
@@ -437,8 +446,27 @@ class ChatbotApiController extends ApiController
      */
     private function askGemini($question)
     {
-        $apiKey = 'AIzaSyBAxOjWMaDhompXWC-VD0QQCfYthnVdRPM'; // Replace with your actual Gemini API key
-        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey;
+        // Load environment variables from .env file
+        $envPath = __DIR__ . '/../../../.env';
+        if (file_exists($envPath)) {
+            $envContent = file_get_contents($envPath);
+            $lines = explode("\n", $envContent);
+            foreach ($lines as $line) {
+                if (strpos($line, 'GEMINI_API_KEY=') === 0) {
+                    $apiKey = trim(str_replace(['GEMINI_API_KEY=', '"', "'"], '', $line));
+                    break;
+                }
+            }
+        }
+        
+        // Fallback to getenv
+        if (!isset($apiKey) || empty($apiKey)) {
+            $apiKey = getenv('GEMINI_API_KEY');
+        }
+        
+        // Final fallback
+       
+        $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
         $postData = [
             'contents' => [
                 [
@@ -468,9 +496,21 @@ class ChatbotApiController extends ApiController
         file_put_contents(__DIR__ . '/../../logs/debug.log', $logMsg, FILE_APPEND);
         if ($result) {
             $data = json_decode($result, true);
+            error_log("[Gemini Debug] Parsed JSON: " . print_r($data, true));
+            
             if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
-                return nl2br(htmlspecialchars($data['candidates'][0]['content']['parts'][0]['text']));
+                $geminiText = $data['candidates'][0]['content']['parts'][0]['text'];
+                error_log("[Gemini Debug] Found text: " . $geminiText);
+                return nl2br(htmlspecialchars($geminiText));
+            } else {
+                error_log("[Gemini Debug] Text not found in expected path");
+                // Try alternative paths
+                if (isset($data['candidates'])) {
+                    error_log("[Gemini Debug] Candidates structure: " . print_r($data['candidates'], true));
+                }
             }
+        } else {
+            error_log("[Gemini Debug] No result from API");
         }
         return null;
     }
