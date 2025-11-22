@@ -123,7 +123,7 @@ class App
         // Standard admin routing
         // Set controller
         if (isset($url[0])) {
-            $controllerName = ucfirst($url[0]) . 'Controller';
+            $controllerName = $this->convertToControllerName($url[0]) . 'Controller';
             $controllerFile = APP_PATH . '/controllers/admin/' . $controllerName . '.php';
 
             if (file_exists($controllerFile)) {
@@ -157,8 +157,7 @@ class App
         // Set method (standard behavior)
         if (isset($url[1])) {
             // Convert kebab-case to camelCase for method names
-            $methodName = str_replace('-', '', lcfirst(str_replace('-', ' ', $url[1])));
-            $methodName = str_replace(' ', '', ucwords($methodName));
+            $methodName = $this->kebabToCamelCase($url[1]);
             
             if (method_exists($this->controller, $methodName)) {
                 $this->method = $methodName;
@@ -286,5 +285,31 @@ class App
             return explode('/', filter_var(rtrim($_GET['url'], '/'), FILTER_SANITIZE_URL));
         }
         return [];
+    }
+
+    /**
+     * Convert kebab-case URL to PascalCase controller name
+     */
+    private function convertToControllerName($url)
+    {
+        // Convert kebab-case to PascalCase
+        // gemini-keys -> GeminiKeys
+        return str_replace(' ', '', ucwords(str_replace('-', ' ', $url)));
+    }
+
+    /**
+     * Convert kebab-case to camelCase
+     */
+    private function kebabToCamelCase($string)
+    {
+        // Convert kebab-case to camelCase: test-input -> testInput
+        $parts = explode('-', $string);
+        $camelCase = array_shift($parts); // First part stays lowercase
+        
+        foreach ($parts as $part) {
+            $camelCase .= ucfirst($part);
+        }
+        
+        return $camelCase;
     }
 }

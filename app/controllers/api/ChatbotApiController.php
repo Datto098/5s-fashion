@@ -210,28 +210,34 @@ class ChatbotApiController extends ApiController
             return $this->handleFollowUp($message, $context);
         }
 
-        // 2. Check for product search intent
+        // 2. Check for product search intent (exclude rating/review queries)
         $searchPattern = '/(?:tìm|tìm kiếm|tìm sản phẩm|tìm đồ|tìm quần|tìm áo|hiển thị|show me|tìm mẫu|có|có bán|cửa hàng có).*?([\p{L}\s\d\-\+]+?)(?:\s+không|không\?|$|\?)/ui';
         if (preg_match($searchPattern, $message, $matches) && !empty($matches[1])) {
             $keywords = trim($matches[1]);
-            $context['current_intent'] = 'product_search';
-            $context['search_keywords'] = $keywords;
-
-            $products = $this->searchProducts($keywords);
-
-            if (count($products) > 0) {
-                return [
-                    'message' => "Đây là kết quả tìm kiếm cho \"{$keywords}\":",
-                    'type' => 'product_search',
-                    'products' => $products,
-                    'context' => $context
-                ];
+            
+            // Skip if this is a rating/review query
+            if (preg_match('/(?:đánh giá|rating|review|feedback|chất lượng)/i', $keywords)) {
+                // Let it fall through to step 4 (intent patterns)
             } else {
-                return [
-                    'message' => "Xin lỗi, tôi không tìm thấy sản phẩm nào phù hợp với từ khóa \"{$keywords}\". Bạn có thể thử với từ khóa khác hoặc hỏi tôi về sản phẩm bán chạy, sản phẩm giảm giá.",
-                    'type' => 'product_search_empty',
-                    'context' => $context
-                ];
+                $context['current_intent'] = 'product_search';
+                $context['search_keywords'] = $keywords;
+
+                $products = $this->searchProducts($keywords);
+
+                if (count($products) > 0) {
+                    return [
+                        'message' => "Đây là kết quả tìm kiếm cho \"{$keywords}\":",
+                        'type' => 'product_search',
+                        'products' => $products,
+                        'context' => $context
+                    ];
+                } else {
+                    return [
+                        'message' => "Xin lỗi, tôi không tìm thấy sản phẩm nào phù hợp với từ khóa \"{$keywords}\". Bạn có thể thử với từ khóa khác hoặc hỏi tôi về sản phẩm bán chạy, sản phẩm giảm giá.",
+                        'type' => 'product_search_empty',
+                        'context' => $context
+                    ];
+                }
             }
         }
 
@@ -265,6 +271,62 @@ class ChatbotApiController extends ApiController
 
         // 4. Check for intent patterns - similar to original but improved
         $patterns = [
+            // Tìm số lượng sản phẩm có đánh giá tốt cụ thể (ví dụ: "3 sản phẩm đánh giá tốt", "5 áo review cao")
+            '/(?:(\d+)\s*(?:sản phẩm|sp|đồ|món|hàng|áo|quần|váy|đầm)\s*(?:có\s*)?(?:đánh giá tốt|rating cao|review tốt|đánh giá cao|chất lượng tốt))|(?:(\d+)\s*(áo|quần|váy|đầm)\s*(?:có\s*)?(?:đánh giá tốt|rating cao|review tốt))/i' => [
+                'type' => 'search_multiple_best_rated_by_category',
+                'intent' => 'search_multiple_best_rated_by_category',
+                'response' => 'search_multiple_best_rated_by_category'
+            ],
+
+            // Tìm 1 sản phẩm có đánh giá tốt nhất theo loại cụ thể (ví dụ: "áo đánh giá tốt nhất", "váy review cao nhất")
+            '/(?:(áo|quần|váy|đầm|jacket|hoodie|polo|shirt|jean|kaki|short|dress|skirt)\s*(?:nào\s*)?(?:có\s*)?(?:đánh giá tốt nhất|rating cao nhất|review tốt nhất|đánh giá cao nhất|chất lượng tốt nhất))/i' => [
+                'type' => 'search_single_best_rated_by_category',
+                'intent' => 'search_single_best_rated_by_category',
+                'response' => 'search_single_best_rated_by_category'
+            ],
+
+            // Tìm 1 sản phẩm có đánh giá tốt nhất chung (ví dụ: "sản phẩm nào có đánh giá tốt nhất")
+            '/(?:sản phẩm|sp|đồ|món|hàng|item)\s*(?:nào\s*)?(?:có\s*)?(?:đánh giá tốt nhất|rating cao nhất|review tốt nhất|đánh giá cao nhất|chất lượng tốt nhất)/i' => [
+                'type' => 'search_single_best_rated_general',
+                'intent' => 'search_single_best_rated_general',
+                'response' => 'search_single_best_rated_general'
+            ],
+
+            // Tìm sản phẩm có đánh giá/rating tốt (multiple, general) - đặt sau các pattern cụ thể
+            '/(?:sản phẩm|sp|đồ|món|hàng|item).*(?:đánh giá tốt|rating cao|review tốt|đánh giá cao|chất lượng tốt|được đánh giá cao|có đánh giá tốt|có rating tốt)/i' => [
+                'type' => 'search_best_rated_products',
+                'intent' => 'search_best_rated_products',
+                'response' => 'search_best_rated_products'
+            ],
+
+            // Tìm số lượng sản phẩm rẻ nhất cụ thể (ví dụ: "5 áo rẻ nhất", "3 quần giá tốt")
+            '/(?:(\d+)\s*(áo|quần|váy|đầm|jacket|hoodie|polo|shirt|jean|kaki|short|dress|skirt)\s*(?:rẻ nhất|giá rẻ|giá tốt|giá thấp|bèo|hạ))|(?:(áo|quần|váy|đầm)\s*(\d+)\s*(?:rẻ nhất|giá rẻ|giá tốt))/i' => [
+                'type' => 'search_multiple_cheapest_by_category',
+                'intent' => 'search_multiple_cheapest_by_category',
+                'response' => 'search_multiple_cheapest_by_category'
+            ],
+
+            // Tìm số lượng sản phẩm đắt nhất cụ thể (ví dụ: "5 áo đắt nhất", "3 quần giá cao")
+            '/(?:(\d+)\s*(áo|quần|váy|đầm|jacket|hoodie|polo|shirt|jean|kaki|short|dress|skirt)\s*(?:đắt nhất|giá đắt|giá cao|cao nhất))|(?:(áo|quần|váy|đầm)\s*(\d+)\s*(?:đắt nhất|giá đắt|giá cao))/i' => [
+                'type' => 'search_multiple_expensive_by_category',
+                'intent' => 'search_multiple_expensive_by_category',
+                'response' => 'search_multiple_expensive_by_category'
+            ],
+
+            // Tìm 1 sản phẩm rẻ nhất theo loại (ví dụ: "áo rẻ nhất", "quần rẻ nhất")
+            '/(?:(áo|quần|váy|đầm|jacket|hoodie|polo|shirt|jean|kaki|short|dress|skirt)\s*(?:nào\s*)?(?:rẻ nhất|giá rẻ nhất|giá thấp nhất|bèo nhất))|(?:(?:rẻ nhất|giá rẻ nhất|thấp nhất|giá thấp nhất|bèo nhất|hạ nhất)\s*(?:áo|quần|váy|đầm))/i' => [
+                'type' => 'search_single_cheapest_by_category',
+                'intent' => 'search_single_cheapest_by_category',
+                'response' => 'search_single_cheapest_by_category'
+            ],
+
+            // Tìm 1 sản phẩm đắt nhất theo loại (ví dụ: "áo đắt nhất", "quần đắt nhất")
+            '/(?:(áo|quần|váy|đầm|jacket|hoodie|polo|shirt|jean|kaki|short|dress|skirt)\s*(?:nào\s*)?(?:đắt nhất|giá đắt nhất|giá cao nhất|cao nhất))|(?:(?:đắt nhất|giá đắt nhất|cao nhất|giá cao nhất)\s*(?:áo|quần|váy|đầm))/i' => [
+                'type' => 'search_single_expensive_by_category',
+                'intent' => 'search_single_expensive_by_category',
+                'response' => 'search_single_expensive_by_category'
+            ],
+
             // Sản phẩm bán chạy - extended patterns
             '/(?:sản phẩm|sp|đồ|quần áo|mẫu|món|hàng).*(?:bán chạy|hot|nổi bật|phổ biến|được ưa chuộng|được yêu thích|bán tốt)/i' => [
                 'type' => 'best_selling',
@@ -272,8 +334,8 @@ class ChatbotApiController extends ApiController
                 'response' => 'Đây là những sản phẩm bán chạy nhất tại zone Fashion:'
             ],
 
-            // Sản phẩm giảm giá - extended patterns
-            '/(?:giảm giá|khuyến mãi|sale|discount|ưu đãi|đang giảm|đang sale|đang khuyến mãi|rẻ|hời)/i' => [
+            // Sản phẩm giảm giá - removed 'rẻ' to avoid conflict
+            '/(?:giảm giá|khuyến mãi|sale|discount|ưu đãi|đang giảm|đang sale|đang khuyến mãi|hời)/i' => [
                 'type' => 'discounted',
                 'intent' => 'discounted_products',
                 'response' => 'Các sản phẩm đang được giảm giá tại zone Fashion:'
@@ -284,6 +346,81 @@ class ChatbotApiController extends ApiController
                 'type' => 'new_products',
                 'intent' => 'new_products',
                 'response' => 'Những sản phẩm mới nhất tại zone Fashion:'
+            ],
+
+
+
+            // Product pricing consultation - AI-powered
+            '/(?:áo|quần|sản phẩm|món|item).*(?:rẻ nhất|giá rẻ|giá tốt|tiết kiệm|ưu đãi|giảm giá|giá.*thấp|phải chăng)/i' => [
+                'type' => 'price_consultation', 
+                'intent' => 'ai_consultation',
+                'use_ai' => true,
+                'context' => 'pricing',
+                'system_prompt' => '
+Bạn là chuyên gia bán hàng thời trang của Zone Fashion. Hãy tư vấn sản phẩm giá tốt cho khách hàng dựa trên database sản phẩm.
+
+Các loại sản phẩm phổ biến:
+- Áo thun basic: 200k-350k
+- Áo sơ mi: 350k-650k  
+- Quần jeans: 450k-850k
+- Áo khoác hoodie: 550k-950k
+- Đầm/Váy: 400k-800k
+
+Lưu ý:
+- Luôn đề xuất xem sản phẩm giảm giá
+- Gợi ý sản phẩm basic để tiết kiệm
+- Đề xuất mua nhiều món để được free ship
+
+Hãy trả lời thân thiện và gợi ý cụ thể.'
+            ],
+            
+            // Product rating consultation - AI-powered  
+            '/(?:sản phẩm|món|áo|quần|item).*(?:đánh giá.*tốt|rating.*cao|chất lượng.*tốt|tốt nhất|phổ biến|bán chạy|review.*tốt|ưa chuộng)/i' => [
+                'type' => 'rating_consultation',
+                'intent' => 'ai_consultation', 
+                'use_ai' => true,
+                'context' => 'ratings',
+                'system_prompt' => '
+Bạn là chuyên gia tư vấn thời trang của Zone Fashion. Hãy gợi ý sản phẩm chất lượng tốt, được đánh giá cao.
+
+Sản phẩm nổi bật:
+- Áo thun basic trắng/đen: 4.8/5 sao - chất cotton mềm mại
+- Quần jeans skinny: 4.7/5 sao - form chuẩn, bền đẹp
+- Áo sơ mi trắng: 4.6/5 sao - phù hợp đi làm đi chơi
+- Hoodie unisex: 4.8/5 sao - ấm áp, thoáng mát
+- Đầm midi: 4.5/5 sao - kiểu dáng thanh lịch
+
+Lưu ý:
+- Đề xuất sản phẩm có đánh giá trên 4.5 sao
+- Nêu rõ ưu điểm của sản phẩm
+- Gợi ý xem review thật trước khi mua
+
+Hãy trả lời nhiệt tình và đưa ra gợi ý cụ thể.'
+            ],
+
+            // Fashion styling consultation - AI-powered
+            '/(?:tư vấn|tư vấn.*thời trang|phối đồ|cách phối|mặc.*sao|phối.*sao|phối.*thế nào|phối.*như thế nào|mặc.*với|outfit|style|phong cách)/i' => [
+                'type' => 'fashion_styling',
+                'intent' => 'ai_consultation',
+                'use_ai' => true,
+                'context' => 'styling', 
+                'system_prompt' => '
+Bạn là stylist chuyên nghiệp của Zone Fashion. Hãy tư vấn cách phối đồ và style phù hợp.
+
+Các combo phối đồ kinh điển:
+- Áo sơ mi trắng + quần jeans xanh + giày sneaker: phong cách trẻ trung
+- Áo thun đen + quần âu + giày tây: lịch lãm nhưng không quá chính thức
+- Hoodie + quần jogger: thoải mái, thích hợp ở nhà
+- Đầm midi + áo khoác jeans: nữ tính nhưng cá tính
+- Blazer + quần jeans + giày cao gót: sang trọng mà không gây gắng
+
+Màu sắc phối hợp:
+- Trắng + Đen: kinh điển
+- Xanh navy + Trắng: tươi mới 
+- Be/Nâu + Trắng: nhẹ nhàng
+- Xám + Hồng nude: thanh lịch
+
+Hãy tư vấn cụ thể và thực tế.'
             ],
 
             // Đơn hàng - extended patterns
@@ -322,28 +459,32 @@ class ChatbotApiController extends ApiController
                 'response' => 'Chính sách đổi trả:\n• Đổi trả trong 7 ngày\n• Sản phẩm còn nguyên tem, mác\n• Miễn phí đổi size lần đầu\n• Hoàn tiền 100% nếu lỗi từ nhà sản xuất'
             ],
 
-            // Size/Kích cỡ - extended patterns
-            '/(?:size|kích cỡ|kích thước|số đo|chọn.*size|chọn.*cỡ|cỡ|cỡ.*nào|size.*nào|size.*phù hợp)/i' => [
-                'type' => 'size_guide',
-                'intent' => 'size_guide',
-                'response' => "<div class='size-guide-table'>
-                    <h4>Hướng dẫn chọn size</h4>
-                    <table>
-                        <tr><th>Size</th><th>Cân nặng</th><th>Chiều cao</th></tr>
-                        <tr><td>S</td><td>45-50kg</td><td>1m50-1m60</td></tr>
-                        <tr><td>M</td><td>50-55kg</td><td>1m55-1m65</td></tr>
-                        <tr><td>L</td><td>55-60kg</td><td>1m60-1m70</td></tr>
-                        <tr><td>XL</td><td>60-65kg</td><td>1m65-1m75</td></tr>
-                    </table>
-                    <p>Bạn có thể xem bảng size chi tiết trong từng sản phẩm!</p>
-                </div>"
-            ],
+            // Size/Kích cỡ - AI-powered consultation
+            '/(?:size|kích cỡ|kích thước|số đo|chọn.*size|chọn.*cỡ|cỡ|cỡ.*nào|size.*nào|size.*phù hợp|cao.*nặng|nặng.*cao|chiều cao.*cân nặng|cân nặng.*chiều cao|mặc.*size|tôi.*cao|tôi.*nặng|với.*cao|với.*nặng|hướng dẫn.*size|hướng dẫn.*chọn.*size|hướng dẫn.*cỡ)/i' => [
+                'type' => 'size_consultation',
+                'intent' => 'ai_consultation',
+                'use_ai' => true,
+                'context' => 'size_guide',
+                'system_prompt' => '
+Bạn là chuyên gia tư vấn size thời trang của Zone Fashion. Hãy đưa ra KÍCH CỠ CỤ THỂ cho khách hàng.
 
-            // Tư vấn thời trang - new pattern
-            '/(?:tư vấn|tư vấn.*thời trang|phối đồ|cách phối|mặc.*sao|phối.*sao|phối.*thế nào|phối.*như thế nào|mặc.*với)/i' => [
-                'type' => 'fashion_advice',
-                'intent' => 'fashion_advice',
-                'response' => 'Tư vấn thời trang:\n• Áo sơ mi trắng có thể phối với hầu hết quần jeans, quần âu\n• Quần jeans đen là item cơ bản, dễ phối với mọi loại áo\n• Áo thun basic là lựa chọn đơn giản nhưng luôn hiệu quả\n• Trang phục một màu (all black, all white) luôn mang lại vẻ sang trọng\n\nBạn cần tư vấn phối đồ với item cụ thể nào không?'
+Bảng size chuẩn Zone Fashion:
+- Size S: 45-50kg, chiều cao 1m50-1m60
+- Size M: 50-55kg, chiều cao 1m55-1m65  
+- Size L: 55-60kg, chiều cao 1m60-1m70
+- Size XL: 60-65kg, chiều cao 1m65-1m75
+- Size XXL: 65-75kg, chiều cao 1m70-1m80
+- Size XXXL: 75-85kg, chiều cao 1m75-1m85
+
+Quy tắc tư vấn:
+1. Nếu nặng hơn mức tiêu chuẩn của size đó 5kg trở lên → chọn size lớn hơn 1 bậc
+2. Áo sơ mi/polo thường ôm hơn áo thun → nên chọn size lớn hơn
+3. Nếu thích áo rộng → chọn size lớn hơn 1 bậc
+4. Nếu cân nặng ở giữa 2 mức → ưu tiên theo chiều cao
+
+QUAN TRỌNG: Phải đưa ra kết luận rõ ràng "Tôi khuyên bạn chọn size [X]" và giải thích lý do ngắn gọn.
+
+Ví dụ trả lời: "Với chiều cao 1m7 và cân nặng 80kg, tôi khuyên bạn chọn size XXL. Do bạn nặng hơn mức chuẩn của size XL (65kg) khá nhiều, size XXL sẽ vừa vặn và thoải mái hơn."'
             ],
 
             // Thông tin cửa hàng - new pattern
@@ -401,19 +542,141 @@ class ChatbotApiController extends ApiController
         // Tìm pattern phù hợp
         foreach ($patterns as $pattern => $config) {
             if (preg_match($pattern, $message)) {
-                $response = [
-                    'message' => $config['response'],
-                    'type' => $config['type'],
-                    'intent' => $config['intent'],
-                    'context' => $context
-                ];
+                error_log("[Chatbot Debug] Matched pattern: $pattern");
+                error_log("[Chatbot Debug] Config: " . json_encode($config));
+                
+                // Check if this pattern uses AI
+                if (isset($config['use_ai']) && $config['use_ai'] === true) {
+                    error_log("[Chatbot Debug] Using AI for pattern: $pattern");
+                    
+                    // Use AI for consultation
+                    $systemPrompt = $config['system_prompt'] ?? '';
+                    $fullPrompt = $systemPrompt . "\n\nCâu hỏi của khách hàng: " . $message . "\n\nHãy trả lời một cách tự nhiên và hữu ích:";
+                    
+                    error_log("[Chatbot Debug] Full prompt: " . substr($fullPrompt, 0, 200) . "...");
+                    
+                    $aiResponse = $this->askGemini($fullPrompt);
+                    error_log("[Chatbot Debug] AI Response: " . ($aiResponse ? substr($aiResponse, 0, 100) . "..." : 'NULL'));
+                    
+                    if ($aiResponse) {
+                        return [
+                            'message' => $aiResponse,
+                            'type' => $config['type'],
+                            'intent' => $config['intent'],
+                            'context' => $context
+                        ];
+                    }
+                    
+                    error_log("[Chatbot Debug] AI failed, using fallback");
+                    
+                    // If AI fails, fall back to default response
+                    $response = [
+                        'message' => 'Xin lỗi, tôi đang gặp sự cố kỹ thuật. Bạn có thể hỏi lại sau hoặc liên hệ hotline để được hỗ trợ trực tiếp.',
+                        'type' => $config['type'],
+                        'intent' => $config['intent'],
+                        'context' => $context
+                    ];
+                } else {
+                    error_log("[Chatbot Debug] Using predefined response for pattern: $pattern");
+                    
+                    // Use predefined response
+                    $response = [
+                        'message' => $config['response'],
+                        'type' => $config['type'],
+                        'intent' => $config['intent'],
+                        'context' => $context
+                    ];
+                }
 
                 // Update context with current intent
                 $response['context']['current_intent'] = $config['intent'];
 
                 // Nếu là request về sản phẩm, thêm dữ liệu sản phẩm
-                if (in_array($config['type'], ['best_selling', 'discounted', 'new_products'])) {
+                if (in_array($config['type'], ['best_selling', 'discounted', 'new_products', 'cheapest_products'])) {
                     $response['products'] = $this->getProductsForType($config['type']);
+                }
+                
+                // Xử lý tìm kiếm 1 sản phẩm rẻ nhất theo danh mục
+                if ($config['type'] === 'search_single_cheapest_by_category') {
+                    $categoryKeyword = $this->extractCategoryFromMessage($message);
+                    $products = $this->searchCheapestProductsByCategory($categoryKeyword, 1); // Chỉ lấy 1 sản phẩm
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateSingleCheapestMessage($categoryKeyword, $products);
+                }
+                
+                // Xử lý tìm kiếm 1 sản phẩm đắt nhất theo danh mục
+                if ($config['type'] === 'search_single_expensive_by_category') {
+                    $categoryKeyword = $this->extractCategoryFromMessage($message);
+                    $products = $this->searchExpensiveProductsByCategory($categoryKeyword, 1); // Chỉ lấy 1 sản phẩm
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateSingleExpensiveMessage($categoryKeyword, $products);
+                }
+                
+                // Xử lý tìm kiếm nhiều sản phẩm rẻ nhất theo số lượng
+                if ($config['type'] === 'search_multiple_cheapest_by_category') {
+                    list($categoryKeyword, $quantity) = $this->extractCategoryAndQuantityFromMessage($message);
+                    $products = $this->searchCheapestProductsByCategory($categoryKeyword, $quantity);
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateMultipleCheapestMessage($categoryKeyword, $products, $quantity);
+                }
+                
+                // Xử lý tìm kiếm nhiều sản phẩm đắt nhất theo số lượng
+                if ($config['type'] === 'search_multiple_expensive_by_category') {
+                    list($categoryKeyword, $quantity) = $this->extractCategoryAndQuantityFromMessage($message);
+                    $products = $this->searchExpensiveProductsByCategory($categoryKeyword, $quantity);
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateMultipleExpensiveMessage($categoryKeyword, $products, $quantity);
+                }
+
+                // Xử lý tìm kiếm sản phẩm có đánh giá tốt nhất
+                if ($config['type'] === 'search_best_rated_products') {
+                    $products = $this->searchBestRatedProducts();
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateBestRatedMessage($products);
+                }
+
+                // Xử lý tìm kiếm 1 sản phẩm có đánh giá tốt nhất theo category
+                if ($config['type'] === 'search_single_best_rated_by_category') {
+                    $categoryKeyword = $this->extractCategoryFromMessage($message);
+                    $products = $this->searchBestRatedProductsByCategory($categoryKeyword, 1);
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateSingleBestRatedMessage($categoryKeyword, $products);
+                }
+
+                // Xử lý tìm kiếm 1 sản phẩm có đánh giá tốt nhất chung
+                if ($config['type'] === 'search_single_best_rated_general') {
+                    $products = $this->searchBestRatedProducts(1);
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateSingleBestRatedGeneralMessage($products);
+                }
+
+                // Xử lý tìm kiếm nhiều sản phẩm có đánh giá tốt theo category và số lượng
+                if ($config['type'] === 'search_multiple_best_rated_by_category') {
+                    list($categoryKeyword, $quantity) = $this->extractCategoryAndQuantityFromBestRatedMessage($message);
+                    if ($categoryKeyword) {
+                        $products = $this->searchBestRatedProductsByCategory($categoryKeyword, $quantity);
+                        $response['message'] = $this->generateMultipleBestRatedMessage($categoryKeyword, $products, $quantity);
+                    } else {
+                        $products = $this->searchBestRatedProducts($quantity);
+                        $response['message'] = $this->generateMultipleBestRatedGeneralMessage($products, $quantity);
+                    }
+                    $response['products'] = $products;
+                }
+
+                // Xử lý tìm kiếm sản phẩm rẻ nhất theo danh mục (legacy - để tương thích)
+                if ($config['type'] === 'search_cheapest_by_category') {
+                    $categoryKeyword = $this->extractCategoryFromMessage($message);
+                    $products = $this->searchCheapestProductsByCategory($categoryKeyword);
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateCheapestMessage($categoryKeyword, $products);
+                }
+                
+                // Xử lý tìm kiếm sản phẩm đắt nhất theo danh mục (legacy - để tương thích)
+                if ($config['type'] === 'search_expensive_by_category') {
+                    $categoryKeyword = $this->extractCategoryFromMessage($message);
+                    $products = $this->searchExpensiveProductsByCategory($categoryKeyword);
+                    $response['products'] = $products;
+                    $response['message'] = $this->generateExpensiveMessage($categoryKeyword, $products);
                 }
 
                 return $response;
@@ -446,73 +709,111 @@ class ChatbotApiController extends ApiController
      */
     private function askGemini($question)
     {
-        // Load environment variables from .env file
-        $envPath = __DIR__ . '/../../../.env';
-        if (file_exists($envPath)) {
-            $envContent = file_get_contents($envPath);
-            $lines = explode("\n", $envContent);
-            foreach ($lines as $line) {
-                if (strpos($line, 'GEMINI_API_KEY=') === 0) {
-                    $apiKey = trim(str_replace(['GEMINI_API_KEY=', '"', "'"], '', $line));
-                    break;
-                }
+        try {
+            // Get API key from database
+            $apiKey = $this->getActiveGeminiApiKey();
+            if (!$apiKey) {
+                error_log("[Gemini Debug] No active API key found in database");
+                return null;
             }
-        }
-        
-        // Fallback to getenv
-        if (!isset($apiKey) || empty($apiKey)) {
-            $apiKey = getenv('GEMINI_API_KEY');
-        }
-        
-        // Final fallback
-       
-        $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
-        $postData = [
-            'contents' => [
-                [
-                    'parts' => [
-                        ['text' => $question]
+
+            error_log("[Gemini Debug] Using API key ID: " . $apiKey['id'] . ", Name: " . $apiKey['name']);
+
+            // Use the correct endpoint for Gemini Pro
+            $url = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=' . $apiKey['api_key'];
+            $postData = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            ['text' => $question]
+                        ]
                     ]
                 ]
-            ]
-        ];
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json'
-        ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
-    curl_setopt($ch, CURLOPT_CAINFO, __DIR__ . '/../../certs/cacert.pem');
-    $result = curl_exec($ch);
-        $curlError = curl_error($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        $logMsg = date('Y-m-d H:i:s') . " [Gemini API Debug]\n";
-        $logMsg .= "Request: " . json_encode($postData, JSON_UNESCAPED_UNICODE) . "\n";
-        $logMsg .= "HTTP Code: $httpCode\n";
-        $logMsg .= "cURL Error: $curlError\n";
-        $logMsg .= "Response: $result\n";
-        file_put_contents(__DIR__ . '/../../logs/debug.log', $logMsg, FILE_APPEND);
-        if ($result) {
-            $data = json_decode($result, true);
-            error_log("[Gemini Debug] Parsed JSON: " . print_r($data, true));
+            ];
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
             
-            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
-                $geminiText = $data['candidates'][0]['content']['parts'][0]['text'];
-                error_log("[Gemini Debug] Found text: " . $geminiText);
-                return nl2br(htmlspecialchars($geminiText));
-            } else {
-                error_log("[Gemini Debug] Text not found in expected path");
-                // Try alternative paths
-                if (isset($data['candidates'])) {
-                    error_log("[Gemini Debug] Candidates structure: " . print_r($data['candidates'], true));
-                }
+            // SSL configuration
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            
+            // Use certificate bundle if available
+            $certPath = __DIR__ . '/../../certs/cacert.pem';
+            if (file_exists($certPath)) {
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+                curl_setopt($ch, CURLOPT_CAINFO, $certPath);
             }
-        } else {
-            error_log("[Gemini Debug] No result from API");
+
+            $result = curl_exec($ch);
+            $curlError = curl_error($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            // Log debug information
+            $logMsg = date('Y-m-d H:i:s') . " [Gemini API Debug]\n";
+            $logMsg .= "API Key ID: " . $apiKey['id'] . "\n";
+            $logMsg .= "Request: " . json_encode($postData, JSON_UNESCAPED_UNICODE) . "\n";
+            $logMsg .= "HTTP Code: $httpCode\n";
+            $logMsg .= "cURL Error: $curlError\n";
+            $logMsg .= "Response: $result\n";
+            
+            if (!is_dir(__DIR__ . '/../../logs')) {
+                mkdir(__DIR__ . '/../../logs', 0755, true);
+            }
+            file_put_contents(__DIR__ . '/../../logs/debug.log', $logMsg, FILE_APPEND);
+
+            if ($curlError) {
+                error_log("[Gemini Debug] cURL Error: $curlError");
+                $this->updateApiKeyStatus($apiKey['id'], 'failed', $curlError);
+                return null;
+            }
+
+            if ($httpCode !== 200) {
+                error_log("[Gemini Debug] HTTP Error: $httpCode");
+                $this->updateApiKeyStatus($apiKey['id'], 'failed', "HTTP Error: $httpCode");
+                return null;
+            }
+
+            if ($result) {
+                $data = json_decode($result, true);
+                error_log("[Gemini Debug] Parsed JSON: " . print_r($data, true));
+                
+                if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                    $geminiText = $data['candidates'][0]['content']['parts'][0]['text'];
+                    error_log("[Gemini Debug] Found text: " . $geminiText);
+                    
+                    // Update usage statistics
+                    $this->updateApiKeyUsage($apiKey['id']);
+                    $this->updateApiKeyStatus($apiKey['id'], 'success');
+                    
+                    return nl2br(htmlspecialchars($geminiText));
+                } else {
+                    error_log("[Gemini Debug] Text not found in expected path");
+                    if (isset($data['error'])) {
+                        $errorMsg = $data['error']['message'] ?? 'Unknown API error';
+                        $this->updateApiKeyStatus($apiKey['id'], 'failed', $errorMsg);
+                    }
+                    return null;
+                }
+            } else {
+                error_log("[Gemini Debug] No result from API");
+                return null;
+            }
+        } catch (Exception $e) {
+            error_log("[Gemini Debug] Exception: " . $e->getMessage());
+            if (isset($apiKey['id'])) {
+                $this->updateApiKeyStatus($apiKey['id'], 'failed', $e->getMessage());
+            }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -559,6 +860,24 @@ class ChatbotApiController extends ApiController
                             FROM products
                             WHERE status = 'published' OR status = ''
                             ORDER BY created_at DESC
+                            LIMIT :offset, :limit";
+                    break;
+
+                case 'cheapest_products':
+                    $sql = "SELECT *,
+                            CASE
+                                WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                                THEN ROUND(((price - sale_price) / price) * 100)
+                                ELSE 0
+                            END as discount_percentage,
+                            CASE
+                                WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                                THEN sale_price
+                                ELSE price
+                            END as final_price
+                            FROM products
+                            WHERE status = 'published' OR status = ''
+                            ORDER BY final_price ASC
                             LIMIT :offset, :limit";
                     break;
 
@@ -713,11 +1032,13 @@ class ChatbotApiController extends ApiController
             case 'best_selling_products':
             case 'discounted_products':
             case 'new_products':
+            case 'cheapest_products':
                 // Show more products of the same type
                 $productType = [
                     'best_selling_products' => 'best_selling',
                     'discounted_products' => 'discounted',
-                    'new_products' => 'new_products'
+                    'new_products' => 'new_products',
+                    'cheapest_products' => 'cheapest_products'
                 ][$intent];
 
                 $offset = $context['product_offset'] ?? 0;
@@ -816,5 +1137,673 @@ class ChatbotApiController extends ApiController
         }
 
         return floatval($price);
+    }
+
+    /**
+     * Get active Gemini API key from database
+     */
+    private function getActiveGeminiApiKey()
+    {
+        try {
+            $sql = "SELECT * FROM gemini_api_keys 
+                    WHERE status = 'active' 
+                      AND (daily_limit = 0 OR current_daily_usage < daily_limit)
+                      AND (monthly_limit = 0 OR current_monthly_usage < monthly_limit)
+                      AND (last_test_status IS NULL OR last_test_status = 'success')
+                    ORDER BY 
+                      current_daily_usage ASC,
+                      current_monthly_usage ASC,
+                      last_used_at ASC
+                    LIMIT 1";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting active Gemini API key: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Update API key usage statistics
+     */
+    private function updateApiKeyUsage($keyId)
+    {
+        try {
+            $sql = "UPDATE gemini_api_keys SET 
+                        current_daily_usage = current_daily_usage + 1,
+                        current_monthly_usage = current_monthly_usage + 1,
+                        usage_count = usage_count + 1,
+                        last_used_at = NOW(),
+                        updated_at = NOW()
+                    WHERE id = ?";
+
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([$keyId]);
+        } catch (Exception $e) {
+            error_log("Error updating API key usage: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update API key test status
+     */
+    private function updateApiKeyStatus($keyId, $status, $errorMessage = null)
+    {
+        try {
+            $sql = "UPDATE gemini_api_keys SET 
+                        last_test_at = NOW(),
+                        last_test_status = ?,
+                        last_error_message = ?,
+                        updated_at = NOW()
+                    WHERE id = ?";
+
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([$status, $errorMessage, $keyId]);
+        } catch (Exception $e) {
+            error_log("Error updating API key status: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Extract category keyword from user message
+     */
+    private function extractCategoryFromMessage($message)
+    {
+        $categoryMappings = [
+            'áo' => ['áo', 'shirt', 'tshirt', 'polo', 'hoodie', 'jacket', 'blazer'],
+            'quần' => ['quần', 'jean', 'kaki', 'short', 'pants', 'trouser'], 
+            'váy' => ['váy', 'skirt'],
+            'đầm' => ['đầm', 'dress']
+        ];
+
+        foreach ($categoryMappings as $category => $keywords) {
+            foreach ($keywords as $keyword) {
+                // Sử dụng regex linh hoạt hơn cho tiếng Việt
+                if (preg_match('/(?:^|\\s)' . preg_quote($keyword, '/') . '(?:\\s|$|[^\\w])/ui', $message)) {
+                    return $category;
+                }
+            }
+        }
+
+        return null; // Không tìm thấy category cụ thể
+    }
+
+    /**
+     * Search cheapest products by category
+     */
+    private function searchCheapestProductsByCategory($categoryKeyword, $limit = 8)
+    {
+        try {
+            $conditions = ["(status = 'published' OR status = '')"];
+            $params = [];
+
+            // Thêm điều kiện tìm kiếm theo category nếu có
+            if ($categoryKeyword) {
+                // Tạo search patterns cho từng category
+                $searchPatterns = [];
+                switch ($categoryKeyword) {
+                    case 'áo':
+                        $searchPatterns = ['áo', 'shirt', 'polo', 'hoodie', 'jacket', 'blazer', 'blouse'];
+                        break;
+                    case 'quần':
+                        $searchPatterns = ['quần', 'jean', 'kaki', 'short', 'pants', 'trouser'];
+                        break;
+                    case 'váy':
+                        $searchPatterns = ['váy', 'skirt'];
+                        break;
+                    case 'đầm':
+                        $searchPatterns = ['đầm', 'dress'];
+                        break;
+                }
+
+                if (!empty($searchPatterns)) {
+                    $nameConditions = [];
+                    foreach ($searchPatterns as $i => $pattern) {
+                        $paramName = ":pattern{$i}";
+                        $nameConditions[] = "name LIKE {$paramName}";
+                        $params[$paramName] = "%{$pattern}%";
+                    }
+                    $conditions[] = "(" . implode(" OR ", $nameConditions) . ")";
+                }
+            }
+
+            $whereClause = implode(" AND ", $conditions);
+
+            $sql = "SELECT *,
+                    CASE
+                        WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                        THEN sale_price
+                        ELSE price
+                    END as final_price,
+                    CASE
+                        WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                        THEN ROUND(((price - sale_price) / price) * 100)
+                        ELSE 0
+                    END as discount_percentage
+                    FROM products
+                    WHERE {$whereClause}
+                    ORDER BY final_price ASC
+                    LIMIT :limit";
+
+            $stmt = $this->db->prepare($sql);
+            
+            // Bind parameters
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            
+            $stmt->execute();
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $this->formatProducts($products);
+        } catch (Exception $e) {
+            error_log('Error searching cheapest products by category: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Generate message for cheapest products
+     */
+    private function generateCheapestMessage($categoryKeyword, $products)
+    {
+        if (empty($products)) {
+            if ($categoryKeyword) {
+                return "Xin lỗi, hiện tại chúng tôi không có sản phẩm {$categoryKeyword} nào. Bạn có thể xem các sản phẩm khác.";
+            } else {
+                return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+            }
+        }
+
+        $count = count($products);
+        $categoryText = $categoryKeyword ? " {$categoryKeyword}" : "";
+        
+        if ($count == 1) {
+            $message = "Đây là sản phẩm{$categoryText} có giá tốt nhất:";
+        } else {
+            $message = "Đây là {$count} sản phẩm{$categoryText} có giá tốt nhất:";
+        }
+
+        return $message;
+    }
+
+    /**
+     * Search most expensive products by category
+     */
+    private function searchExpensiveProductsByCategory($categoryKeyword, $limit = 8)
+    {
+        try {
+            $conditions = ["(status = 'published' OR status = '')"];
+            $params = [];
+
+            // Thêm điều kiện tìm kiếm theo category nếu có
+            if ($categoryKeyword) {
+                // Tạo search patterns cho từng category
+                $searchPatterns = [];
+                switch ($categoryKeyword) {
+                    case 'áo':
+                        $searchPatterns = ['áo', 'shirt', 'polo', 'hoodie', 'jacket', 'blazer', 'blouse'];
+                        break;
+                    case 'quần':
+                        $searchPatterns = ['quần', 'jean', 'kaki', 'short', 'pants', 'trouser'];
+                        break;
+                    case 'váy':
+                        $searchPatterns = ['váy', 'skirt'];
+                        break;
+                    case 'đầm':
+                        $searchPatterns = ['đầm', 'dress'];
+                        break;
+                }
+
+                if (!empty($searchPatterns)) {
+                    $nameConditions = [];
+                    foreach ($searchPatterns as $i => $pattern) {
+                        $paramName = ":pattern{$i}";
+                        $nameConditions[] = "name LIKE {$paramName}";
+                        $params[$paramName] = "%{$pattern}%";
+                    }
+                    $conditions[] = "(" . implode(" OR ", $nameConditions) . ")";
+                }
+            }
+
+            $whereClause = implode(" AND ", $conditions);
+
+            $sql = "SELECT *,
+                    CASE
+                        WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                        THEN sale_price
+                        ELSE price
+                    END as final_price,
+                    CASE
+                        WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                        THEN ROUND(((price - sale_price) / price) * 100)
+                        ELSE 0
+                    END as discount_percentage
+                    FROM products
+                    WHERE {$whereClause}
+                    ORDER BY final_price DESC
+                    LIMIT :limit";
+
+            $stmt = $this->db->prepare($sql);
+            
+            // Bind parameters
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            
+            $stmt->execute();
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $this->formatProducts($products);
+        } catch (Exception $e) {
+            error_log('Error searching expensive products by category: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Generate message for most expensive products
+     */
+    private function generateExpensiveMessage($categoryKeyword, $products)
+    {
+        if (empty($products)) {
+            if ($categoryKeyword) {
+                return "Xin lỗi, hiện tại chúng tôi không có sản phẩm {$categoryKeyword} nào. Bạn có thể xem các sản phẩm khác.";
+            } else {
+                return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+            }
+        }
+
+        $count = count($products);
+        $categoryText = $categoryKeyword ? " {$categoryKeyword}" : "";
+        
+        if ($count == 1) {
+            $message = "Đây là sản phẩm{$categoryText} đắt nhất:";
+        } else {
+            $message = "Đây là {$count} sản phẩm{$categoryText} đắt nhất:";
+        }
+
+        return $message;
+    }
+
+    /**
+     * Extract category and quantity from user message
+     */
+    private function extractCategoryAndQuantityFromMessage($message)
+    {
+        // Pattern để extract số lượng và category
+        $patterns = [
+            '/(\d+)\s*(áo|quần|váy|đầm|jacket|hoodie|polo|shirt|jean|kaki|short|dress|skirt)/i',
+            '/(áo|quần|váy|đầm)\s*(\d+)/i'
+        ];
+
+        $quantity = 5; // default
+        $categoryKeyword = null;
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $message, $matches)) {
+                if (isset($matches[1]) && isset($matches[2])) {
+                    // Kiểm tra thứ tự: số đầu hay category đầu
+                    if (is_numeric($matches[1])) {
+                        $quantity = (int)$matches[1];
+                        $categoryKeyword = $this->mapCategoryKeyword($matches[2]);
+                    } else {
+                        $categoryKeyword = $this->mapCategoryKeyword($matches[1]);
+                        $quantity = (int)$matches[2];
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Nếu không extract được category từ pattern trên, dùng method cũ
+        if (!$categoryKeyword) {
+            $categoryKeyword = $this->extractCategoryFromMessage($message);
+        }
+
+        return [$categoryKeyword, $quantity];
+    }
+
+    /**
+     * Map category keyword to standard form
+     */
+    private function mapCategoryKeyword($keyword)
+    {
+        $mappings = [
+            'áo' => 'áo', 'shirt' => 'áo', 'polo' => 'áo', 'hoodie' => 'áo', 'jacket' => 'áo',
+            'quần' => 'quần', 'jean' => 'quần', 'kaki' => 'quần', 'short' => 'quần',
+            'váy' => 'váy', 'skirt' => 'váy',
+            'đầm' => 'đầm', 'dress' => 'đầm'
+        ];
+
+        return $mappings[strtolower($keyword)] ?? null;
+    }
+
+    /**
+     * Generate message for single cheapest product
+     */
+    private function generateSingleCheapestMessage($categoryKeyword, $products)
+    {
+        if (empty($products)) {
+            if ($categoryKeyword) {
+                return "Xin lỗi, hiện tại chúng tôi không có sản phẩm {$categoryKeyword} nào. Bạn có thể xem các sản phẩm khác.";
+            } else {
+                return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+            }
+        }
+
+        $categoryText = $categoryKeyword ? " {$categoryKeyword}" : "";
+        return "Đây là sản phẩm{$categoryText} rẻ nhất:";
+    }
+
+    /**
+     * Generate message for single most expensive product
+     */
+    private function generateSingleExpensiveMessage($categoryKeyword, $products)
+    {
+        if (empty($products)) {
+            if ($categoryKeyword) {
+                return "Xin lỗi, hiện tại chúng tôi không có sản phẩm {$categoryKeyword} nào. Bạn có thể xem các sản phẩm khác.";
+            } else {
+                return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+            }
+        }
+
+        $categoryText = $categoryKeyword ? " {$categoryKeyword}" : "";
+        return "Đây là sản phẩm{$categoryText} đắt nhất:";
+    }
+
+    /**
+     * Generate message for multiple cheapest products
+     */
+    private function generateMultipleCheapestMessage($categoryKeyword, $products, $quantity)
+    {
+        if (empty($products)) {
+            if ($categoryKeyword) {
+                return "Xin lỗi, hiện tại chúng tôi không có sản phẩm {$categoryKeyword} nào. Bạn có thể xem các sản phẩm khác.";
+            } else {
+                return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+            }
+        }
+
+        $count = count($products);
+        $categoryText = $categoryKeyword ? " {$categoryKeyword}" : "";
+        
+        if ($count == 1) {
+            return "Đây là sản phẩm{$categoryText} rẻ nhất có sẵn:";
+        } else {
+            return "Đây là {$count} sản phẩm{$categoryText} rẻ nhất:";
+        }
+    }
+
+    /**
+     * Generate message for multiple most expensive products
+     */
+    private function generateMultipleExpensiveMessage($categoryKeyword, $products, $quantity)
+    {
+        if (empty($products)) {
+            if ($categoryKeyword) {
+                return "Xin lỗi, hiện tại chúng tôi không có sản phẩm {$categoryKeyword} nào. Bạn có thể xem các sản phẩm khác.";
+            } else {
+                return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+            }
+        }
+
+        $count = count($products);
+        $categoryText = $categoryKeyword ? " {$categoryKeyword}" : "";
+        
+        if ($count == 1) {
+            return "Đây là sản phẩm{$categoryText} đắt nhất có sẵn:";
+        } else {
+            return "Đây là {$count} sản phẩm{$categoryText} đắt nhất:";
+        }
+    }
+
+    /**
+     * Search products with best ratings/reviews
+     */
+    private function searchBestRatedProducts($limit = 8)
+    {
+        try {
+            // Tìm sản phẩm có featured = 1 hoặc sắp xếp theo created_at (giả sử sản phẩm mới = chất lượng tốt)
+            // Hoặc có thể thêm rating field vào database sau này
+            $sql = "SELECT *,
+                    CASE
+                        WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                        THEN sale_price
+                        ELSE price
+                    END as final_price,
+                    CASE
+                        WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                        THEN ROUND(((price - sale_price) / price) * 100)
+                        ELSE 0
+                    END as discount_percentage
+                    FROM products
+                    WHERE (status = 'published' OR status = '')
+                    ORDER BY 
+                        featured DESC,
+                        CASE WHEN sale_price IS NOT NULL AND sale_price > 0 THEN 1 ELSE 0 END DESC,
+                        created_at DESC
+                    LIMIT :limit";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->execute();
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $this->formatProducts($products);
+        } catch (Exception $e) {
+            error_log('Error searching best rated products: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Generate message for best rated products
+     */
+    private function generateBestRatedMessage($products)
+    {
+        if (empty($products)) {
+            return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+        }
+
+        $count = count($products);
+        
+        if ($count == 1) {
+            return "Đây là sản phẩm có đánh giá tốt nhất:";
+        } else {
+            return "Đây là {$count} sản phẩm có đánh giá tốt nhất:";
+        }
+    }
+
+    /**
+     * Search best rated products by category
+     */
+    private function searchBestRatedProductsByCategory($categoryKeyword, $limit = 8)
+    {
+        try {
+            $conditions = ["(status = 'published' OR status = '')"];
+            $params = [];
+
+            // Thêm điều kiện tìm kiếm theo category nếu có
+            if ($categoryKeyword) {
+                // Tạo search patterns cho từng category
+                $searchPatterns = [];
+                switch ($categoryKeyword) {
+                    case 'áo':
+                        $searchPatterns = ['áo', 'shirt', 'polo', 'hoodie', 'jacket', 'blazer', 'blouse'];
+                        break;
+                    case 'quần':
+                        $searchPatterns = ['quần', 'jean', 'kaki', 'short', 'pants', 'trouser'];
+                        break;
+                    case 'váy':
+                        $searchPatterns = ['váy', 'skirt'];
+                        break;
+                    case 'đầm':
+                        $searchPatterns = ['đầm', 'dress'];
+                        break;
+                }
+
+                if (!empty($searchPatterns)) {
+                    $nameConditions = [];
+                    foreach ($searchPatterns as $i => $pattern) {
+                        $paramName = ":pattern{$i}";
+                        $nameConditions[] = "name LIKE {$paramName}";
+                        $params[$paramName] = "%{$pattern}%";
+                    }
+                    $conditions[] = "(" . implode(" OR ", $nameConditions) . ")";
+                }
+            }
+
+            $whereClause = implode(" AND ", $conditions);
+
+            $sql = "SELECT *,
+                    CASE
+                        WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                        THEN sale_price
+                        ELSE price
+                    END as final_price,
+                    CASE
+                        WHEN sale_price IS NOT NULL AND sale_price > 0 AND sale_price < price
+                        THEN ROUND(((price - sale_price) / price) * 100)
+                        ELSE 0
+                    END as discount_percentage
+                    FROM products
+                    WHERE {$whereClause}
+                    ORDER BY 
+                        featured DESC,
+                        CASE WHEN sale_price IS NOT NULL AND sale_price > 0 THEN 1 ELSE 0 END DESC,
+                        created_at DESC
+                    LIMIT :limit";
+
+            $stmt = $this->db->prepare($sql);
+            
+            // Bind parameters
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            
+            $stmt->execute();
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $this->formatProducts($products);
+        } catch (Exception $e) {
+            error_log('Error searching best rated products by category: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Extract category and quantity from best rated message
+     */
+    private function extractCategoryAndQuantityFromBestRatedMessage($message)
+    {
+        // Pattern để extract số lượng và category cho đánh giá
+        $patterns = [
+            '/(\d+)\s*(?:sản phẩm|sp|đồ|món|hàng|áo|quần|váy|đầm)/i',
+            '/(\d+)\s*(áo|quần|váy|đầm)/i'
+        ];
+
+        $quantity = 5; // default
+        $categoryKeyword = null;
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $message, $matches)) {
+                if (isset($matches[1]) && isset($matches[2])) {
+                    $quantity = (int)$matches[1];
+                    $categoryKeyword = $this->mapCategoryKeyword($matches[2]);
+                    break;
+                } else if (isset($matches[1])) {
+                    $quantity = (int)$matches[1];
+                    // Không có category cụ thể, extract từ message
+                    $categoryKeyword = $this->extractCategoryFromMessage($message);
+                    break;
+                }
+            }
+        }
+
+        // Nếu không extract được category từ pattern trên, dùng method cũ
+        if (!$categoryKeyword) {
+            $categoryKeyword = $this->extractCategoryFromMessage($message);
+        }
+
+        return [$categoryKeyword, $quantity];
+    }
+
+    /**
+     * Generate message for single best rated product by category
+     */
+    private function generateSingleBestRatedMessage($categoryKeyword, $products)
+    {
+        if (empty($products)) {
+            if ($categoryKeyword) {
+                return "Xin lỗi, hiện tại chúng tôi không có sản phẩm {$categoryKeyword} nào. Bạn có thể xem các sản phẩm khác.";
+            } else {
+                return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+            }
+        }
+
+        $categoryText = $categoryKeyword ? " {$categoryKeyword}" : "";
+        return "Đây là sản phẩm{$categoryText} có đánh giá tốt nhất:";
+    }
+
+    /**
+     * Generate message for single best rated product (general)
+     */
+    private function generateSingleBestRatedGeneralMessage($products)
+    {
+        if (empty($products)) {
+            return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+        }
+
+        return "Đây là sản phẩm có đánh giá tốt nhất:";
+    }
+
+    /**
+     * Generate message for multiple best rated products by category
+     */
+    private function generateMultipleBestRatedMessage($categoryKeyword, $products, $quantity)
+    {
+        if (empty($products)) {
+            if ($categoryKeyword) {
+                return "Xin lỗi, hiện tại chúng tôi không có sản phẩm {$categoryKeyword} nào. Bạn có thể xem các sản phẩm khác.";
+            } else {
+                return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+            }
+        }
+
+        $count = count($products);
+        $categoryText = $categoryKeyword ? " {$categoryKeyword}" : "";
+        
+        if ($count == 1) {
+            return "Đây là sản phẩm{$categoryText} có đánh giá tốt có sẵn:";
+        } else {
+            return "Đây là {$count} sản phẩm{$categoryText} có đánh giá tốt nhất:";
+        }
+    }
+
+    /**
+     * Generate message for multiple best rated products (general)
+     */
+    private function generateMultipleBestRatedGeneralMessage($products, $quantity)
+    {
+        if (empty($products)) {
+            return "Xin lỗi, hiện tại không có sản phẩm nào. Vui lòng thử lại sau.";
+        }
+
+        $count = count($products);
+        
+        if ($count == 1) {
+            return "Đây là sản phẩm có đánh giá tốt có sẵn:";
+        } else {
+            return "Đây là {$count} sản phẩm có đánh giá tốt nhất:";
+        }
     }
 }

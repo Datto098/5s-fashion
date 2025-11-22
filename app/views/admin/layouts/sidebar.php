@@ -148,6 +148,12 @@ function getActiveClass($menuPath, $currentPath) {
                     <span class="nav-text">Quản lý admin</span>
                 </a>
             </div>
+            <div class="nav-item">
+                <a href="/zone-fashion/admin/gemini-keys" class="nav-link <?= getActiveClass('/zone-fashion/admin/gemini-keys', $currentPath) ?>">
+                    <i class="fas fa-key nav-icon"></i>
+                    <span class="nav-text">API Gemini Keys</span>
+                </a>
+            </div>
         </div>
     </div>
 </nav>

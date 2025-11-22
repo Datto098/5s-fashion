@@ -129,7 +129,7 @@ ob_start();
                                                         <i class="fas fa-eye"></i>
                                                     </button>
                                                 </div>
-                                                <button class="btn btn-danger btn-sm wishlist-remove-btn"
+                                                <button class="btn-sm wishlist-remove-btn"
                                                         data-product-id="<?= $item['product_id'] ?>"
                                                         title="Xóa khỏi yêu thích">
                                                     <i class="fas fa-times"></i>

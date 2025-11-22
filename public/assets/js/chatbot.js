@@ -27,6 +27,12 @@ class FSFashionChatbot {
 	}
 
 	init() {
+		// Prevent multiple initialization
+		if (this.initialized) {
+			console.log('Chatbot already initialized');
+			return;
+		}
+		
 		// Thêm CSS cho các thành phần đặc biệt như bảng size
 		this.injectCustomCSS();
 
@@ -91,15 +97,29 @@ class FSFashionChatbot {
 			});
 		}
 
-		// Quick action buttons - chỉ xử lý click vào button
+		// Quick action buttons - use simple forEach but with flag check
 		document.querySelectorAll('.quick-action').forEach((btn) => {
+			// Skip if already has our listener
+			if (btn.hasAttribute('data-chatbot-bound')) {
+				return;
+			}
+			
 			btn.addEventListener('click', (e) => {
+				e.preventDefault();
+				e.stopPropagation();
 				const message = btn.dataset.message;
 				if (message) {
 					this.sendUserMessage(message);
 				}
 			});
+			
+			// Mark as bound to prevent duplicate
+			btn.setAttribute('data-chatbot-bound', 'true');
 		});
+
+		// Mark as initialized
+		this.initialized = true;
+		console.log('FSFashionChatbot initialized');
 	}
 
 	toggle() {

@@ -5,7 +5,6 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Google\Client as Google_Client;
 use Google\Service\Oauth2 as Google_Service_Oauth2;
-use Exception;
 
 class GoogleAuthHelper
 {

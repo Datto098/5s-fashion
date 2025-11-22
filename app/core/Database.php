@@ -109,10 +109,11 @@ class Database
             return $stmt;
         } catch (PDOException $e) {
             if (APP_DEBUG) {
-                die('Query failed: ' . $e->getMessage() . '<br>SQL: ' . $sql);
+                error_log('Database query failed: ' . $e->getMessage() . ' SQL: ' . $sql);
+                throw new Exception('Query failed: ' . $e->getMessage());
             } else {
                 error_log('Database query failed: ' . $e->getMessage() . ' SQL: ' . $sql);
-                return false;
+                throw new Exception('Database error occurred');
             }
         }
     }
